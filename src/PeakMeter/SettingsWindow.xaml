@@ -1,0 +1,140 @@
+<Window x:Class="PeakMeter.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:PeakMeter"
+        Title="PeakMeter" Width="400" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen" FontFamily="{StaticResource UiFont}" Topmost="True"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True">
+
+    <Window.Resources>
+        <Style x:Key="Section" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Accent}" />
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,14,0,4" />
+        </Style>
+        <Style x:Key="Hint" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextDim}" />
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style x:Key="KeyBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#14FFFFFF" />
+            <Setter Property="Foreground" Value="{StaticResource Text}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Edge}" />
+            <Setter Property="CaretBrush" Value="Transparent" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="Width" Value="130" />
+            <Setter Property="Padding" Value="6,3" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+    </Window.Resources>
+
+    <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Edge}" BorderThickness="1" CornerRadius="12" Padding="18,12,18,16">
+        <StackPanel>
+            <Grid Background="Transparent" MouseLeftButtonDown="Bar_MouseDown" Margin="0,0,0,2">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="pack://application:,,,/Assets/logo.png" Width="22" Height="22" Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality" />
+                    <TextBlock Text="{local:T De=Einstellungen, En=Settings}" Foreground="{StaticResource Text}" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBlock x:Name="VersionText" Foreground="{StaticResource TextDim}" FontSize="11" VerticalAlignment="Center" Margin="8,2,0,0" />
+                </StackPanel>
+                <Button Style="{StaticResource IconButton}" Content="&#xE8BB;" Click="Close_Click" HorizontalAlignment="Right" Width="28" Height="28" />
+            </Grid>
+
+            <!-- Language -->
+            <TextBlock Style="{StaticResource Section}" Text="{local:T De=SPRACHE, En=LANGUAGE}" />
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="LangDe" Style="{StaticResource Chip}" Height="26" Content="Deutsch" Margin="0,0,6,0" Click="Lang_Click" Tag="de" />
+                <Button x:Name="LangEn" Style="{StaticResource Chip}" Height="26" Content="English" Click="Lang_Click" Tag="en" />
+            </StackPanel>
+            <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,0"
+                       Text="{local:T De='Gilt für die Oberfläche und für Skill- und Boss-Namen. PeakMeter startet dafür kurz neu.', En='Applies to the interface and to skill and boss names. PeakMeter restarts briefly.'}" />
+
+            <!-- Display -->
+            <TextBlock Style="{StaticResource Section}" Text="{local:T De=ANZEIGE, En=DISPLAY}" />
+            <CheckBox x:Name="PartyOnly" Style="{StaticResource Switch}" Click="Toggle_Click"
+                      Content="{local:T De='Nur ich bzw. meine Gruppe', En='Only me / my party'}" />
+            <CheckBox x:Name="ShowPower" Style="{StaticResource Switch}" Click="Toggle_Click"
+                      Content="{local:T De='Combat Power neben den Namen', En='Combat power next to names'}" />
+            <CheckBox x:Name="Compact" Style="{StaticResource Switch}" Click="Toggle_Click"
+                      Content="{local:T De='Kompakte Zeilen', En='Compact rows'}" />
+            <Grid Margin="0,6,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="40" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{local:T De=Hintergrund, En=Background}" Foreground="{StaticResource TextSoft}" FontSize="12" VerticalAlignment="Center" Margin="0,0,12,0" />
+                <Slider x:Name="OpacitySlider" Grid.Column="1" Style="{StaticResource Slim}" Minimum="20" Maximum="100" IsMoveToPointEnabled="True" ValueChanged="Opacity_Changed" />
+                <TextBlock x:Name="OpacityText" Grid.Column="2" Foreground="{StaticResource TextSoft}" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Center" />
+            </Grid>
+
+            <!-- Sound and alerts -->
+            <TextBlock Style="{StaticResource Section}" Text="{local:T De='TÖNE &amp; HINWEISE', En='SOUND &amp; ALERTS'}" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="40" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{local:T De=Lautstärke, En=Volume}" Foreground="{StaticResource TextSoft}" FontSize="12" VerticalAlignment="Center" Margin="0,0,12,0" />
+                <Slider x:Name="Volume" Grid.Column="1" Style="{StaticResource Slim}" Minimum="0" Maximum="100" IsMoveToPointEnabled="True" ValueChanged="Volume_Changed" />
+                <TextBlock x:Name="VolumeText" Grid.Column="2" Foreground="{StaticResource TextSoft}" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <Button Grid.Column="3" Style="{StaticResource Chip}" Height="24" Margin="8,0,0,0" Click="TestSound_Click" Content="{local:T De=Testen, En=Test}" />
+            </Grid>
+
+            <!-- Hotkeys -->
+            <TextBlock Style="{StaticResource Section}" Text="{local:T De=TASTEN, En=HOTKEYS}" />
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{local:T De='Zeigen / verstecken', En='Show / hide'}" Foreground="{StaticResource TextSoft}" FontSize="12" VerticalAlignment="Center" />
+                <TextBox x:Name="KeyToggle" Grid.Column="1" Style="{StaticResource KeyBox}" Margin="0,3" PreviewKeyDown="Key_Down" Tag="toggle" />
+                <TextBlock Grid.Row="1" Text="{local:T De=Zurücksetzen, En=Reset}" Foreground="{StaticResource TextSoft}" FontSize="12" VerticalAlignment="Center" />
+                <TextBox x:Name="KeyReset" Grid.Row="1" Grid.Column="1" Style="{StaticResource KeyBox}" Margin="0,3" PreviewKeyDown="Key_Down" Tag="reset" />
+                <TextBlock Grid.Row="2" Text="{local:T De=Durchklicken, En=Click-through}" Foreground="{StaticResource TextSoft}" FontSize="12" VerticalAlignment="Center" />
+                <TextBox x:Name="KeyClick" Grid.Row="2" Grid.Column="1" Style="{StaticResource KeyBox}" Margin="0,3" PreviewKeyDown="Key_Down" Tag="click" />
+            </Grid>
+            <TextBlock x:Name="KeyHint" Style="{StaticResource Hint}" Margin="0,4,0,0"
+                       Text="{local:T De='Feld anklicken und die neue Kombination drücken (z. B. Strg+Shift+D).', En='Click a field and press the new combination (e.g. Ctrl+Shift+D).'}" />
+
+            <!-- General -->
+            <TextBlock Style="{StaticResource Section}" Text="{local:T De=ALLGEMEIN, En=GENERAL}" />
+            <CheckBox x:Name="Autostart" Style="{StaticResource Switch}" Click="Autostart_Click"
+                      Content="{local:T De='Mit Windows starten', En='Start with Windows'}" />
+            <CheckBox x:Name="AutoUpdate" Style="{StaticResource Switch}" Click="Toggle_Click"
+                      Content="{local:T De='Updates automatisch installieren', En='Install updates automatically'}" />
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <Button Style="{StaticResource Chip}" Height="26" Click="CheckUpdate_Click" Content="{local:T De='Nach Updates suchen', En='Check for updates'}" />
+                <TextBlock x:Name="UpdateText" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="10,0,0,0" />
+            </StackPanel>
+
+            <!-- Links -->
+            <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                <Button x:Name="GitHubButton" Style="{StaticResource Chip}" Height="26" Margin="0,0,6,0" Click="GitHub_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE943;" FontFamily="{StaticResource IconFont}" Margin="0,1,6,0" />
+                        <TextBlock Text="GitHub" />
+                    </StackPanel>
+                </Button>
+                <Button x:Name="KofiButton" Style="{StaticResource Chip}" Height="26" Click="Kofi_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xEB51;" FontFamily="{StaticResource IconFont}" Foreground="#FF6B81" Margin="0,1,6,0" />
+                        <TextBlock Text="{local:T De='PeakMeter unterstützen', En='Support PeakMeter'}" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

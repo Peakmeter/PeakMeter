@@ -1,0 +1,81 @@
+using System.IO;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+
+// Turns the logo artwork (tile on a black square) into a clean app icon: crop to the tile, transparent rounded
+// corners, PNGs and a multi-size .ico.
+static class Program
+{
+    [STAThread]
+    static void Main(string[] args)
+    {
+        var src = args[0]; var outDir = args[1];
+        BitmapSource img;
+        using (var fs = File.OpenRead(src))
+        {
+            var dec = BitmapDecoder.Create(fs, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+            img = new FormatConvertedBitmap(dec.Frames[0], PixelFormats.Bgra32, null, 0);
+        }
+        int w = img.PixelWidth, h = img.PixelHeight, stride = w * 4;
+        var px = new byte[stride * h];
+        img.CopyPixels(px, stride, 0);
+
+        // The tile is navy, the margin pure black: find the tile's bounds along the middle row and column.
+        bool Tile(int x, int y) { var i = y * stride + x * 4; return px[i] + px[i + 1] + px[i + 2] > 18; }
+        int midY = h / 2, midX = w / 2;
+        int left = 0; while (left < w && !Tile(left, midY)) left++;
+        int right = w - 1; while (right > 0 && !Tile(right, midY)) right--;
+        int top = 0; while (top < h && !Tile(midX, top)) top++;
+        int bottom = h - 1; while (bottom > 0 && !Tile(midX, bottom)) bottom--;
+        // Corner radius: walk the diagonal from the top-left corner until the tile starts.
+        int d = 0; while (d < (right - left) / 2 && !Tile(left + d, top + d)) d++;
+        double radius = d / (1 - Math.Sqrt(0.5));
+        Console.WriteLine($"tile {left},{top} - {right},{bottom}  radius {radius:0}");
+
+        var crop = new CroppedBitmap(img, new Int32Rect(left, top, right - left + 1, bottom - top + 1));
+        BitmapSource Render(int size)
+        {
+            var dv = new DrawingVisual();
+            RenderOptions.SetBitmapScalingMode(dv, BitmapScalingMode.Fant);
+            using (var dc = dv.RenderOpen())
+            {
+                var r = radius * size / crop.PixelWidth;
+                dc.PushClip(new RectangleGeometry(new Rect(0, 0, size, size), r, r));
+                dc.DrawImage(crop, new Rect(0, 0, size, size));
+                dc.Pop();
+            }
+            var rt = new RenderTargetBitmap(size, size, 96, 96, PixelFormats.Pbgra32);
+            rt.Render(dv);
+            return rt;
+        }
+        byte[] Png(int size)
+        {
+            // Large sources scale in steps so small sizes stay crisp.
+            var enc = new PngBitmapEncoder();
+            enc.Frames.Add(BitmapFrame.Create(Render(size)));
+            using var ms = new MemoryStream();
+            enc.Save(ms);
+            return ms.ToArray();
+        }
+
+        File.WriteAllBytes(Path.Combine(outDir, "logo-1024.png"), Png(1024));
+        File.WriteAllBytes(Path.Combine(outDir, "logo-256.png"), Png(256));
+        File.WriteAllBytes(Path.Combine(outDir, "logo-32.png"), Png(32));
+        File.WriteAllBytes(Path.Combine(outDir, "logo-16.png"), Png(16));
+        int[] sizes = [16, 20, 24, 32, 40, 48, 64, 128, 256];
+        var images = sizes.Select(Png).ToList();
+        using var ico = new BinaryWriter(File.Create(Path.Combine(outDir, "app.ico")));
+        ico.Write((short)0); ico.Write((short)1); ico.Write((short)sizes.Length);
+        var offset = 6 + 16 * sizes.Length;
+        for (var i = 0; i < sizes.Length; i++)
+        {
+            ico.Write((byte)(sizes[i] >= 256 ? 0 : sizes[i])); ico.Write((byte)(sizes[i] >= 256 ? 0 : sizes[i]));
+            ico.Write((byte)0); ico.Write((byte)0); ico.Write((short)1); ico.Write((short)32);
+            ico.Write(images[i].Length); ico.Write(offset);
+            offset += images[i].Length;
+        }
+        foreach (var b in images) ico.Write(b);
+        Console.WriteLine("ok");
+    }
+}

@@ -1,0 +1,56 @@
+<Window x:Class="PeakMeter.GearProbeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:PeakMeter"
+        Title="PeakMeter – Gearscore finden" Width="360" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen" FontFamily="{StaticResource UiFont}" Topmost="True"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True">
+    <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Edge}" BorderThickness="1" CornerRadius="12" Padding="16,12,16,16">
+        <StackPanel>
+            <Grid Background="Transparent" MouseLeftButtonDown="Bar_MouseDown" Margin="0,0,0,10">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="&#xE7C8;" FontFamily="{StaticResource IconFont}" Foreground="#FF6B81" FontSize="13"
+                               VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <TextBlock Text="{local:T De='Gearscore &amp; CP finden (Beta)', En='Find gear score &amp; CP (beta)'}" Foreground="{StaticResource Text}" FontSize="14.5" FontWeight="SemiBold" />
+                </StackPanel>
+                <Button Style="{StaticResource IconButton}" Content="&#xE8BB;" Click="Close_Click" HorizontalAlignment="Right"
+                        Width="28" Height="28" ToolTip="{local:T De='Schließen', En='Close'}" />
+            </Grid>
+
+            <TextBlock x:Name="StepText" Foreground="{StaticResource TextSoft}" FontSize="11.5" TextWrapping="Wrap" Margin="0,0,0,12" />
+
+            <Grid x:Name="InputRow" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="8" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="{local:T De='Gearscore', En='Gear score'}" Foreground="{StaticResource TextDim}" FontSize="10.5" Margin="0,0,0,3" />
+                    <Border CornerRadius="6" Background="#14FFFFFF" BorderBrush="{StaticResource Edge}" BorderThickness="1">
+                        <TextBox x:Name="GsBox" Background="Transparent" BorderThickness="0" Foreground="{StaticResource Text}" CaretBrush="White"
+                                 FontSize="13" Padding="8,4" KeyDown="Box_KeyDown" />
+                    </Border>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="{local:T De='Combat Power (z. B. 82100)', En='Combat power (e.g. 82100)'}" Foreground="{StaticResource TextDim}" FontSize="10.5" Margin="0,0,0,3" />
+                    <Border CornerRadius="6" Background="#14FFFFFF" BorderBrush="{StaticResource Edge}" BorderThickness="1">
+                        <TextBox x:Name="CpBox" Background="Transparent" BorderThickness="0" Foreground="{StaticResource Text}" CaretBrush="White"
+                                 FontSize="13" Padding="8,4" KeyDown="Box_KeyDown" />
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="MainButton" Style="{StaticResource Chip}" Height="28" Click="Main_Click">
+                    <TextBlock x:Name="MainLabel" Text="{local:T De='Aufnahme starten', En='Start recording'}" />
+                </Button>
+                <TextBlock x:Name="StatusText" Foreground="{StaticResource TextDim}" FontSize="10.5" VerticalAlignment="Center" Margin="10,0,0,0" />
+            </StackPanel>
+
+            <TextBlock Foreground="{StaticResource TextDim}" FontSize="10.5" TextWrapping="Wrap" Margin="0,12,0,0"
+                       Text="{local:T De='Die Aufnahme bleibt auf deinem PC (%AppData%\\PeakMeter) und enthält nur seltene Spiel-Nachrichten als Zahlen.', En='The recording stays on your PC (%AppData%\\PeakMeter) and only holds rare game messages as numbers.'}" />
+        </StackPanel>
+    </Border>
+</Window>

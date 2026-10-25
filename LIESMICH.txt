@@ -1,0 +1,44 @@
+PeakMeter – kostenloser DPS-Meter für AION 2 (EU / NA)
+=====================================================
+
+INSTALLIEREN (2 Minuten)
+------------------------
+1. Die ZIP entpacken (Rechtsklick -> "Alle extrahieren"). Nicht direkt aus der ZIP starten.
+2. "PeakMeter installieren.cmd" doppelklicken.
+   - Meldet Windows "Der Computer wurde durch Windows geschützt": "Weitere Informationen" -> "Trotzdem ausführen".
+     (PeakMeter ist neu und noch nicht signiert.)
+   - Fehlt Npcap, öffnet sich die Download-Seite: Npcap mit den Standard-Einstellungen installieren,
+     dann PeakMeter über das Desktop-Symbol starten.
+3. PeakMeter starten, BEVOR du einen Dungeon betrittst (Spielernamen kommen beim Ladebildschirm).
+
+WAS ES KANN
+-----------
+- Live-DPS: allein nur du, in der Gruppe nur deine Gruppe – mit Combat Power neben den Namen.
+- Boss-HP, Kampfzeit; Klick auf einen Spieler zeigt seine Skills.
+- Gruppe: Level, Gearscore und Combat Power aller Mitglieder (Personen-Symbol unten).
+- Logs: Boss-Kämpfe werden gespeichert (Uhr-Symbol unten).
+- Event-Timer mit sanftem Ton: Shugo-Festival, Luftangriff, Riss, Belagerung, Nahma … und alle 48 Weltbosse.
+  Tipp: Im Spiel einmal Karte -> Erkundung -> Feldmonster öffnen, dann übernimmt PeakMeter die echten Respawn-Zeiten.
+- Odyle-Energie wird automatisch erkannt, sobald sie sich im Spiel ändert (Blitz-Symbol unten).
+
+TASTEN
+------
+Strg+Shift+D  zeigen / verstecken       Strg+Shift+R  zurücksetzen
+Strg+Shift+L  durchklicken              Strg + Mausrad auf dem Overlay = Transparenz
+Rechtsklick auf das PeakMeter-Symbol unten rechts (Taskleiste) = Menü, Version, Beenden.
+
+FEEDBACK – BITTE!
+-----------------
+Was gefällt dir, was nervt, was fehlt? Stimmen die Zahlen im Vergleich zu anderen Metern?
+Am besten mit Screenshot. Bei Problemen hilft die Datei %AppData%\PeakMeter\peakmeter.log
+(enthält nur Status-Infos, keine Namen oder Chats).
+
+GUT ZU WISSEN
+-------------
+PeakMeter liest nur den Netzwerkverkehr deines eigenen Spiels: kein Speicherzugriff, nichts wird ans Spiel gesendet.
+Trotzdem können Tools von Drittanbietern gegen die Nutzungsbedingungen verstoßen – Nutzung auf eigenes Risiko.
+Kein offizielles Produkt, nicht mit NCSOFT verbunden.
+Deinstallieren: Ordner %LocalAppData%\Programs\PeakMeter und die Desktop-Verknüpfung löschen.
+
+Lizenz: GPL-3.0 (siehe LICENSE). Netzwerk-Dekodierung basiert auf
+https://github.com/cyberbadger6969/aion2-dps-meter (GPL-3.0).

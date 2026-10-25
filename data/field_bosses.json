@@ -1,0 +1,153 @@
+{
+ "_note": "Field bosses with respawn time after a kill in minutes (AION 2 Global, community data from aion2-guides.info, 2026-10). The in-game map list (Map > Exploration > Field monsters) always wins over these values. Edit freely.",
+ "regions": {
+  "2100": "Verteron",
+  "2400": "Altgard"
+ },
+ "bosses": {
+  "2100050": {
+   "respawnMin": 30
+  },
+  "2100003": {
+   "respawnMin": 30
+  },
+  "2100040": {
+   "respawnMin": 30
+  },
+  "2100141": {
+   "respawnMin": 60
+  },
+  "2100079": {
+   "respawnMin": 90
+  },
+  "2100076": {
+   "respawnMin": 120
+  },
+  "2100077": {
+   "respawnMin": 120
+  },
+  "2100178": {
+   "respawnMin": 180
+  },
+  "2100177": {
+   "respawnMin": 180
+  },
+  "2100988": {
+   "respawnMin": 120
+  },
+  "2100991": {
+   "respawnMin": 120
+  },
+  "2100989": {
+   "respawnMin": 120
+  },
+  "2100582": {
+   "respawnMin": 180
+  },
+  "2100617": {
+   "respawnMin": 120
+  },
+  "2100708": {
+   "respawnMin": 120
+  },
+  "2100718": {
+   "respawnMin": 360
+  },
+  "2100876": {
+   "respawnMin": 180
+  },
+  "2100877": {
+   "respawnMin": 120
+  },
+  "2101016": {
+   "respawnMin": 180
+  },
+  "2100661": {
+   "respawnMin": 360
+  },
+  "2101120": {
+   "respawnMin": 180
+  },
+  "2101122": {
+   "respawnMin": 360
+  },
+  "2101131": {
+   "respawnMin": 360
+  },
+  "2101074": {
+   "respawnMin": 360
+  },
+  "2400017": {
+   "respawnMin": 30
+  },
+  "2400074": {
+   "respawnMin": 30
+  },
+  "2400140": {
+   "respawnMin": 30
+  },
+  "2400141": {
+   "respawnMin": 60
+  },
+  "2400223": {
+   "respawnMin": 90
+  },
+  "2400212": {
+   "respawnMin": 120
+  },
+  "2400274": {
+   "respawnMin": 120
+  },
+  "2400335": {
+   "respawnMin": 120
+  },
+  "2400358": {
+   "respawnMin": 180
+  },
+  "2400353": {
+   "respawnMin": 120
+  },
+  "2400419": {
+   "respawnMin": 180
+  },
+  "2400424": {
+   "respawnMin": 240
+  },
+  "2400425": {
+   "respawnMin": 240
+  },
+  "2400474": {
+   "respawnMin": 180
+  },
+  "2400504": {
+   "respawnMin": 240
+  },
+  "2400593": {
+   "respawnMin": 360
+  },
+  "2400607": {
+   "respawnMin": 180
+  },
+  "2400608": {
+   "respawnMin": 240
+  },
+  "2400659": {
+   "respawnMin": 360
+  },
+  "2400709": {
+   "respawnMin": 360
+  },
+  "2400855": {
+   "respawnMin": 360
+  },
+  "2400854": {
+   "respawnMin": 360
+  },
+  "2400853": {
+   "respawnMin": 720
+  },
+  "2400800": {
+   "respawnMin": 720
+  }
+ }
+}

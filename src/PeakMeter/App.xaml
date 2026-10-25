@@ -1,0 +1,195 @@
+<Application x:Class="PeakMeter.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <FontFamily x:Key="UiFont">Segoe UI Variable Text, Segoe UI</FontFamily>
+        <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+
+        <SolidColorBrush x:Key="Panel" Color="#FA0D0F15" />
+        <SolidColorBrush x:Key="Edge" Color="#1FFFFFFF" />
+        <SolidColorBrush x:Key="Text" Color="#F2F4F8" />
+        <SolidColorBrush x:Key="TextSoft" Color="#C9CED9" />
+        <SolidColorBrush x:Key="TextDim" Color="#7D8597" />
+        <SolidColorBrush x:Key="Accent" Color="#7FD8F2" />
+        <SolidColorBrush x:Key="Track" Color="#14FFFFFF" />
+
+        <!-- Flat icon button: no chrome, soft hover. -->
+        <Style x:Key="IconButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource TextDim}" />
+            <Setter Property="FontFamily" Value="{StaticResource IconFont}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Width" Value="22" />
+            <Setter Property="Height" Value="22" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg" Background="Transparent" CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="#1AFFFFFF" />
+                                <Setter Property="Foreground" Value="{StaticResource Text}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="Chip" TargetType="Button" BasedOn="{StaticResource IconButton}">
+            <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+            <Setter Property="FontSize" Value="9.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Width" Value="Auto" />
+            <Setter Property="Padding" Value="7,0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg" Background="#14FFFFFF" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="#26FFFFFF" />
+                                <Setter Property="Foreground" Value="{StaticResource Text}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    <DataTemplate x:Key="RowTemplate">
+        <Grid x:Name="Row" Height="{Binding RowHeight}" Margin="0,0,0,2" Background="Transparent" Cursor="Hand">
+            <!-- track + damage bar -->
+            <Border CornerRadius="5" Background="{StaticResource Track}" />
+            <Border CornerRadius="5" HorizontalAlignment="Left" Width="{Binding BarWidth}" Background="{Binding BarBrush}" />
+            <Border CornerRadius="5,0,0,5" Width="3" HorizontalAlignment="Left" Background="{Binding ClassBrush}" />
+            <Border x:Name="SelfEdge" CornerRadius="5" BorderThickness="1" BorderBrush="#40FFFFFF" Visibility="Collapsed" />
+
+            <Grid Margin="9,0,8,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="42" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding Rank}" Foreground="{StaticResource TextDim}" FontSize="10.5"
+                           VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" />
+                <Image Grid.Column="1" Source="{Binding Icon}" Width="15" Height="15" Margin="0,0,6,0"
+                       VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality" />
+                <TextBlock x:Name="NameText" Grid.Column="2" Foreground="{StaticResource TextSoft}"
+                           FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"><Run Text="{Binding Name, Mode=OneWay}" /><Run
+                           Text="{Binding Power, Mode=OneWay}" Foreground="{StaticResource TextDim}" FontSize="10.5" FontWeight="Normal" /></TextBlock>
+                <TextBlock Grid.Column="3" Text="{Binding Dps}" Foreground="{StaticResource Text}" FontSize="12.5"
+                           FontWeight="SemiBold" VerticalAlignment="Center" Margin="8,0,0,0"
+                           Typography.NumeralAlignment="Tabular" />
+                <TextBlock Grid.Column="4" Text="{Binding Share}" Foreground="{StaticResource TextDim}" FontSize="10.5"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" />
+            </Grid>
+        </Grid>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsSelf}" Value="True">
+                <Setter TargetName="NameText" Property="Foreground" Value="White" />
+                <Setter TargetName="NameText" Property="FontWeight" Value="SemiBold" />
+                <Setter TargetName="SelfEdge" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                <Setter TargetName="SelfEdge" Property="Visibility" Value="Visible" />
+                <Setter TargetName="SelfEdge" Property="BorderBrush" Value="{StaticResource Accent}" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <DataTemplate x:Key="SkillTemplate">
+        <Grid Height="19" Margin="0,0,0,1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="40" />
+            </Grid.ColumnDefinitions>
+            <Border CornerRadius="3" HorizontalAlignment="Left" Width="{Binding BarWidth}" Background="{Binding BarBrush}" Grid.ColumnSpan="3" />
+            <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextSoft}" FontSize="11" Margin="6,0,6,0"
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            <TextBlock Grid.Column="1" Text="{Binding Damage}" Foreground="{StaticResource Text}" FontSize="11"
+                       VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" />
+            <TextBlock Grid.Column="2" Text="{Binding Share}" Foreground="{StaticResource TextDim}" FontSize="10"
+                       HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,6,0" Typography.NumeralAlignment="Tabular" />
+        </Grid>
+    </DataTemplate>
+    <Style x:Key="Slim" TargetType="Slider">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid Height="18" Background="Transparent">
+                        <Border Height="4" CornerRadius="2" Background="{StaticResource Track}" VerticalAlignment="Center" />
+                        <Track x:Name="PART_Track">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Command="Slider.DecreaseLarge" Focusable="False">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Border Height="4" CornerRadius="2" Background="{StaticResource Accent}" />
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Command="Slider.IncreaseLarge" Focusable="False">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Border Background="Transparent" />
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.IncreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb>
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Ellipse Width="14" Height="14" Fill="{StaticResource Text}" />
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- On/off switch for the settings window. -->
+    <Style x:Key="Switch" TargetType="CheckBox">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Foreground" Value="{StaticResource TextSoft}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent" Margin="0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ContentPresenter VerticalAlignment="Center" Margin="0,0,12,0" TextElement.FontSize="12" />
+                        <Border x:Name="Track" Grid.Column="1" Width="34" Height="18" CornerRadius="9" Background="#26FFFFFF">
+                            <Ellipse x:Name="Knob" Width="12" Height="12" Fill="#C9CED9" HorizontalAlignment="Left" Margin="3,0" />
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Track" Property="Background" Value="{StaticResource Accent}" />
+                            <Setter TargetName="Knob" Property="HorizontalAlignment" Value="Right" />
+                            <Setter TargetName="Knob" Property="Fill" Value="#0D0F15" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,139 @@
+<Window x:Class="PeakMeter.LogsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:PeakMeter"
+        Title="PeakMeter – Logs" Width="820" Height="540" MinWidth="620" MinHeight="380"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="CanResizeWithGrip"
+        WindowStartupLocation="CenterScreen" FontFamily="{StaticResource UiFont}"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True">
+
+    <Window.Resources>
+        <Style x:Key="FightItem" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,0,3" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bg" CornerRadius="8" Background="Transparent" Padding="10,7" Cursor="Hand">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="#10FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="#227FD8F2" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="FightTemplate">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="{Binding Title}" Foreground="{StaticResource Text}" FontSize="12.5" FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Meta}" Foreground="{StaticResource TextDim}" FontSize="10.5" Margin="0,2,0,0"
+                               TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
+                    <Border CornerRadius="4" Padding="5,1" Background="{Binding BadgeBrush}" HorizontalAlignment="Right">
+                        <TextBlock Text="{Binding Badge}" Foreground="{StaticResource Text}" FontSize="9.5" FontWeight="SemiBold" />
+                    </Border>
+                    <TextBlock Text="{Binding Place}" Foreground="{StaticResource TextDim}" FontSize="10.5" HorizontalAlignment="Right"
+                               Margin="0,2,0,0" />
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Edge}" BorderThickness="1" CornerRadius="12">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Title bar -->
+            <Grid Background="Transparent" MouseLeftButtonDown="Bar_MouseDown" Margin="16,12,10,8">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="&#xE81C;" FontFamily="{StaticResource IconFont}" Foreground="{StaticResource Accent}" FontSize="14"
+                               VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <TextBlock Text="Logs" Foreground="{StaticResource Text}" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBlock x:Name="CountText" Foreground="{StaticResource TextDim}" FontSize="11.5" Margin="10,2,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="AllChip" Style="{StaticResource Chip}" Content="{local:T De='ALLE', En='ALL'}" Height="22" Margin="0,0,4,0" Click="Filter_Click" Tag="all" />
+                    <Button x:Name="BossChip" Style="{StaticResource Chip}" Content="{local:T De='BOSSE', En='BOSSES'}" Height="22" Margin="0,0,10,0" Click="Filter_Click" Tag="boss" />
+                    <Button Style="{StaticResource IconButton}" Content="&#xE838;" Click="Folder_Click" ToolTip="{local:T De='Log-Ordner öffnen', En='Open log folder'}" Width="28" Height="28" />
+                    <Button Style="{StaticResource IconButton}" Content="&#xE8BB;" Click="Close_Click" ToolTip="{local:T De='Schließen', En='Close'}" Width="28" Height="28" />
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="10,0,14,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="280" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Fight list -->
+                <ListBox x:Name="List" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource FightItem}"
+                         ItemTemplate="{StaticResource FightTemplate}" SelectionChanged="List_Selected"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="True" />
+                <TextBlock x:Name="EmptyList" Text="{local:T De='Noch keine Kämpfe gespeichert.&#10;Boss-Kämpfe und Kämpfe über 20 s landen hier automatisch.', En='No fights saved yet.&#10;Boss fights and fights over 20 s are saved here automatically.'}"
+                           Foreground="{StaticResource TextDim}" FontSize="11.5" TextWrapping="Wrap" Margin="12,10" />
+
+                <!-- Fight detail -->
+                <Border Grid.Column="1" Margin="10,0,0,0" CornerRadius="10" Background="#08FFFFFF" Padding="14,12">
+                    <Grid>
+                        <TextBlock x:Name="Pick" Text="{local:T De='Wähle links einen Kampf.', En='Pick a fight on the left.'}" Foreground="{StaticResource TextDim}" FontSize="12"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <DockPanel x:Name="Detail" Visibility="Collapsed">
+                            <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock x:Name="FightTitle" Foreground="{StaticResource Text}" FontSize="16" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis" Margin="0,0,150,0" />
+                                    <TextBlock x:Name="FightMeta" Foreground="{StaticResource TextDim}" FontSize="11" Margin="0,3,0,0" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                                    <Button Style="{StaticResource Chip}" Height="24" Click="Copy_Click" Margin="0,0,4,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE8C8;" FontFamily="{StaticResource IconFont}" Margin="0,1,6,0" />
+                                            <TextBlock Text="{local:T De='Kopieren', En='Copy'}" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Style="{StaticResource Chip}" Height="24" Click="Delete_Click" ToolTip="{local:T De='Kampf löschen', En='Delete fight'}">
+                                        <TextBlock Text="&#xE74D;" FontFamily="{StaticResource IconFont}" />
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock x:Name="SkillHeader" DockPanel.Dock="Bottom" Visibility="Collapsed" />
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <ItemsControl x:Name="Rows" ItemTemplate="{StaticResource RowTemplate}" PreviewMouseLeftButtonUp="Rows_Click" />
+                                    <Border x:Name="SkillPanel" Visibility="Collapsed" Margin="0,8,0,0" Padding="0,10,0,0"
+                                            BorderBrush="{StaticResource Edge}" BorderThickness="0,1,0,0">
+                                        <StackPanel>
+                                            <Grid Margin="2,0,2,8">
+                                                <TextBlock x:Name="SkillTitle" Foreground="{StaticResource Text}" FontSize="12.5" FontWeight="SemiBold" />
+                                                <TextBlock x:Name="SkillStats" HorizontalAlignment="Right" Foreground="{StaticResource TextDim}" FontSize="11" />
+                                            </Grid>
+                                            <ItemsControl x:Name="Skills" ItemTemplate="{StaticResource SkillTemplate}" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
