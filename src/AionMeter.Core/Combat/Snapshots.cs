@@ -31,8 +31,13 @@ public sealed record CombatantSnapshot(
     int ServerId = 0,
     int GearScore = 0,
     long CombatPower = 0,
-    long Healing = 0)
+    long Healing = 0,
+    long ActiveMs = 0)
 {
+    /// <summary>aDPS: damage per second of the player's own active time (first to last hit), not the whole fight.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public double ActiveDps => ActiveMs >= 1000 ? Damage / (ActiveMs / 1000.0) : Dps;
+
     /// <summary>The "summons, owner unknown" pseudo-row (see <see cref="Combatant.UnknownSummonsId"/>).</summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsUnknownSummons => ActorId == Combatant.UnknownSummonsId;

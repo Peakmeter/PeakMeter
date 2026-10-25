@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Englisch, Einstellungen, Auto-Update, Heilung/Tank-Ansicht, Bestzeiten";
-    private const string WhatsNewEn = "English, settings, auto-update, heal/tank view, best times";
+    private const string WhatsNew = "Hinweise rechts am Rand, neue Einstellungen, Tickets-Fenster, aDPS, GS/CP-Anzeige";
+    private const string WhatsNewEn = "alerts at the right edge, new settings, tickets window, aDPS, GS/CP chip";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -82,6 +82,7 @@ public partial class App : Application
 
         Settings = Settings.Load();
         L.En = Settings.Language == "en";
+        if (!Settings.RememberClickThrough) Settings.ClickThrough = false;
         Meter = new Meter(Settings, demo: e.Args.Contains("--demo"), saveDemo: e.Args.Contains("--save-demo"));
 
         _overlay = new Overlay(this);
@@ -103,12 +104,11 @@ public partial class App : Application
                 _updateItem.Visible = true;
             }
             var text = Settings.AutoUpdate
-                ? L.S($"Update v{v} bereit – wird installiert, wenn Aion 2 zu ist. Klick = jetzt", $"Update v{v} ready – installs when AION 2 is closed. Click = now")
-                : L.S($"Update v{v} verfügbar – klicken zum Installieren", $"Update v{v} available – click to install");
-            if (_overlay is { IsVisible: true }) _overlay.ShowAction(text, () => _ = Updater.Install());
-            else _tray?.ShowBalloonTip(6000, "PeakMeter", text, Forms.ToolTipIcon.None);
+                ? L.S("Wird installiert, wenn Aion 2 zu ist. Klick = jetzt", "Installs when AION 2 is closed. Click = now")
+                : L.S("Klicken zum Installieren", "Click to install");
+            Toasts.Show($"PeakMeter v{v}", text, "update", 20, () => _ = Updater.Install());
         });
-        Updater.Status += s => Dispatcher.BeginInvoke(() => _overlay?.ShowAlert(s));
+        Updater.Status += s => Dispatcher.BeginInvoke(() => Toasts.Show("PeakMeter", s, "update", 6));
         Meter.Timers.Alert += OnEventAlert;
 
         // Just updated: say so once, with what is new (no sound).
@@ -116,14 +116,15 @@ public partial class App : Application
         {
             Settings.LastVersion = Version;
             Settings.Save();
-            if (_overlay.IsVisible) _overlay.ShowAlert(L.S($"Aktualisiert auf v{Version} – neu: {WhatsNew}", $"Updated to v{Version} – new: {WhatsNewEn}"));
-            else _tray?.ShowBalloonTip(6000, $"PeakMeter v{Version}", L.S("Neu: ", "New: ") + L.S(WhatsNew, WhatsNewEn), Forms.ToolTipIcon.None);
+            Toasts.Show(L.S($"Aktualisiert auf v{Version}", $"Updated to v{Version}"), L.S("Neu: ", "New: ") + L.S(WhatsNew, WhatsNewEn), "update", 12);
         }
         Meter.Start();
         if (e.Args.Contains("--demo")) Meter.StartDemo();
         if (e.Args.Contains("--open-all"))
         {
-            ShowTimers(); ShowLogs(); ShowEnergy(); ShowGearProbe(); ShowSettings();
+            ShowTimers(); ShowLogs(); ShowEnergy(); ShowGearProbe(); ShowTickets(); ShowSettings();
+            Notify(L.S("Shugo-Festival", "Shugo Festival"), L.S("startet in 1 Min", "starts in 1 min"), "event");
+            Notify("Watcher Kaira", L.S("spawnt in 2 Min", "respawns in 2 min"), "boss");
         }
     }
 
@@ -136,6 +137,7 @@ public partial class App : Application
         if (!_hotkeys.Register(Settings.HotkeyToggle, () => SetVisible(!_overlay!.IsVisible))) failed.Add(Settings.HotkeyToggle);
         if (!_hotkeys.Register(Settings.HotkeyReset, Meter.Reset)) failed.Add(Settings.HotkeyReset);
         if (!_hotkeys.Register(Settings.HotkeyClickThrough, ToggleClickThrough)) failed.Add(Settings.HotkeyClickThrough);
+        if (Settings.HotkeyCopy.Length > 0 && !_hotkeys.Register(Settings.HotkeyCopy, () => _overlay?.CopySummary())) failed.Add(Settings.HotkeyCopy);
         return failed;
     }
 
@@ -182,10 +184,9 @@ public partial class App : Application
     }
 
     private long _lastAlert = -10_000;
-    private string _lastAlertText = "";
 
     private void OnEventAlert(EventState e, int minutes) =>
-        Notify(minutes <= 0 ? L.S($"{e.Def.Name} startet jetzt", $"{e.Def.Name} starts now") : L.S($"{e.Def.Name} in {minutes} Min", $"{e.Def.Name} in {minutes} min"));
+        Notify(e.Def.Name, minutes <= 0 ? L.S("startet jetzt", "starts now") : L.S($"startet in {minutes} Min", $"starts in {minutes} min"), "event");
 
     /// <summary>Watched world bosses about to respawn (called once a second by the overlay's clock).</summary>
     public void CheckBossAlerts()
@@ -194,21 +195,24 @@ public partial class App : Application
         {
             var minutes = t.NextSpawn is { } next ? (int)Math.Ceiling((next - DateTimeOffset.Now).TotalMinutes) : 0;
             var name = Meter.BossName(t.NpcCode);
-            Notify(minutes <= 0 ? L.S($"{name} ist wieder da", $"{name} is back") : L.S($"{name} in {minutes} Min", $"{name} in {minutes} min"));
+            Notify(name, minutes <= 0 ? L.S("ist wieder da", "is back") : L.S($"spawnt in {minutes} Min", $"respawns in {minutes} min"), "boss");
         }
     }
 
-    /// <summary>One soft chime and a banner (or a tray note while the meter is hidden).</summary>
-    public void Notify(string text)
+    /// <summary>One soft chime and a card sliding in at the right (or the banner in the meter, if cards are off).</summary>
+    public void Notify(string title, string detail = "", string kind = "info", Action? onClick = null)
     {
-        // Events starting together (e.g. Shugo and a rift at :00): one chime, one banner with both.
+        // Events starting together (e.g. Shugo and a rift at :00): one chime, the cards stack.
         var now = Environment.TickCount64;
-        if (now - _lastAlert < 3000) text = _lastAlertText + "  ·  " + text;
-        else Chime.Play(Settings.SoundVolume);
+        if (now - _lastAlert >= 3000) Chime.Play(Settings.SoundVolume);
         _lastAlert = now;
-        _lastAlertText = text;
-        if (_overlay is { IsVisible: true }) _overlay.ShowAlert(text);
-        else _tray?.ShowBalloonTip(5000, "PeakMeter", text, Forms.ToolTipIcon.None);
+        if (Settings.Toasts) Toasts.Show(title, detail, kind, Settings.ToastSeconds, onClick);
+        else
+        {
+            var text = detail.Length > 0 ? $"{title} – {detail}" : title;
+            if (_overlay is { IsVisible: true }) _overlay.ShowAlert(text);
+            else _tray?.ShowBalloonTip(5000, "PeakMeter", text, Forms.ToolTipIcon.None);
+        }
     }
 
     public void ShowLogs()
@@ -246,6 +250,19 @@ public partial class App : Application
         _gearProbe.Activate();
     }
 
+    private TicketsWindow? _tickets;
+
+    public void ShowTickets()
+    {
+        if (_tickets is null)
+        {
+            _tickets = new TicketsWindow(Meter, Settings);
+            _tickets.Closed += (_, _) => _tickets = null;
+            _tickets.Show();
+        }
+        _tickets.Activate();
+    }
+
     public void ShowTimers()
     {
         if (_timers is null)
@@ -273,6 +290,7 @@ public partial class App : Application
         menu.Items.Add(L.S("Einstellungen", "Settings"), null, (_, _) => ShowSettings());
         menu.Items.Add("Logs", null, (_, _) => ShowLogs());
         menu.Items.Add(L.S("Event-Timer", "Event timers"), null, (_, _) => ShowTimers());
+        menu.Items.Add("Tickets", null, (_, _) => ShowTickets());
         menu.Items.Add(L.S("Odyle-Energie", "Odyle energy"), null, (_, _) => ShowEnergy());
         menu.Items.Add(L.S("Gearscore & CP finden (Beta)", "Find gear score & CP (beta)"), null, (_, _) => ShowGearProbe());
         var party = new Forms.ToolStripMenuItem(L.S("Nur ich / meine Gruppe", "Only me / my party")) { Checked = Settings.PartyOnly, CheckOnClick = true };
@@ -337,6 +355,7 @@ public sealed class Meter : IDisposable
     public BossTimers Bosses { get; }
     public Odyle Odyle { get; }
     public Records Records { get; }
+    public Characters Characters { get; } = new();
 
     /// <summary>The newest party roster (name, level, class, gear score, combat power); null outside a party.</summary>
     public PartyRosterEvent? Roster { get; private set; }
@@ -363,6 +382,14 @@ public sealed class Meter : IDisposable
         if (!demo && _names.Load() is { } cached) Tracker.ImportCache(cached);
         Tracker.EncounterFinished += OnFightFinished;
         Odyle = new Odyle(settings);
+        Tracker.Options.IdleTimeoutMs = Math.Clamp(settings.IdleTimeoutSec, 3, 120) * 1000;
+        Timers.SetRegion(settings.Region);
+        // A different character logged in: its own Odyle energy comes back.
+        Tracker.SelfIdentified += name =>
+        {
+            if (Characters.Get(name, Tracker.SelfServerId) is { OdylePool: >= 0, OdyleAt: { } at } c)
+                System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.Restore(c.OdylePool, c.OdyleBonus, at));
+        };
         Records = new Records(History, this);
         // Values entered before the bonus pool existed: anything above the cap was bonus energy.
         if (settings.OdyleValue > Odyle.Cap && settings.OdyleBonus == 0 && settings.OdyleFromGameAt is null)
@@ -412,8 +439,16 @@ public sealed class Meter : IDisposable
             _capture.EventDecoded += Tracker.Process;
             _capture.EventDecoded += e =>
             {
+                if (e is ResourceRawEvent raw)
+                {
+                    // Other counters in the same message (tickets, keys …): logged once each, to learn their layout.
+                    var hex = Convert.ToHexString(raw.Raw);
+                    if (_seenRaw.Add(hex)) Log($"Counter message (unknown): {hex} [char {Tracker.SelfName}]");
+                    return;
+                }
                 if (e is not OdyleEnergyEvent o) return;
                 Log($"Odyle from game: pool {o.Regen}, bonus {o.Bonus}, change {o.Change:+0;-0;0} ({Convert.ToHexString(o.Raw)})");
+                if (Tracker.SelfName is { } self) Characters.Odyle(self, Tracker.SelfServerId, o.Regen, o.Bonus);
                 System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.SetFromGame(o.Regen, o.Bonus));
             };
             _capture.StatusChanged += st =>
@@ -569,9 +604,12 @@ public sealed class Meter : IDisposable
         Tracker.Reset();
     }
 
+    private readonly HashSet<string> _seenRaw = new();
+
     public void Tick()
     {
         Tracker.Tick(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+        if (!_demoOnly && !DemoRunning && Tracker.SelfName is { } me) Characters.Seen(me, Tracker.SelfServerId, Tracker.SelfClass);
         if (_demoOnly || DemoRunning) return;
         var now = Environment.TickCount64;
         if (now - _lastSave < 10_000 || Tracker.CacheVersion == _savedVersion) return;

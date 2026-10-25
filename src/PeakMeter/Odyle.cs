@@ -60,6 +60,18 @@ public sealed class Odyle(Settings s)
         if (changed) Updated?.Invoke();
     }
 
+    /// <summary>Another character logged in: its last known value (it regenerated while you were away).</summary>
+    public void Restore(int pool, int bonus, DateTimeOffset at)
+    {
+        s.OdyleValue = Math.Max(0, pool);
+        s.OdyleBonus = Math.Max(0, bonus);
+        s.OdyleSetAt = at;
+        s.OdyleFromGameAt = at;
+        s.OdyleFullNotified = false;
+        s.Save();
+        Updated?.Invoke();
+    }
+
     /// <summary>The total the game shows, entered by hand: anything above the cap counts as bonus.</summary>
     public void Set(int total)
     {

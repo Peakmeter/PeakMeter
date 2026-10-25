@@ -886,7 +886,12 @@ public sealed class PacketParser
     /// </summary>
     private void ParseOdyle(ReadOnlySpan<byte> b)
     {
-        if (b.Length < 7 || b[0] != 0x01 || b[2] != 0x01) return;
+        // The same message carries other counters too (tickets, keys …): passed on raw so they can be learned.
+        if (b.Length < 7 || b[0] != 0x01 || b[2] != 0x01)
+        {
+            Emit(new ResourceRawEvent(TimeMs, b.ToArray()));
+            return;
+        }
         var o = 3;
         if (!Wire.TryVarint(b, ref o, out _)) return;
         if (!Wire.TryVarint(b, ref o, out var regen) || !Wire.TryVarint(b, ref o, out var bonus)) return;

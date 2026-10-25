@@ -55,6 +55,39 @@ public sealed class Settings
     public string HotkeyClickThrough { get; set; } = "Ctrl+Shift+L";
     public bool AutoUpdate { get; set; } = true;
 
+    // ---- 1.14: settings in the style of the big meters
+    /// <summary>"eu" or "na": the time zone of the event timers.</summary>
+    public string Region { get; set; } = "eu";
+    /// <summary>A fight ends after this many seconds without damage (no boss alive).</summary>
+    public int IdleTimeoutSec { get; set; } = 10;
+    /// <summary>"e" = eDPS (whole fight) or "a" = aDPS (own active time).</summary>
+    public string DpsMode { get; set; } = "e";
+    /// <summary>Number after each name: "cp" (combat power), "gs" (gear score) or "none".</summary>
+    public string ValueChip { get; set; } = "cp";
+    /// <summary>Show each player's total damage next to the DPS.</summary>
+    public bool ShowTotal { get; set; }
+    public bool Use24h { get; set; } = true;
+    /// <summary>Other players by class name instead of their name (for streams and screenshots).</summary>
+    public bool HideNames { get; set; }
+    public double UiScale { get; set; } = 1.0;
+    /// <summary>Update interval in a fight, milliseconds.</summary>
+    public int RefreshMs { get; set; } = 250;
+    public bool SummaryMultiline { get; set; }
+    /// <summary>In a fight the header hides until the mouse is over the meter.</summary>
+    public bool FocusMode { get; set; }
+    /// <summary>Fade the meter after a while without a fight.</summary>
+    public bool FadeIdle { get; set; }
+    public int FadeAfterSec { get; set; } = 60;
+    /// <summary>Show the meter only while AION 2 (or PeakMeter itself) is in the foreground.</summary>
+    public bool OnlyOverGame { get; set; }
+    public bool RememberClickThrough { get; set; } = true;
+    /// <summary>Hide the meter while AION 2 is not running; it comes back when the game starts.</summary>
+    public bool HideWhenGameClosed { get; set; }
+    /// <summary>Alerts slide in at the right edge of the screen.</summary>
+    public bool Toasts { get; set; } = true;
+    public int ToastSeconds { get; set; } = 8;
+    public string HotkeyCopy { get; set; } = "";
+
     // Odyle energy (entered by hand: the game traffic PeakMeter reads does not carry it).
     public int OdyleValue { get; set; } = -1;
     public DateTimeOffset? OdyleSetAt { get; set; }

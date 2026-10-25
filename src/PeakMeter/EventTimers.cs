@@ -118,6 +118,31 @@ public sealed class EventTimers
         return true;
     }
 
+    /// <summary>EU (Berlin time) or NA (New York time): all events follow the server's clock.</summary>
+    public void SetRegion(string region)
+    {
+        var tz = region == "na" ? "America/New_York" : "Europe/Berlin";
+        if (_file.TimeZone == tz) return;
+        _file.TimeZone = tz;
+        try
+        {
+            File.WriteAllText(FilePath, JsonSerializer.Serialize(_file, Json));
+            Load();
+        }
+        catch { }
+    }
+
+    /// <summary>Minutes before an event that the chime plays (default for all events).</summary>
+    public int LeadMinutes
+    {
+        get => _file.LeadMin;
+        set
+        {
+            _file.LeadMin = Math.Clamp(value, 0, 30);
+            try { File.WriteAllText(FilePath, JsonSerializer.Serialize(_file, Json)); _loadedStamp = File.GetLastWriteTimeUtc(FilePath); } catch { }
+        }
+    }
+
     /// <summary>Bell on/off from the timer window, written back to the file.</summary>
     public void SetAlert(EventState e, bool on)
     {

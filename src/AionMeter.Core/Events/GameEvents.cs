@@ -71,6 +71,9 @@ public sealed record PartyMemberInfo(string Name, int ServerId, int Level, int G
 /// <paramref name="Bonus"/> comes from items and does not; the game shows their sum.</summary>
 public sealed record OdyleEnergyEvent(long TimeMs, int Regen, int Bonus, int Change, byte[] Raw) : GameEvent(TimeMs);
 
+/// <summary>A counter message (<c>0C 61</c>) that is not Odyle energy: kept raw until its layout is known (PeakMeter).</summary>
+public sealed record ResourceRawEvent(long TimeMs, byte[] Raw) : GameEvent(TimeMs);
+
 public sealed record PartyRosterEvent(long TimeMs, IReadOnlyList<PartyMemberInfo> Members) : GameEvent(TimeMs);
 
 public sealed record PlayerSeenEvent(long TimeMs, uint ActorId, string Name, int ServerId, GameClass Class) : GameEvent(TimeMs);

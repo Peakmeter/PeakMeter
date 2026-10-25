@@ -34,6 +34,9 @@
 - **Event timers** – Shugo Festival, air raid / dimensional invasion, Spacetime Rift, sieges, Nahma, resets … with a soft chime that never hurts your ears.
 - **World boss timers** – all 48 field bosses of Verteron and Altgard. Open *Map → Exploration → Field monsters* once and PeakMeter takes the exact respawn times from the server.
 - **Odyle energy** – read straight from the game whenever it changes, counted forward in between; chimes before regeneration is wasted.
+- **Alerts at the right edge** – events, world bosses and full energy slide in as small cards and slide out again.
+- **Tickets window** – all your characters with their Odyle energy, estimated forward since you last played each.
+- **Settings like the big meters** – eDPS / aDPS, combat power or gear score next to names, total damage, hide player names (for streams), UI scale, refresh rate, focus mode, fade when idle, only over the game, region EU / NA.
 - **Light on your PC** – no GPU use, low priority; ~0.2 % CPU idle, ~65 MB RAM.
 - **German &amp; English**, settings window, custom hotkeys, start with Windows, **automatic updates**.
 
@@ -78,6 +81,7 @@ Bugs and ideas: [Issues](https://github.com/Peakmeter/PeakMeter/issues). The fil
 - **Gruppe** mit Level, Gearscore und Combat Power, **Logs** aller Boss-Kämpfe.
 - **Event-Timer** (Shugo, Luftangriff, Riss, Belagerung, Nahma …) und **alle 48 Weltbosse** mit sanftem Klingelton.
 - **Odyle-Energie** automatisch aus dem Spiel.
+- **Hinweise rechts am Bildschirmrand**, **Tickets-Fenster** mit Odyle pro Charakter, **Einstellungen** wie bei den großen Metern (aDPS, GS/CP, Namen ausblenden, Skalierung, Fokusmodus …).
 - **Schont den PC**, Deutsch &amp; Englisch, Einstellungen, eigene Tasten, **automatische Updates**.
 
 **Installieren:** [Npcap](https://npcap.com/#download) installieren → neueste ZIP unter [Releases](https://github.com/Peakmeter/PeakMeter/releases/latest) laden und entpacken → `PeakMeter installieren.cmd` doppelklicken. Bei „Der Computer wurde durch Windows geschützt“: *Weitere Informationen → Trotzdem ausführen*.

@@ -55,6 +55,7 @@ public partial class Overlay : Window
             Top = SystemParameters.WorkArea.Top + 140;
         }
         ApplyOpacity();
+        ApplyScale();
         UpdateChips();
 
         MouseEnter += (_, _) => Toolbar.Visibility = Visibility.Visible;
@@ -120,16 +121,19 @@ public partial class Overlay : Window
         var live = _meter.Tracker.LiveFight() is not null || _meter.DemoRunning;
         _app.CheckBossAlerts();
         if (_meter.Odyle.TakeFullAlert(DateTimeOffset.Now))
-            _app.Notify(L.S($"Odyle-Energie ist voll ({_meter.Odyle.Cap}) – Zeit zum Raiden!", $"Odyle energy is full ({_meter.Odyle.Cap}) – time to raid!"));
+            _app.Notify(L.S("Odyle-Energie voll", "Odyle energy full"), L.S($"{_meter.Odyle.Cap} erreicht – Zeit zum Raiden!", $"{_meter.Odyle.Cap} reached – time to raid!"), "energy");
         if (live) _partyAuto = false; // a fight needs the room: the party list steps aside
         if (Environment.TickCount64 - _lastIdleCheck > 60_000)
         {
             _lastIdleCheck = Environment.TickCount64;
             _app.Updater?.InstallWhenIdle();
         }
-        var wanted = TimeSpan.FromMilliseconds(live ? 250 : 1000);
+        var wanted = TimeSpan.FromMilliseconds(live ? Math.Clamp(_settings.RefreshMs, 100, 1000) : 1000);
         if (_timer.Interval != wanted) _timer.Interval = wanted;
+        if (live) _lastFight = Environment.TickCount64;
+        ApplyVisibilityRules();
         if (!IsVisible) return;
+        ApplyFade(live);
 
         Refresh();
         UpdateExtras(nowUtc);
@@ -183,6 +187,8 @@ public partial class Overlay : Window
 
         _showingEmpty = false;
         EmptyText.Visibility = Visibility.Collapsed;
+        var focus = _settings.FocusMode && snap.IsActive && !IsMouseOver;
+        Header.Visibility = focus ? Visibility.Collapsed : Visibility.Visible;
         UpdateCompare(snap);
         UpdateRows(snap);
         UpdateDetail();
@@ -238,6 +244,7 @@ public partial class Overlay : Window
     private void ShowEmpty()
     {
         _showingEmpty = true;
+        Header.Visibility = Visibility.Visible;
         ComparePanel.Visibility = Visibility.Collapsed;
         _rows.Clear();
         HpPanel.Visibility = Visibility.Collapsed;
@@ -302,15 +309,28 @@ public partial class Overlay : Window
         var total = list.Sum(c => (double)Metric(c));
         var mine = filtered || _settings.View != "dps";
         var share = list.ToDictionary(c => c.ActorId, c => mine ? (total > 0 ? Metric(c) / total : 0) : c.Share);
-        return (list, share, filtered ? list.Sum(c => c.Dps) : snap.PartyDps, filtered);
+        return (list, share, filtered || _settings.DpsMode == "a" ? list.Sum(DpsOf) : snap.PartyDps, filtered);
     }
+
+    /// <summary>eDPS (whole fight) or aDPS (the player's own active time), per the settings.</summary>
+    private double DpsOf(CombatantSnapshot c) => _settings.DpsMode == "a" ? c.ActiveDps : c.Dps;
+
+    /// <summary>Others by class name when "hide player names" is on (for streams); you keep yours.</summary>
+    private string NameOf(CombatantSnapshot c) =>
+        c.IsUnknownSummons ? L.S("Beschwörungen", "Summons")
+        : _settings.HideNames && !c.IsSelf ? ClassStyle.Name(c.Class)
+        : c.Name;
 
     private string PowerOf(CombatantSnapshot c)
     {
-        if (!_settings.ShowPower) return "";
-        var cp = c.CombatPower;
-        if (cp <= 0 && _meter.Roster?.Members.FirstOrDefault(m => string.Equals(m.Name, c.Name, StringComparison.OrdinalIgnoreCase)) is { } m)
-            cp = m.CombatPower;
+        if (_settings.ValueChip == "none" || c.IsUnknownSummons) return "";
+        var member = _meter.Roster?.Members.FirstOrDefault(m => string.Equals(m.Name, c.Name, StringComparison.OrdinalIgnoreCase));
+        if (_settings.ValueChip == "gs")
+        {
+            var gs = c.GearScore > 0 ? c.GearScore : member?.GearScore ?? 0;
+            return gs > 0 ? "  " + gs.ToString("N0", L.Culture) : "";
+        }
+        var cp = c.CombatPower > 0 ? c.CombatPower : member?.CombatPower ?? 0;
         return cp > 0 ? "  " + Format.Power(cp) : "";
     }
 
@@ -332,12 +352,12 @@ public partial class Overlay : Window
             r.ActorId = c.ActorId;
             r.RowHeight = rowHeight;
             r.Rank = c.IsUnknownSummons ? "" : (i + 1).ToString();
-            r.Name = c.IsUnknownSummons ? L.S("Beschwörungen", "Summons") : c.Name;
+            r.Name = NameOf(c);
             r.Dps = _settings.View switch
             {
                 "heal" => Format.Compact(c.Healing / seconds),
                 "tank" => Format.Compact(c.DamageTaken),
-                _ => Format.Compact(c.Dps),
+                _ => _settings.ShowTotal ? $"{Format.Compact(c.Damage)} · {Format.Compact(DpsOf(c))}" : Format.Compact(DpsOf(c)),
             };
             r.Share = Format.Share(shares[c.ActorId]);
             r.Power = PowerOf(c);
@@ -376,6 +396,39 @@ public partial class Overlay : Window
             vm.BarWidth = Math.Round(width * s.Damage / top);
             vm.BarBrush = brush;
         }
+    }
+
+    // ------------------------------------------------------------------ overlay behaviour (settings)
+
+    private long _lastFight = Environment.TickCount64;
+    private bool _hiddenByRule;
+    private long _lastRuleCheck;
+
+    /// <summary>"Only over the game" and "hide while the game is closed": the meter steps aside by itself.</summary>
+    private void ApplyVisibilityRules()
+    {
+        if (!_settings.OnlyOverGame && !_settings.HideWhenGameClosed)
+        {
+            if (_hiddenByRule) { _hiddenByRule = false; if (_settings.Visible) Show(); }
+            return;
+        }
+        var now = Environment.TickCount64;
+        if (now - _lastRuleCheck < 1000) return; // a second is plenty, and keeps it cheap
+        _lastRuleCheck = now;
+        var hide = false;
+        if (_settings.HideWhenGameClosed && !Native.GameRunning()) hide = true;
+        if (!hide && _settings.OnlyOverGame && !Native.GameOrMeterInFront()) hide = true;
+        if (hide && IsVisible) { _hiddenByRule = true; Hide(); }
+        else if (!hide && _hiddenByRule) { _hiddenByRule = false; if (_settings.Visible) Show(); }
+    }
+
+    /// <summary>"Fade when idle": after a while without a fight the meter turns faint until the next one or the mouse.</summary>
+    private void ApplyFade(bool live)
+    {
+        var faint = _settings.FadeIdle && !live && !IsMouseOver &&
+                    Environment.TickCount64 - _lastFight > Math.Max(10, _settings.FadeAfterSec) * 1000L;
+        var target = faint ? 0.25 : 1.0;
+        if (Math.Abs(Root.Opacity - target) > 0.01) Root.Opacity = target;
     }
 
     // ------------------------------------------------------------------ personal: class, party, energy
@@ -578,10 +631,13 @@ public partial class Overlay : Window
     }
 
     private void Logs_Click(object sender, RoutedEventArgs e) => _app.ShowLogs();
+    private void Tickets_Click(object sender, RoutedEventArgs e) => _app.ShowTickets();
     private void Settings_Click(object sender, RoutedEventArgs e) => _app.ShowSettings();
 
     public void ApplySettings()
     {
+        ApplyScale();
+        _meter.Tracker.Options.IdleTimeoutMs = Math.Clamp(_settings.IdleTimeoutSec, 3, 120) * 1000;
         ApplyOpacity();
         UpdateChips();
         Refresh();
@@ -628,17 +684,20 @@ public partial class Overlay : Window
         Refresh();
     }
 
-    private void Copy_Click(object sender, RoutedEventArgs e)
+    private void Copy_Click(object sender, RoutedEventArgs e) => CopySummary();
+
+    /// <summary>The ranking for the chat: one line, or one line per player (settings).</summary>
+    public void CopySummary()
     {
         if (_last is not { } s || s.Combatants.Count == 0) return;
-        var sb = new StringBuilder();
-        sb.Append(s.Title).Append(" (").Append(Format.ClockShort(s.CombatMs)).Append(')');
-        var i = 0;
         var (list, shares, _, _) = Visible(s);
-        foreach (var c in list.Where(c => !c.IsUnknownSummons).Take(8))
-            sb.Append(" | ").Append(++i).Append(". ").Append(c.Name).Append(' ')
-              .Append(Format.Compact(c.Dps)).Append(" (").Append(Format.Share(shares[c.ActorId])).Append(')');
-        try { Clipboard.SetText(sb.ToString()); } catch { }
+        var head = $"{s.Title} ({Format.ClockShort(s.CombatMs)})";
+        var lines = list.Where(c => !c.IsUnknownSummons).Take(8)
+            .Select((c, i) => $"{i + 1}. {NameOf(c)} {Format.Compact(DpsOf(c))} ({Format.Share(shares[c.ActorId])})").ToList();
+        var text = _settings.SummaryMultiline
+            ? head + Environment.NewLine + string.Join(Environment.NewLine, lines)
+            : head + " | " + string.Join(" | ", lines);
+        try { Clipboard.SetText(text); } catch { }
         SubText.Text = L.S("In die Zwischenablage kopiert ✓", "Copied to clipboard ✓");
     }
 
@@ -681,6 +740,12 @@ public partial class Overlay : Window
     }
 
     /// <summary>Only the panel's background fades: text, bars and icons stay fully readable.</summary>
+    private void ApplyScale()
+    {
+        var k = Math.Clamp(_settings.UiScale, 0.7, 1.6);
+        Root.LayoutTransform = Math.Abs(k - 1) < 0.01 ? Transform.Identity : new ScaleTransform(k, k);
+    }
+
     private void ApplyOpacity()
     {
         var o = Math.Clamp(_settings.Opacity, 0.2, 1);
@@ -826,6 +891,20 @@ public static class ClassStyle
         GameClass.Chanter => Color.FromRgb(0x3F, 0xD1, 0xB5),
         GameClass.Brawler => Color.FromRgb(0xFF, 0x74, 0x4D),
         _ => Color.FromRgb(0x8A, 0x93, 0xA6),
+    };
+
+    public static string Name(GameClass c) => c switch
+    {
+        GameClass.Gladiator => "Gladiator",
+        GameClass.Templar => L.S("Templer", "Templar"),
+        GameClass.Ranger => L.S("Waldläufer", "Ranger"),
+        GameClass.Assassin => L.S("Assassine", "Assassin"),
+        GameClass.Sorcerer => L.S("Magier", "Sorcerer"),
+        GameClass.Elementalist => L.S("Beschwörer", "Elementalist"),
+        GameClass.Cleric => L.S("Kleriker", "Cleric"),
+        GameClass.Chanter => L.S("Kantor", "Chanter"),
+        GameClass.Brawler => L.S("Faustkämpfer", "Brawler"),
+        _ => L.S("Unbekannt", "Unknown"),
     };
 
     public static Brush Solid(GameClass c)

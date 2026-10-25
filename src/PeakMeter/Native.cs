@@ -42,6 +42,30 @@ internal static partial class Native
         if (hwnd != 0) SetWindowPos(hwnd, -1, 0, 0, 0, 0, NOSIZE | NOMOVE | NOREDRAW | NOACTIVATE | NOOWNERZORDER | NOSENDCHANGING);
     }
 
+    [LibraryImport("user32.dll")]
+    private static partial nint GetForegroundWindow();
+
+    [LibraryImport("user32.dll")]
+    private static partial uint GetWindowThreadProcessId(nint hwnd, out uint pid);
+
+    public static bool GameRunning() =>
+        System.Diagnostics.Process.GetProcessesByName("AION2").Length > 0 || System.Diagnostics.Process.GetProcessesByName("Aion2").Length > 0;
+
+    /// <summary>AION 2 or PeakMeter itself is the window in front.</summary>
+    public static bool GameOrMeterInFront()
+    {
+        var hwnd = GetForegroundWindow();
+        if (hwnd == 0) return false;
+        GetWindowThreadProcessId(hwnd, out var pid);
+        if (pid == Environment.ProcessId) return true;
+        try
+        {
+            using var p = System.Diagnostics.Process.GetProcessById((int)pid);
+            return p.ProcessName.StartsWith("AION2", StringComparison.OrdinalIgnoreCase);
+        }
+        catch { return false; }
+    }
+
     public static void SetExStyle(nint hwnd, int flag, bool on)
     {
         var style = (int)GetWindowLongPtr(hwnd, GWL_EXSTYLE);
