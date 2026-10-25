@@ -102,6 +102,8 @@ public partial class TicketsWindow : Window
         var fullCount = rows.Count(r => r.Row.Full);
         FullText.Text = fullCount == 0 ? ""
             : L.S($"{fullCount} voll, die nächste Aufladung verfällt", $"{fullCount} full, the next recharge is wasted");
+        EstimateText.Visibility = EstimateText.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+        FullText.Visibility = FullText.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
         LearnText.Text = L.S("„–“ = PeakMeter kennt dieses Ticket noch nicht. Mit „Tickets lernen“ zeigst du es ihm einmal, danach kommt es automatisch.",
                              "“–” = PeakMeter does not know this ticket yet. Use “Learn tickets” once, after that it comes in by itself.");
     }
