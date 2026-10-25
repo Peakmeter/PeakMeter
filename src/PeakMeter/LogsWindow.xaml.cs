@@ -23,6 +23,7 @@ public partial class LogsWindow : Window
     private bool _bossesOnly;
     private FightRecord? _record;
     private uint? _selected;
+    private string? _loaded;
 
     public LogsWindow(Meter meter)
     {
@@ -38,6 +39,11 @@ public partial class LogsWindow : Window
 
     private void LoadList()
     {
+        // A new fight is saved about every minute while farming: keep the list where the player scrolled to,
+        // otherwise it jumps back to the top and older fights cannot be clicked.
+        var scroll = FindScroll(List);
+        var offset = scroll?.VerticalOffset ?? 0;
+        var before = List.ItemsSource is List<FightItem> old ? old.Count : 0;
         var keep = (List.SelectedItem as FightItem)?.Entry.FileName;
         var entries = _meter.History.List().Where(e => !_bossesOnly || e.IsBoss).ToList();
         var items = entries.Select(e => new FightItem(e, e.Reason == EncounterEndReason.Kill && e.BossCode != 0 &&
@@ -50,11 +56,29 @@ public partial class LogsWindow : Window
 
         var again = items.FirstOrDefault(i => i.Entry.FileName == keep) ?? items.FirstOrDefault();
         List.SelectedItem = again;
+        if (scroll is not null && offset > 0)
+        {
+            var added = Math.Max(0, items.Count - before);
+            Dispatcher.BeginInvoke(() => scroll.ScrollToVerticalOffset(offset + added), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
+    }
+
+    private static System.Windows.Controls.ScrollViewer? FindScroll(DependencyObject root)
+    {
+        if (root is System.Windows.Controls.ScrollViewer sv) return sv;
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+            if (FindScroll(VisualTreeHelper.GetChild(root, i)) is { } found) return found;
+        return null;
     }
 
     private void List_Selected(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
+        if (List.SelectedItem is FightItem same && _record is not null && _loaded == same.Entry.FileName) return; // list refreshed, same fight
         _record = List.SelectedItem is FightItem item ? _meter.History.Load(item.Entry.Path) : null;
+        _loaded = _record is null ? null : (List.SelectedItem as FightItem)?.Entry.FileName;
+        Pick.Text = List.SelectedItem is FightItem && _record is null
+            ? L.S("Dieser Kampf konnte nicht geöffnet werden (Datei fehlt oder ist beschädigt).", "This fight could not be opened (file missing or damaged).")
+            : L.S("Wähle links einen Kampf.", "Pick a fight on the left.");
         _selected = _record?.Summary.Combatants.FirstOrDefault(c => c.IsSelf)?.ActorId;
         ShowRecord();
     }

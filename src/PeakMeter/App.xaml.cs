@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Logos für Shugo, Luftangriff & Co., Tickets wie bei den großen Metern, Unterstützen-Seite";
-    private const string WhatsNewEn = "icons for Shugo, air raid & more, new tickets window, support page";
+    private const string WhatsNew = "Raid zeigt wieder das ganze Team, Logs springen nicht mehr nach oben";
+    private const string WhatsNewEn = "raids show the whole team again, logs stay where you scrolled";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";

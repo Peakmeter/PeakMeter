@@ -357,6 +357,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.15.1 – Raid: das ganze Team wird wieder angezeigt · Logs springen beim Farmen nicht mehr nach oben\n\n" +
         "v1.15 – Eigene Logos für Shugo-Fest, Luftangriff, Rift, Belagerung, Weltbosse · Tickets-Fenster neu: Odyle, Albtraum, Aszensusritus, Täglicher Dungeon, Shugo- und Invasions-Schlüssel, nach Server sortiert · „Tickets lernen“ · Unterstützen-Seite mit Ko-fi\n\n" +
         "v1.14 – Hinweise fahren rechts am Bildschirmrand rein · Einstellungen mit Seitenleiste · Tickets-Fenster mit Odyle pro Charakter · aDPS · Gearscore oder Kampfkraft neben den Namen · Gesamtschaden · Spielernamen ausblenden · UI-Skalierung · Aktualisierungsrate · Fokusmodus · Verblassen im Leerlauf · Nur über dem Spiel · Region EU/NA\n\n" +
         "v1.13 – Englisch · Auto-Update über GitHub · DPS / HEAL / TANK · Vergleich mit dem letzten Versuch · Bestzeiten · Installer\n\n" +
@@ -366,6 +367,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.15.1 – Raids: the whole team shows again · logs no longer jump to the top while farming\n\n" +
         "v1.15 – Own icons for Shugo festival, air raid, rift, siege, world bosses · new tickets window: Odyle, nightmare, ascension, daily dungeon, Shugo and invasion keys, grouped by server · “Learn tickets” · support page with Ko-fi\n\n" +
         "v1.14 – Alerts slide in at the right edge · settings with a sidebar · tickets window with Odyle per character · aDPS · gear score or combat power next to names · total damage · hide player names · UI scale · refresh rate · focus mode · fade when idle · only over the game · region EU/NA\n\n" +
         "v1.13 – English · auto-update from GitHub · DPS / HEAL / TANK · comparison with your last attempt · best times · installer\n\n" +

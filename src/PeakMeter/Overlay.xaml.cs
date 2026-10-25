@@ -292,13 +292,19 @@ public partial class Overlay : Window
         {
             var roster = _meter.Roster;
             var self = _meter.Tracker.SelfName;
+            // Raids and alliances: the game sends no (or only your own) party list. In a boss fight or a dungeon
+            // everyone fighting is your group, so they stay visible instead of leaving only you.
+            var group = snap.Boss is not null || (snap.Zone is { Length: > 0 } z && z != "Open world");
             if (roster is not null)
             {
                 var names = roster.Members.Select(m => m.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-                pick = pick.Where(c => c.IsSelf || (!c.IsUnknownSummons && names.Contains(c.Name)));
+                var mates = snap.Combatants.Count(c => !c.IsSelf && !c.IsUnknownSummons && names.Contains(c.Name));
+                var others = snap.Combatants.Count(c => !c.IsSelf && !c.IsUnknownSummons);
+                if (!group || mates >= others || mates >= 3)
+                    pick = pick.Where(c => c.IsSelf || (!c.IsUnknownSummons && names.Contains(c.Name)));
                 filtered = true;
             }
-            else if (self is not null || snap.Combatants.Any(c => c.IsSelf))
+            else if (!group && (self is not null || snap.Combatants.Any(c => c.IsSelf)))
             {
                 pick = pick.Where(c => c.IsSelf);
                 filtered = true;
