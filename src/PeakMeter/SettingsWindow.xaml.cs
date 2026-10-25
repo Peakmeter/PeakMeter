@@ -66,6 +66,16 @@ public partial class SettingsWindow : Window
         Mark(SummaryChips, _s.SummaryMultiline ? "multi" : "one");
 
         ChangesText.Text = Changelog;
+        SupportTitle.Text = L.S("PeakMeter ist kostenlos – für alle.", "PeakMeter is free – for everyone.");
+        SupportSub.Text = L.S("Ohne Werbung, ohne Abo, ohne Haken.", "No ads, no subscription, no catch.");
+        SupportBody.Text = L.S("Wenn dir PeakMeter beim Raiden hilft, freuen wir uns riesig über einen Kaffee auf Ko-fi. Jede Unterstützung hilft, neue Funktionen und Updates zu bauen. Danke!",
+                               "If PeakMeter helps you raid, a coffee on Ko-fi means a lot. Every bit of support helps build new features and updates. Thank you!");
+        SupportButton.Text = L.S("Auf Ko-fi unterstützen", "Support on Ko-fi");
+        SupportFreeHead.Text = L.S("AUCH GANZ OHNE GELD", "ALSO WITHOUT MONEY");
+        SupportFree.Text = L.S("Teile PeakMeter mit deiner Gruppe oder Legion, gib einen Stern auf GitHub oder melde Fehler – das hilft genauso.",
+                               "Share PeakMeter with your party or legion, star it on GitHub or report bugs – that helps just as much.");
+        CopyLinkLabel.Text = L.S("Download-Link kopieren", "Copy download link");
+        StarLabel.Text = L.S("Stern auf GitHub", "Star on GitHub");
         var status = _app.Meter.Status;
         DebugStatus.Text = $"PeakMeter v{App.Version}\n" +
                            L.S("Aufnahme: ", "Capture: ") + status.State + " – " + status.Message + "\n" +
@@ -115,6 +125,7 @@ public partial class SettingsWindow : Window
                  {
                      ("general", PageGeneral), ("combat", PageCombat), ("display", PageDisplay), ("overlay", PageOverlay),
                      ("audio", PageAudio), ("events", PageEvents), ("keys", PageKeys), ("changes", PageChanges), ("debug", PageDebug),
+                     ("support", PageSupport),
                  })
             panel.Visibility = name == page ? Visibility.Visible : Visibility.Collapsed;
     }
@@ -233,7 +244,7 @@ public partial class SettingsWindow : Window
     private void TestSound_Click(object sender, RoutedEventArgs e) => Chime.Play(_s.SoundVolume);
 
     private void TestToast_Click(object sender, RoutedEventArgs e) =>
-        _app.Notify(L.S("Shugo-Festival", "Shugo Festival"), L.S("startet in 1 Min", "starts in 1 min"), "event");
+        _app.Notify(L.S("Shugo-Festival", "Shugo Festival"), L.S("startet in 1 Min", "starts in 1 min"), "shugo");
 
     private void OpenTimers_Click(object sender, RoutedEventArgs e) => _app.ShowTimers();
 
@@ -321,6 +332,12 @@ public partial class SettingsWindow : Window
     private void Bug_Click(object sender, RoutedEventArgs e) => Open(App.GitHubUrl + "/issues/new?labels=bug&title=" + Uri.EscapeDataString($"[v{App.Version}] "));
     private void Idea_Click(object sender, RoutedEventArgs e) => Open(App.GitHubUrl + "/issues/new?labels=idea");
     private void Kofi_Click(object sender, RoutedEventArgs e) => Open(App.KofiUrl);
+
+    private void CopyLink_Click(object sender, RoutedEventArgs e)
+    {
+        try { Clipboard.SetText(App.GitHubUrl + "/releases/latest"); } catch { }
+        CopyLinkText.Text = L.S("Link kopiert ✓ – einfach im Chat einfügen.", "Link copied ✓ – just paste it in chat.");
+    }
     private void OpenFolder_Click(object sender, RoutedEventArgs e) => Open(Settings.Dir);
     private void OpenLog_Click(object sender, RoutedEventArgs e) => Open(Path.Combine(Settings.Dir, "peakmeter.log"));
     private void Demo_Click(object sender, RoutedEventArgs e) { _app.SetVisible(true); _app.Meter.StartDemo(); }
@@ -340,6 +357,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.15 – Eigene Logos für Shugo-Fest, Luftangriff, Rift, Belagerung, Weltbosse · Tickets-Fenster neu: Odyle, Albtraum, Aszensusritus, Täglicher Dungeon, Shugo- und Invasions-Schlüssel, nach Server sortiert · „Tickets lernen“ · Unterstützen-Seite mit Ko-fi\n\n" +
         "v1.14 – Hinweise fahren rechts am Bildschirmrand rein · Einstellungen mit Seitenleiste · Tickets-Fenster mit Odyle pro Charakter · aDPS · Gearscore oder Kampfkraft neben den Namen · Gesamtschaden · Spielernamen ausblenden · UI-Skalierung · Aktualisierungsrate · Fokusmodus · Verblassen im Leerlauf · Nur über dem Spiel · Region EU/NA\n\n" +
         "v1.13 – Englisch · Auto-Update über GitHub · DPS / HEAL / TANK · Vergleich mit dem letzten Versuch · Bestzeiten · Installer\n\n" +
         "v1.12 – Neues Logo, Eisblau-Design\n\n" +
@@ -348,6 +366,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.15 – Own icons for Shugo festival, air raid, rift, siege, world bosses · new tickets window: Odyle, nightmare, ascension, daily dungeon, Shugo and invasion keys, grouped by server · “Learn tickets” · support page with Ko-fi\n\n" +
         "v1.14 – Alerts slide in at the right edge · settings with a sidebar · tickets window with Odyle per character · aDPS · gear score or combat power next to names · total damage · hide player names · UI scale · refresh rate · focus mode · fade when idle · only over the game · region EU/NA\n\n" +
         "v1.13 – English · auto-update from GitHub · DPS / HEAL / TANK · comparison with your last attempt · best times · installer\n\n" +
         "v1.12 – New logo, ice-blue design\n\n" +

@@ -20,11 +20,14 @@
                     </Grid.ColumnDefinitions>
                     <Button x:Name="Bell" Style="{StaticResource IconButton}" Width="30" Height="30" FontSize="14" Content="&#xE7ED;"
                             Click="Bell_Click" ToolTip="{local:T De='Klingelton an/aus', En='Chime on/off'}" />
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="6,0,8,0">
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,8,0">
+                    <Image Source="{Binding Icon}" Width="20" Height="20" Margin="0,0,10,0" VerticalAlignment="Center" />
+                    <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="{Binding Name}" Foreground="{StaticResource Text}" FontSize="12.5" FontWeight="SemiBold"
                                    TextTrimming="CharacterEllipsis" />
                         <TextBlock Text="{Binding Schedule}" Foreground="{StaticResource TextDim}" FontSize="10.5" Margin="0,1,0,0"
                                    TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
                     </StackPanel>
                     <StackPanel Grid.Column="2" VerticalAlignment="Center">
                         <TextBlock x:Name="Count" Text="{Binding Countdown}" Foreground="{StaticResource Text}" FontSize="13.5"

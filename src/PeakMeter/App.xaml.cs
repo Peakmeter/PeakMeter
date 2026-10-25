@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Hinweise rechts am Rand, neue Einstellungen, Tickets-Fenster, aDPS, GS/CP-Anzeige";
-    private const string WhatsNewEn = "alerts at the right edge, new settings, tickets window, aDPS, GS/CP chip";
+    private const string WhatsNew = "Logos für Shugo, Luftangriff & Co., Tickets wie bei den großen Metern, Unterstützen-Seite";
+    private const string WhatsNewEn = "icons for Shugo, air raid & more, new tickets window, support page";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -123,7 +123,8 @@ public partial class App : Application
         if (e.Args.Contains("--open-all"))
         {
             ShowTimers(); ShowLogs(); ShowEnergy(); ShowGearProbe(); ShowTickets(); ShowSettings();
-            Notify(L.S("Shugo-Festival", "Shugo Festival"), L.S("startet in 1 Min", "starts in 1 min"), "event");
+            Notify(L.S("Shugo-Festival", "Shugo Festival"), L.S("startet in 1 Min", "starts in 1 min"), "shugo");
+            Notify(L.S("Luftangriff / Dimensionsinvasion", "Air raid / Dimensional invasion"), L.S("startet in 1 Min", "starts in 1 min"), "invasion");
             Notify("Watcher Kaira", L.S("spawnt in 2 Min", "respawns in 2 min"), "boss");
         }
     }
@@ -186,7 +187,7 @@ public partial class App : Application
     private long _lastAlert = -10_000;
 
     private void OnEventAlert(EventState e, int minutes) =>
-        Notify(e.Def.Name, minutes <= 0 ? L.S("startet jetzt", "starts now") : L.S($"startet in {minutes} Min", $"starts in {minutes} min"), "event");
+        Notify(e.Def.Name, minutes <= 0 ? L.S("startet jetzt", "starts now") : L.S($"startet in {minutes} Min", $"starts in {minutes} min"), EventIcons.ForEvent(e.Def.Id));
 
     /// <summary>Watched world bosses about to respawn (called once a second by the overlay's clock).</summary>
     public void CheckBossAlerts()
@@ -251,6 +252,19 @@ public partial class App : Application
     }
 
     private TicketsWindow? _tickets;
+
+    private TicketProbeWindow? _ticketProbe;
+
+    public void ShowTicketProbe()
+    {
+        if (_ticketProbe is null)
+        {
+            _ticketProbe = new TicketProbeWindow(Meter);
+            _ticketProbe.Closed += (_, _) => _ticketProbe = null;
+            _ticketProbe.Show();
+        }
+        _ticketProbe.Activate();
+    }
 
     public void ShowTickets()
     {
@@ -518,21 +532,21 @@ public sealed class Meter : IDisposable
     /// energy values the player enters as markers in between. Only on this PC; used to find where the server sends
     /// Odyle energy. Returns false when no live capture is running.
     /// </summary>
-    public bool StartProbe()
+    public bool StartProbe(string kind = "energy")
     {
         if (_capture is not LiveCapture live) return false;
         lock (_probeGate)
         {
             if (_probe is not null) return true;
             Directory.CreateDirectory(Settings.Dir);
-            ProbePath = Path.Combine(Settings.Dir, $"energy-probe-{DateTime.Now:yyyyMMdd-HHmmss}.txt");
+            ProbePath = Path.Combine(Settings.Dir, $"{kind}-probe-{DateTime.Now:yyyyMMdd-HHmmss}.txt");
             _probe = new StreamWriter(ProbePath);
             _probeCounts.Clear();
             _probeUntil = Environment.TickCount64 + 10 * 60_000;
-            _probe.WriteLine($"# PeakMeter energy probe {DateTime.Now:O}  (time_ms opcode length hex)");
+            _probe.WriteLine($"# PeakMeter {kind} probe {DateTime.Now:O}  (time_ms opcode length hex)");
         }
         live.Pipeline.Parser.Tap = ProbeTap;
-        Log("Energy probe started");
+        Log($"Probe started ({kind})");
         return true;
     }
 

@@ -16,7 +16,7 @@ public static class Toasts
     private const double CardWidth = 300, Gap = 8, TopOffset = 90, Margin = 16;
     private static readonly List<ToastWindow> Open = [];
 
-    /// <param name="kind">"event", "boss", "energy", "update" or "info": picks icon and accent colour.</param>
+    /// <param name="kind">An icon key of <see cref="EventIcons"/>: picks the logo and accent colour.</param>
     public static void Show(string title, string text, string kind = "info", int seconds = 8, Action? onClick = null)
     {
         var card = new ToastWindow(title, text, kind, onClick);
@@ -76,25 +76,19 @@ internal sealed class ToastWindow : Window
         UseLayoutRounding = true;
         TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
 
-        var (glyph, accent) = kind switch
-        {
-            "event" => ("", Color.FromRgb(0x7F, 0xD8, 0xF2)),
-            "boss" => ("", Color.FromRgb(0xFF, 0x9F, 0x59)),
-            "energy" => ("", Color.FromRgb(0xB0, 0x7C, 0xF0)),
-            "update" => ("", Color.FromRgb(0x3F, 0xD1, 0x8B)),
-            _ => ("", Color.FromRgb(0x7F, 0xD8, 0xF2)),
-        };
+        // kind = an icon key of EventIcons ("shugo", "invasion", "boss", "energy", "update" …)
+        var accent = EventIcons.Accent(kind);
         var accentBrush = new SolidColorBrush(accent);
         var font = (FontFamily)Application.Current.FindResource("UiFont");
-        var iconFont = (FontFamily)Application.Current.FindResource("IconFont");
 
         var icon = new Border
         {
-            Width = 34, Height = 34, CornerRadius = new CornerRadius(9),
-            Background = new SolidColorBrush(Color.FromArgb(0x30, accent.R, accent.G, accent.B)),
-            Child = new TextBlock { Text = glyph, FontFamily = iconFont, FontSize = 15, Foreground = accentBrush,
-                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
-            VerticalAlignment = VerticalAlignment.Top,
+            Width = 38, Height = 38, CornerRadius = new CornerRadius(10),
+            Background = new SolidColorBrush(Color.FromArgb(0x2A, accent.R, accent.G, accent.B)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x55, accent.R, accent.G, accent.B)),
+            BorderThickness = new Thickness(1),
+            Child = new Image { Source = EventIcons.Get(kind), Width = 22, Height = 22 },
+            VerticalAlignment = VerticalAlignment.Center,
         };
         var texts = new StackPanel { Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
         texts.Children.Add(new TextBlock { Text = title, FontFamily = font, FontSize = 12.5, FontWeight = FontWeights.SemiBold,

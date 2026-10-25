@@ -17,6 +17,10 @@ public sealed class CharacterInfo
     public int OdyleBonus { get; set; }
     public DateTimeOffset? OdyleAt { get; set; }
 
+    /// <summary>Ticket counts (nightmare, ascension, daily, shugokey, invasionkey) and when they were last known.</summary>
+    public Dictionary<string, int> Tickets { get; set; } = new();
+    public DateTimeOffset? TicketsAt { get; set; }
+
     public string Key => $"{ServerId}|{Name}";
 }
 
@@ -78,6 +82,20 @@ public sealed class Characters
             c.OdylePool = pool;
             c.OdyleBonus = bonus;
             c.OdyleAt = DateTimeOffset.Now;
+            c.LastSeen = DateTimeOffset.Now;
+        }
+        Save();
+    }
+
+    public void SetTickets(string name, int server, Dictionary<string, int> tickets)
+    {
+        if (name.Length == 0) return;
+        lock (_gate)
+        {
+            if (!_all.TryGetValue($"{server}|{name}", out var c))
+                _all[$"{server}|{name}"] = c = new CharacterInfo { Name = name, ServerId = server };
+            c.Tickets = new Dictionary<string, int>(tickets);
+            c.TicketsAt = DateTimeOffset.Now;
             c.LastSeen = DateTimeOffset.Now;
         }
         Save();
