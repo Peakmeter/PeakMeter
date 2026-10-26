@@ -102,11 +102,11 @@
                     <RadioButton Style="{StaticResource Nav}" Tag="&#xE7C1;" Content="{local:T De=Kampf, En=Combat}" Checked="Nav_Checked" CommandParameter="combat" />
                     <RadioButton Style="{StaticResource Nav}" Tag="&#xE7F4;" Content="{local:T De=Anzeige, En=Display}" Checked="Nav_Checked" CommandParameter="display" />
                     <RadioButton Style="{StaticResource Nav}" Tag="&#xE737;" Content="{local:T De=Overlay-Verhalten, En='Overlay behaviour'}" Checked="Nav_Checked" CommandParameter="overlay" />
-                    <RadioButton Style="{StaticResource Nav}" Tag="&#xE767;" Content="Audio" Checked="Nav_Checked" CommandParameter="audio" />
+                    <RadioButton Style="{StaticResource Nav}" Tag="&#xE767;" Content="{local:T De=Audio, En=Audio}" Checked="Nav_Checked" CommandParameter="audio" />
                     <RadioButton Style="{StaticResource Nav}" Tag="&#xEA8F;" Content="{local:T De='Hinweise &amp; Events', En='Alerts &amp; events'}" Checked="Nav_Checked" CommandParameter="events" />
                     <RadioButton Style="{StaticResource Nav}" Tag="&#xE765;" Content="{local:T De=Tastenbelegung, En=Hotkeys}" Checked="Nav_Checked" CommandParameter="keys" />
                     <RadioButton Style="{StaticResource Nav}" Tag="&#xE81C;" Content="{local:T De=Änderungsprotokoll, En=Changelog}" Checked="Nav_Checked" CommandParameter="changes" />
-                    <RadioButton Style="{StaticResource Nav}" Tag="&#xEBE8;" Content="Debug" Checked="Nav_Checked" CommandParameter="debug" />
+                    <RadioButton Style="{StaticResource Nav}" Tag="&#xEBE8;" Content="{local:T De=Debug, En=Debug}" Checked="Nav_Checked" CommandParameter="debug" />
                     <Border Height="1" Background="{StaticResource Edge}" Margin="6,8,6,8" />
                     <RadioButton Style="{StaticResource Nav}" Tag="&#xEB51;" Foreground="#FF8A9B" Content="{local:T De=Unterstützen, En=Support}" Checked="Nav_Checked" CommandParameter="support" />
                 </StackPanel>
@@ -119,28 +119,27 @@
                             <TextBlock Style="{StaticResource Section}" Text="{local:T De='REGION UND SPRACHE', En='REGION AND LANGUAGE'}" />
                             <Grid Style="{StaticResource Row}">
                                 <StackPanel Margin="0,0,230,0">
-                                    <TextBlock Style="{StaticResource Label}" Text="Region" />
+                                    <TextBlock Style="{StaticResource Label}" Text="{local:T De=Region, En=Region}" />
                                     <TextBlock Style="{StaticResource Hint}" Text="{local:T De='Server-Zeit der Event-Timer und Profil-Links auf aion2index.com.', En='Server time of the event timers and profile links on aion2index.com.'}" />
                                 </StackPanel>
-                                <StackPanel x:Name="RegionChips" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-                                    <Button Style="{StaticResource Chip}" Height="26" Content="{local:T De=Europa, En=Europe}" Tag="eu" Click="Region_Click" Margin="0,0,4,0" />
-                                    <Button Style="{StaticResource Chip}" Height="26" Content="{local:T De=NA-Ost, En='NA East'}" Tag="nae" Click="Region_Click" Margin="0,0,4,0" />
-                                    <Button Style="{StaticResource Chip}" Height="26" Content="{local:T De=NA-West, En='NA West'}" Tag="naw" Click="Region_Click" />
-                                </StackPanel>
+                                <WrapPanel x:Name="RegionChips" HorizontalAlignment="Right" VerticalAlignment="Top" MaxWidth="330">
+                                    <Button Style="{StaticResource Chip}" Height="26" Content="{local:T De=Europa, En=Europe}" Tag="eu" Click="Region_Click" Margin="4,0,0,4" />
+                                    <Button Style="{StaticResource Chip}" Height="26" Content="{local:T De=NA-Ost, En='NA East'}" Tag="nae" Click="Region_Click" Margin="4,0,0,4" />
+                                    <Button Style="{StaticResource Chip}" Height="26" Content="{local:T De=NA-West, En='NA West'}" Tag="naw" Click="Region_Click" Margin="4,0,0,4" />
+                                    <Button Style="{StaticResource Chip}" Height="26" Content="{local:T De=Korea, En=Korea}" Tag="kr" Click="Region_Click" Margin="4,0,0,4" />
+                                    <Button Style="{StaticResource Chip}" Height="26" Content="{local:T De=Taiwan, En=Taiwan}" Tag="tw" Click="Region_Click" Margin="4,0,0,4" />
+                                </WrapPanel>
                             </Grid>
                             <Grid Style="{StaticResource Row}">
-                                <StackPanel Margin="0,0,230,0">
+                                <StackPanel>
                                     <TextBlock Style="{StaticResource Label}" Text="{local:T De=Sprache, En=Language}" />
                                     <TextBlock Style="{StaticResource Hint}" Text="{local:T De='Oberfläche, Skill- und Boss-Namen. PeakMeter startet dafür kurz neu.', En='Interface, skill and boss names. PeakMeter restarts briefly.'}" />
-                                </StackPanel>
-                                <StackPanel x:Name="LangChips" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-                                    <Button Style="{StaticResource Chip}" Height="26" Content="Deutsch" Tag="de" Click="Lang_Click" Margin="0,0,4,0" />
-                                    <Button Style="{StaticResource Chip}" Height="26" Content="English" Tag="en" Click="Lang_Click" />
+                                    <WrapPanel x:Name="LangChips" HorizontalAlignment="Left" Margin="-4,8,0,0" />
                                 </StackPanel>
                             </Grid>
                             <TextBlock Style="{StaticResource Section}" Text="{local:T De=START, En=STARTUP}" />
                             <CheckBox x:Name="Autostart" Style="{StaticResource Switch}" Click="Autostart_Click" Content="{local:T De='Mit Windows starten', En='Start with Windows'}" />
-                            <TextBlock Style="{StaticResource Section}" Text="UPDATES" Margin="0,16,0,8" />
+                            <TextBlock Style="{StaticResource Section}" Text="{local:T De=UPDATES, En=UPDATES}" Margin="0,16,0,8" />
                             <CheckBox x:Name="AutoUpdate" Style="{StaticResource Switch}" Click="Toggle_Click" Content="{local:T De='Updates automatisch installieren', En='Install updates automatically'}" />
                             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                                 <Button Style="{StaticResource Chip}" Height="26" Click="CheckUpdate_Click" Content="{local:T De='Nach Updates suchen', En='Check for updates'}" />

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -28,12 +28,12 @@ public partial class App : Application
     private TimersWindow? _timers;
     private EnergyWindow? _energy;
 
-    /// <summary>"1.8.0" â€” from the build.</summary>
+    /// <summary>"1.8.0" — from the build.</summary>
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Skill-Icons im Meter und in den Logs";
-    private const string WhatsNewEn = "skill icons in the meter and the logs";
+    private const string WhatsNew = "9 Sprachen und die Regionen Korea und Taiwan";
+    private const string WhatsNewEn = "9 languages and the regions Korea and Taiwan";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -82,7 +82,7 @@ public partial class App : Application
 
         Settings = Settings.Load();
         SkillIcons.Init(Path.Combine(AppContext.BaseDirectory, "data"));
-        L.En = Settings.Language == "en";
+        L.Use(Settings.Language, Path.Combine(AppContext.BaseDirectory, "data"));
         if (!Settings.RememberClickThrough) Settings.ClickThrough = false;
         if (Settings.Region == "na") Settings.Region = "nae"; // before 1.18 NA was one choice
         Meter = new Meter(Settings, demo: e.Args.Contains("--demo"), saveDemo: e.Args.Contains("--save-demo"));
@@ -168,7 +168,7 @@ public partial class App : Application
         _settingsWindow.Activate();
     }
 
-    /// <summary>The overlay re-reads display settings (rows, opacity, â€¦).</summary>
+    /// <summary>The overlay re-reads display settings (rows, opacity, …).</summary>
     public void SettingsChanged() => _overlay?.ApplySettings();
 
     public void SetVisible(bool visible)
@@ -186,7 +186,7 @@ public partial class App : Application
         if (_clickItem is not null) _clickItem.Checked = Settings.ClickThrough;
         Settings.Save();
         _tray?.ShowBalloonTip(1500, "PeakMeter",
-            Settings.ClickThrough ? L.S("Durchklicken an â€“ Strg+Shift+L zum Ausschalten", "Click-through on â€“ press the hotkey again to turn it off") : L.S("Durchklicken aus", "Click-through off"), Forms.ToolTipIcon.None);
+            Settings.ClickThrough ? L.S("Durchklicken an – Strg+Shift+L zum Ausschalten", "Click-through on – press the hotkey again to turn it off") : L.S("Durchklicken aus", "Click-through off"), Forms.ToolTipIcon.None);
     }
 
     private long _lastAlert = -10_000;
@@ -215,7 +215,7 @@ public partial class App : Application
         if (Settings.Toasts) Toasts.Show(title, detail, kind, Settings.ToastSeconds, onClick);
         else
         {
-            var text = detail.Length > 0 ? $"{title} â€“ {detail}" : title;
+            var text = detail.Length > 0 ? $"{title} – {detail}" : title;
             if (_overlay is { IsVisible: true }) _overlay.ShowAlert(text);
             else _tray?.ShowBalloonTip(5000, "PeakMeter", text, Forms.ToolTipIcon.None);
         }
@@ -317,7 +317,7 @@ public partial class App : Application
         menu.Items.Add(L.S("Anzeigen / Verstecken", "Show / hide") + "    " + Settings.HotkeyToggle, null, (_, _) => SetVisible(!_overlay!.IsVisible));
         _clickItem = new Forms.ToolStripMenuItem(L.S("Durchklicken", "Click-through") + "    " + Settings.HotkeyClickThrough, null, (_, _) => ToggleClickThrough()) { Checked = Settings.ClickThrough };
         menu.Items.Add(_clickItem);
-        menu.Items.Add(L.S("ZurÃ¼cksetzen", "Reset") + "    " + Settings.HotkeyReset, null, (_, _) => Meter.Reset());
+        menu.Items.Add(L.S("Zurücksetzen", "Reset") + "    " + Settings.HotkeyReset, null, (_, _) => Meter.Reset());
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add(L.S("Einstellungen", "Settings"), null, (_, _) => ShowSettings());
         menu.Items.Add("Logs", null, (_, _) => ShowLogs());
@@ -332,13 +332,13 @@ public partial class App : Application
         menu.Items.Add(party);
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add(L.S("Demo-Kampf (Test)", "Demo fight (test)"), null, (_, _) => { SetVisible(true); Meter.StartDemo(); });
-        menu.Items.Add(L.S("Einstellungsordner Ã¶ffnen", "Open settings folder"), null, (_, _) =>
+        menu.Items.Add(L.S("Einstellungsordner öffnen", "Open settings folder"), null, (_, _) =>
         {
             Directory.CreateDirectory(Settings.Dir);
             Process.Start(new ProcessStartInfo("explorer.exe", Settings.Dir) { UseShellExecute = true });
         });
         if (KofiUrl.Length > 0)
-            menu.Items.Add(L.S("PeakMeter unterstÃ¼tzen â˜•", "Support PeakMeter â˜•"), null, (_, _) =>
+            menu.Items.Add(L.S("PeakMeter unterstützen ☕", "Support PeakMeter ☕"), null, (_, _) =>
                 Process.Start(new ProcessStartInfo(KofiUrl) { UseShellExecute = true }));
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add(L.S("Beenden", "Exit"), null, (_, _) => Shutdown());
@@ -346,7 +346,7 @@ public partial class App : Application
         _tray = new Forms.NotifyIcon
         {
             Icon = TrayGlyph(),
-            Text = $"PeakMeter v{Version} â€“ Aion 2 DPS",
+            Text = $"PeakMeter v{Version} – Aion 2 DPS",
             ContextMenuStrip = menu,
             Visible = true,
         };
@@ -379,7 +379,7 @@ public partial class App : Application
     }
 }
 
-/// <summary>Capture â†’ decoder â†’ combat tracker, plus the name cache so players keep their names across restarts.</summary>
+/// <summary>Capture → decoder → combat tracker, plus the name cache so players keep their names across restarts.</summary>
 public sealed class Meter : IDisposable
 {
     private readonly Settings _settings;
@@ -441,7 +441,7 @@ public sealed class Meter : IDisposable
             if (Key(before) != Key(Roster)) RosterChanged?.Invoke();
         };
 
-        // World boss respawns: kills seen nearby and the in-game field boss list (map â†’ exploration â†’ field monsters).
+        // World boss respawns: kills seen nearby and the in-game field boss list (map → exploration → field monsters).
         Bosses = new BossTimers(Path.Combine(Settings.Dir, "boss-timers.json"), Data, Path.Combine(AppContext.BaseDirectory, "data"), persistent: !demo);
         Bosses.SetCurrentServer(Tracker.SelfServerId);
         Tracker.BossNoticed += n => { if (!_demoOnly && !DemoRunning) Bosses.OnNotice(n); };
@@ -478,7 +478,7 @@ public sealed class Meter : IDisposable
             {
                 if (e is ResourceRawEvent raw)
                 {
-                    // Other counters in the same message (tickets, keys â€¦): logged once each, to learn their layout.
+                    // Other counters in the same message (tickets, keys …): logged once each, to learn their layout.
                     var hex = Convert.ToHexString(raw.Raw);
                     if (_seenRaw.Add(hex)) Log($"Counter message (unknown): {hex} [char {Tracker.SelfName}]");
                     return;

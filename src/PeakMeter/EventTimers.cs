@@ -121,7 +121,13 @@ public sealed class EventTimers
     /// <summary>EU (Berlin time) or NA (New York time): all events follow the server's clock.</summary>
     public void SetRegion(string region)
     {
-        var tz = region.StartsWith("na") ? "America/New_York" : "Europe/Berlin";
+        var tz = region switch
+        {
+            "nae" or "naw" or "na" => "America/New_York",
+            "kr" => "Asia/Seoul",
+            "tw" => "Asia/Taipei",
+            _ => "Europe/Berlin",
+        };
         if (_file.TimeZone == tz) return;
         _file.TimeZone = tz;
         try

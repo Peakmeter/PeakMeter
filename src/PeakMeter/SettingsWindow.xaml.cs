@@ -58,6 +58,12 @@ public partial class SettingsWindow : Window
         KeyCopy.Text = Pretty(_s.HotkeyCopy);
 
         Mark(RegionChips, _s.Region);
+        foreach (var (code, name) in L.Languages)
+        {
+            var chip = new Button { Style = (Style)FindResource("Chip"), Height = 26, Content = name, Tag = code, Margin = new Thickness(4, 0, 0, 4) };
+            chip.Click += Lang_Click;
+            LangChips.Children.Add(chip);
+        }
         Mark(LangChips, _s.Language);
         Mark(TargetChips, _s.BossOnly ? "boss" : "all");
         Mark(DpsChips, _s.DpsMode);
@@ -357,6 +363,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.23 – 9 Sprachen: Deutsch, English, Français, Español, Português, Русский, 한국어, 繁體中文, 日本語 · Regionen Korea und Taiwan · Umlaute im Tray-Menü repariert\n\n" +
         "v1.22 – Skill-Icons im Meter und in den Logs (vom offiziellen AION-2-Bildserver)\n\n" +
         "v1.21.2 – Fremde Spieler in benannten Gebieten (z. B. Östliches Cantastal) werden ohne Gruppe nicht mehr angezeigt\n\n" +
         "v1.21.1 – Offene Welt ohne Gruppe: nur noch du, auch beim Feldboss · DPS und Kampfzeit ab deinem ersten Treffer (aDPS), wie bei den anderen Metern\n\n" +
@@ -377,6 +384,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.23 – 9 languages: Deutsch, English, Français, Español, Português, Русский, 한국어, 繁體中文, 日本語 · regions Korea and Taiwan\n\n" +
         "v1.22 – Skill icons in the meter and the logs (from the official AION 2 image server)\n\n" +
         "v1.21.2 – Strangers in named areas (e.g. Eastern Cantas Valley) no longer show without a party\n\n" +
         "v1.21.1 – Open world without a party: only you, also on field bosses · DPS and fight time from your first hit (aDPS), like other meters\n\n" +
