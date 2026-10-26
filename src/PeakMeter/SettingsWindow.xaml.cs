@@ -357,6 +357,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.21.2 – Fremde Spieler in benannten Gebieten (z. B. Östliches Cantastal) werden ohne Gruppe nicht mehr angezeigt\n\n" +
         "v1.21.1 – Offene Welt ohne Gruppe: nur noch du, auch beim Feldboss · DPS und Kampfzeit ab deinem ersten Treffer (aDPS), wie bei den anderen Metern\n\n" +
         "v1.21 – Ping im Meter (aus dem Datenverkehr gemessen) · Energie wie im Spiel: „135 (+755)“\n\n" +
         "v1.20 – Odyle-Energie wird beim Einloggen automatisch gelesen, für jeden Charakter\n\n" +
@@ -375,6 +376,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.21.2 – Strangers in named areas (e.g. Eastern Cantas Valley) no longer show without a party\n\n" +
         "v1.21.1 – Open world without a party: only you, also on field bosses · DPS and fight time from your first hit (aDPS), like other meters\n\n" +
         "v1.21 – Ping in the meter (measured from the traffic) · energy like in the game: “135 (+755)”\n\n" +
         "v1.20 – Odyle energy is read automatically at login, for every character\n\n" +

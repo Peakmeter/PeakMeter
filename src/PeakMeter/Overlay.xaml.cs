@@ -332,7 +332,7 @@ public partial class Overlay : Window
             var self = _meter.Tracker.SelfName;
             // Raids and dungeons: the game sends no (or only your own) party list. Inside an instance everyone
             // fighting is your group, so they stay visible. In the open world strangers on a field boss are not.
-            var group = snap.Zone is { Length: > 0 } z && z != "Open world";
+            var group = Browsing ? _meter.Data.IsDungeonZone(snap.Zone) : _meter.Tracker.InInstance;
             if (roster is not null)
             {
                 var names = roster.Members.Select(m => m.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);

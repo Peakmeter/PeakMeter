@@ -240,6 +240,10 @@ public sealed class GameData
     /// <summary>Dungeon name from the tables; maps the tables do not name are open-world fields and layers.</summary>
     public string MapName(int id) => Maps.TryGetValue(id, out var name) ? name : IsDungeonMap(id) ? $"Dungeon {id}" : "Open world";
 
+    /// <summary>Whether a zone name (as saved with a fight) belongs to an instanced dungeon.</summary>
+    public bool IsDungeonZone(string? zone) =>
+        zone is { Length: > 0 } && (zone.StartsWith("Dungeon ") || Maps.Any(m => m.Value == zone && IsDungeonMap(m.Key)));
+
     /// <summary>Instanced dungeons live in the 6xxxxx map range.</summary>
     public static bool IsDungeonMap(int id) => id is >= 600_000 and < 700_000;
 

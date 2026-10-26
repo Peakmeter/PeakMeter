@@ -44,6 +44,12 @@ public sealed class CombatTracker
         get { lock (_gate) return _entities.Self?.Class ?? GameClass.Unknown; }
     }
 
+    /// <summary>True inside an instanced dungeon or raid (the 6xxxxx map range).</summary>
+    public bool InInstance
+    {
+        get { lock (_gate) return GameData.IsDungeonMap(_entities.MapId); }
+    }
+
     public string? ZoneName
     {
         get { lock (_gate) return _entities.ZoneName; }
