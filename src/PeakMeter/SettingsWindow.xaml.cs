@@ -363,6 +363,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.24.4 – Logs: alte Kämpfe lassen sich wieder sofort per Klick öffnen\n\n" +
         "v1.24.3 – Charakter ohne bekannten Energiewert: keine fremde Energie mehr angezeigt, sondern „Energie“, bis das Spiel den Wert schickt\n\n" +
         "v1.24.2 – Klick auf die Energie öffnet die Charakter-Übersicht · fremde Spieler (z. B. „TopBanana“) werden nicht mehr für dich gehalten und aufgeräumt · Energie beim Charakterwechsel landet sicher beim richtigen Charakter\n\n" +
         "v1.24.1 – Maus über die Energie im Meter: Energie aller Charaktere auf einen Blick\n\n" +
@@ -390,6 +391,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.24.4 – Logs: older fights open instantly on click again\n\n" +
         "v1.24.3 – A character without a known energy value no longer shows another character's energy; it waits for the game's value\n\n" +
         "v1.24.2 – Clicking the energy opens the character overview · strangers are no longer taken for you (and are cleaned up) · energy at a character switch reliably goes to the right character\n\n" +
         "v1.24.1 – Hover the energy in the meter: every character’s energy at a glance\n\n" +

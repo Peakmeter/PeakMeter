@@ -12,6 +12,8 @@
             <Setter Property="Padding" Value="0" />
             <Setter Property="Margin" Value="0,0,0,3" />
             <Setter Property="Focusable" Value="False" />
+            <!-- WPF only selects a row on click when it can take focus: select it ourselves. -->
+            <EventSetter Event="PreviewMouseLeftButtonDown" Handler="Item_MouseDown" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">

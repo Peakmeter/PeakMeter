@@ -80,6 +80,15 @@ public partial class LogsWindow : Window
         return null;
     }
 
+    private void Item_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is System.Windows.Controls.ListBoxItem { DataContext: FightItem item })
+        {
+            List.SelectedItem = item;
+            e.Handled = true;
+        }
+    }
+
     private void List_Selected(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
         if (List.SelectedItem is FightItem same && _record is not null && _loaded == same.Entry.FileName) return; // list refreshed, same fight
