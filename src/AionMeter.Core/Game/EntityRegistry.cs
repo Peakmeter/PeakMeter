@@ -231,8 +231,23 @@ public sealed class EntityRegistry
         CacheVersion++;
     }
 
+    private readonly Dictionary<string, int> _serverByName = new();
+
+    /// <summary>
+    /// A player's server, by name only (owner records): it never renames anyone and never touches your own character,
+    /// it only fills in the server of players that have none yet – now and when they are announced later.
+    /// </summary>
+    public void SetServer(string name, int serverId)
+    {
+        if (string.IsNullOrEmpty(name) || serverId == 0 || _serverByName.ContainsKey(name)) return;
+        _serverByName[name] = serverId;
+        foreach (var p in _players.Values)
+            if (p.Name == name && p.ActorId != SelfId && p.ServerId == 0) p.ServerId = serverId;
+    }
+
     private void ApplyGear(PlayerInfo p)
     {
+        if (p.ServerId == 0 && p.ActorId != SelfId && _serverByName.TryGetValue(p.Name, out var server)) p.ServerId = server;
         if (!_gearByName.TryGetValue(p.Name, out var g)) return;
         if (g.Gear > 0) p.GearScore = g.Gear;
         if (g.Power > 0) p.CombatPower = g.Power;

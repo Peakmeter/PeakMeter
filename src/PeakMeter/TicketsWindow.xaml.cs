@@ -123,6 +123,8 @@ public partial class TicketsWindow : Window
 
     private void Learn_Click(object sender, RoutedEventArgs e) => ((App)Application.Current).ShowTicketProbe();
 
+    private void Energy_Click(object sender, RoutedEventArgs e) => ((App)Application.Current).ShowEnergy();
+
     private void Remove_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is Row r) _meter.Characters.Remove(r.Key);

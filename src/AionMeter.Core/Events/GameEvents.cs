@@ -76,6 +76,9 @@ public sealed record ResourceRawEvent(long TimeMs, byte[] Raw) : GameEvent(TimeM
 
 public sealed record PartyRosterEvent(long TimeMs, IReadOnlyList<PartyMemberInfo> Members) : GameEvent(TimeMs);
 
+/// <summary>A player's server, known by name only (summon / loot owner records).</summary>
+public sealed record PlayerServerEvent(long TimeMs, string Name, int ServerId) : GameEvent(TimeMs);
+
 public sealed record PlayerSeenEvent(long TimeMs, uint ActorId, string Name, int ServerId, GameClass Class) : GameEvent(TimeMs);
 
 /// <param name="Name">Display name when not resolvable from the NPC tables (demo / tests).</param>

@@ -114,6 +114,9 @@ public sealed class CombatTracker
                     }
                     _pendingRosters.Add(roster);
                     break;
+                case PlayerServerEvent ps:
+                    _entities.SetServer(ps.Name, ps.ServerId);
+                    break;
                 case PlayerSeenEvent p:
                     _entities.UpsertPlayer(p.ActorId, p.Name, p.ServerId, p.Class);
                     LinkSummonsCastBy(p.ActorId, p.Name);

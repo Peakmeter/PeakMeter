@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Maus über die Energie: Energie aller Charaktere";
-    private const string WhatsNewEn = "hover the energy: every character’s energy";
+    private const string WhatsNew = "Klick auf die Energie öffnet die Charakter-Übersicht, fremde Charaktere aufgeräumt";
+    private const string WhatsNewEn = "clicking the energy opens the character overview, strangers cleaned up";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -510,16 +510,13 @@ public sealed class Meter : IDisposable
                 try { File.AppendAllText(Path.Combine(Settings.Dir, "energy-events.txt"), $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {Tracker.SelfName}  pool {o.Regen}  bonus {o.Bonus}  change {o.Change}  {Convert.ToHexString(o.Raw)}{Environment.NewLine}"); } catch { }
                 // The value is always the logged-in character's: show it right away.
                 System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.SetFromGame(o.Regen, o.Bonus));
-                // Which character that is: at a login (Change 0) the game may name the character only after the
-                // energy. Unless it just did, the value waits for the name instead of going to the previous one.
-                lock (_loginGate)
+                // Which character that is: at a login (Change 0) the name record can come before or after the energy,
+                // and the previous character's name record also repeats now and then. So a login's energy always
+                // waits for the next name record (it repeats every few minutes) instead of going to the previous one.
+                if (o.Change == 0)
                 {
-                    var now = Environment.TickCount64;
-                    if (o.Change == 0 && (_identity is null || now - _identityAt > 5_000))
-                    {
-                        _loginEnergy = (o.Regen, o.Bonus, now);
-                        return;
-                    }
+                    lock (_loginGate) _loginEnergy = (o.Regen, o.Bonus, Environment.TickCount64);
+                    return;
                 }
                 if (Tracker.SelfName is { } self) Characters.Odyle(self, Tracker.SelfServerId, o.Regen, o.Bonus);
             };

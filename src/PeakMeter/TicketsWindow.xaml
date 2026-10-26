@@ -96,6 +96,13 @@
                     <TextBlock Text="Tickets" Foreground="{StaticResource Text}" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource Chip}" Height="26" Margin="0,0,8,0" Click="Energy_Click"
+                            ToolTip="{local:T De='Energie von Hand korrigieren, Quai-Mitgliedschaft', En='Correct the energy by hand, Quai membership'}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE945;" FontFamily="{StaticResource IconFont}" Foreground="{StaticResource Accent}" Margin="0,1,6,0" />
+                            <TextBlock Text="{local:T De='Energie anpassen', En='Adjust energy'}" />
+                        </StackPanel>
+                    </Button>
                     <Button Style="{StaticResource Chip}" Height="26" Margin="0,0,8,0" Click="Learn_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE7C8;" FontFamily="{StaticResource IconFont}" Foreground="#FF6B81" Margin="0,1,6,0" />

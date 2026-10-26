@@ -42,6 +42,14 @@ public sealed class Characters
             if (File.Exists(_path))
                 _all = (JsonSerializer.Deserialize<List<CharacterInfo>>(File.ReadAllText(_path), Json) ?? [])
                     .Where(c => c.Name.Length > 0).GroupBy(c => c.Key).ToDictionary(g => g.Key, g => g.First());
+            // v1.24.0 could take a stranger for you (a misread owner record): the same name then turned up on
+            // server after server. Nobody has one name as their own character on three servers – drop those.
+            var bogus = _all.Values.GroupBy(c => c.Name).Where(g => g.Select(c => c.ServerId).Distinct().Count() >= 3).Select(g => g.Key).ToHashSet();
+            if (bogus.Count > 0)
+            {
+                foreach (var key in _all.Where(kv => bogus.Contains(kv.Value.Name)).Select(kv => kv.Key).ToList()) _all.Remove(key);
+                Save();
+            }
         }
         catch { }
     }

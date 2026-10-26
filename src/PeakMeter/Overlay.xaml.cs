@@ -638,7 +638,7 @@ public partial class Overlay : Window
         EnergyButton.Foreground = (Brush)FindResource(near ? "Accent" : "TextDim");
     }
 
-    private void Energy_Click(object sender, RoutedEventArgs e) => _app.ShowEnergy();
+    private void Energy_Click(object sender, RoutedEventArgs e) => _app.ShowTickets();
 
     /// <summary>
     /// Every character's energy for the hover text, counted forward since each was last played – no relogging just

@@ -683,7 +683,9 @@ public sealed class PacketParser
                 if (owner is not { } id || id == summon) continue;
                 int len = b[s + 2];
                 if (len is < 1 or > 40 || s + 3 + len > b.Length || !Wire.TryName(b.Slice(s + 3, len), out var name)) continue;
-                Emit(new PlayerSeenEvent(TimeMs, (uint)id, name, server, GameClass.Unknown));
+                // Only a real server; and only the server: ids read here are not trusted to rename anyone.
+                if (!_data.Servers.ContainsKey(server)) break;
+                Emit(new PlayerServerEvent(TimeMs, name, server));
                 i = s + 2 + len;
                 break;
             }
