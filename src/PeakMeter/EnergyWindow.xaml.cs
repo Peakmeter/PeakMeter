@@ -68,26 +68,7 @@ public partial class EnergyWindow : Window
         }
     }
 
-    private void Probe_Click(object sender, RoutedEventArgs e)
-    {
-        if (_meter.ProbeRunning)
-        {
-            _meter.StopProbe();
-            _probeDone = true;
-        }
-        else
-        {
-            _marks = 0;
-            _probeDone = false;
-            if (!_meter.StartProbe())
-            {
-                ProbeStatus.Text = L.S("Erst Aion 2 starten", "Start AION 2 first");
-                return;
-            }
-            Input.Focus();
-        }
-        RefreshProbe();
-    }
+    private void Probe_Click(object sender, RoutedEventArgs e) => ((App)Application.Current).ShowTicketProbe();
 
     /// <summary>A value entered while recording: one step further; three values are plenty.</summary>
     private void Marked()

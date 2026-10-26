@@ -1,0 +1,38 @@
+<Window x:Class="PeakMeter.ServerProbeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:PeakMeter"
+        Title="PeakMeter – Server lernen" Width="380" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen" FontFamily="{StaticResource UiFont}" Topmost="True"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True">
+    <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Edge}" BorderThickness="1" CornerRadius="12" Padding="16,12,16,16">
+        <StackPanel>
+            <Grid Background="Transparent" MouseLeftButtonDown="Bar_MouseDown" Margin="0,0,0,10">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="&#xE7C8;" FontFamily="{StaticResource IconFont}" Foreground="#FF6B81" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <TextBlock Text="{local:T De='Server lernen', En='Learn servers'}" Foreground="{StaticResource Text}" FontSize="15" FontWeight="SemiBold" />
+                </StackPanel>
+                <Button Style="{StaticResource IconButton}" Content="&#xE8BB;" Click="Close_Click" HorizontalAlignment="Right" Width="28" Height="28" ToolTip="{local:T De='Schließen', En='Close'}" />
+            </Grid>
+            <TextBlock x:Name="StepText" Foreground="{StaticResource TextSoft}" FontSize="11.5" TextWrapping="Wrap" LineHeight="18" />
+            <Border CornerRadius="6" Background="#14FFFFFF" BorderBrush="{StaticResource Edge}" BorderThickness="1" Margin="0,12,0,0">
+                <TextBox x:Name="Input" Background="Transparent" BorderThickness="0" Foreground="{StaticResource Text}" CaretBrush="White" FontSize="13" Padding="8,6"
+                         AcceptsReturn="True" Height="90" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" />
+            </Border>
+            <TextBlock Text="{local:T De='Ein Spieler pro Zeile, z. B.  RipHaku Zik', En='One player per line, e.g.  RipHaku Zik'}" Foreground="{StaticResource TextDim}" FontSize="10.5" Margin="2,4,0,0" />
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                <Button Style="{StaticResource Chip}" Height="28" Click="Main_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="MainIcon" Text="&#xE7C8;" FontFamily="{StaticResource IconFont}" Margin="0,1,6,0" Foreground="#FF6B81" />
+                        <TextBlock x:Name="MainLabel" />
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource Chip}" Height="28" Margin="8,0,0,0" Click="Save_Click">
+                    <TextBlock Text="{local:T De='Spieler merken', En='Save players'}" />
+                </Button>
+            </StackPanel>
+            <TextBlock x:Name="StatusText" Foreground="{StaticResource TextDim}" FontSize="10.5" Margin="0,8,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+    </Border>
+</Window>

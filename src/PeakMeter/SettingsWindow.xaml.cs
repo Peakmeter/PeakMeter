@@ -357,6 +357,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.19 – „Energie & Tickets lernen“ mit Energie-Feldern (Neu-Einloggen) · „Server lernen (Raid)“ · Energie-Werte aus dem Spiel sofort übernehmen\n\n" +
         "v1.18 – Server hinter dem Namen wie im Spiel, z. B. „RipHaku [Zik]“ · Region Europa / NA-Ost / NA-West · Profil-Knopf öffnet Gruppenmitglieder direkt\n\n" +
         "v1.17.1 – Verlauf im Meter (◀ ▶ / Mausrad) geht jetzt auch durch die gespeicherten Logs, auch nach einem Neustart · leere 1-Sekunden-Kämpfe überdecken das letzte Ergebnis nicht mehr\n\n" +
         "v1.17 – „Profil“-Knopf bei jedem Spieler: Ausrüstung, Daevanion, Arcana und Skills auf aion2index.com\n\n" +
@@ -371,6 +372,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.19 – “Learn energy & tickets” with energy fields (re-login) · “Learn servers (raid)” · energy values from the game apply right away\n\n" +
         "v1.18 – Server after the name like in the game, e.g. “RipHaku [Zik]” · region Europe / NA East / NA West · profile button opens party members directly\n\n" +
         "v1.17.1 – Meter history (◀ ▶ / mouse wheel) now goes through the saved logs too, even after a restart · empty one-second fights no longer replace the last result\n\n" +
         "v1.17 – “Profile” button for every player: gear, Daevanion, arcana and skills on aion2index.com\n\n" +

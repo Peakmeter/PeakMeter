@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -28,12 +28,12 @@ public partial class App : Application
     private TimersWindow? _timers;
     private EnergyWindow? _energy;
 
-    /// <summary>"1.8.0" — from the build.</summary>
+    /// <summary>"1.8.0" â€” from the build.</summary>
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Server hinter dem Namen wie im Spiel, Verlauf durch alle Logs, Region NA-Ost/West";
-    private const string WhatsNewEn = "server after the name like in the game, history through all logs, NA East/West";
+    private const string WhatsNew = "Energie & Tickets lernen, Server lernen im Raid";
+    private const string WhatsNewEn = "learn energy & tickets, learn servers in raids";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -126,7 +126,7 @@ public partial class App : Application
                 (t, _) => { ((System.Windows.Threading.DispatcherTimer)t!).Stop(); _overlay?.StepBack(); }, Dispatcher).Start();
         if (e.Args.Contains("--open-all"))
         {
-            ShowTimers(); ShowLogs(); ShowEnergy(); ShowGearProbe(); ShowTickets(); ShowSettings();
+            ShowTimers(); ShowLogs(); ShowEnergy(); ShowGearProbe(); ShowTickets(); ShowSettings(); ShowTicketProbe(); ShowServerProbe();
             Notify(L.S("Shugo-Festival", "Shugo Festival"), L.S("startet in 1 Min", "starts in 1 min"), "shugo");
             Notify(L.S("Luftangriff / Dimensionsinvasion", "Air raid / Dimensional invasion"), L.S("startet in 1 Min", "starts in 1 min"), "invasion");
             Notify("Watcher Kaira", L.S("spawnt in 2 Min", "respawns in 2 min"), "boss");
@@ -167,7 +167,7 @@ public partial class App : Application
         _settingsWindow.Activate();
     }
 
-    /// <summary>The overlay re-reads display settings (rows, opacity, …).</summary>
+    /// <summary>The overlay re-reads display settings (rows, opacity, â€¦).</summary>
     public void SettingsChanged() => _overlay?.ApplySettings();
 
     public void SetVisible(bool visible)
@@ -185,7 +185,7 @@ public partial class App : Application
         if (_clickItem is not null) _clickItem.Checked = Settings.ClickThrough;
         Settings.Save();
         _tray?.ShowBalloonTip(1500, "PeakMeter",
-            Settings.ClickThrough ? L.S("Durchklicken an – Strg+Shift+L zum Ausschalten", "Click-through on – press the hotkey again to turn it off") : L.S("Durchklicken aus", "Click-through off"), Forms.ToolTipIcon.None);
+            Settings.ClickThrough ? L.S("Durchklicken an â€“ Strg+Shift+L zum Ausschalten", "Click-through on â€“ press the hotkey again to turn it off") : L.S("Durchklicken aus", "Click-through off"), Forms.ToolTipIcon.None);
     }
 
     private long _lastAlert = -10_000;
@@ -214,7 +214,7 @@ public partial class App : Application
         if (Settings.Toasts) Toasts.Show(title, detail, kind, Settings.ToastSeconds, onClick);
         else
         {
-            var text = detail.Length > 0 ? $"{title} – {detail}" : title;
+            var text = detail.Length > 0 ? $"{title} â€“ {detail}" : title;
             if (_overlay is { IsVisible: true }) _overlay.ShowAlert(text);
             else _tray?.ShowBalloonTip(5000, "PeakMeter", text, Forms.ToolTipIcon.None);
         }
@@ -256,6 +256,19 @@ public partial class App : Application
     }
 
     private TicketsWindow? _tickets;
+
+    private ServerProbeWindow? _serverProbe;
+
+    public void ShowServerProbe()
+    {
+        if (_serverProbe is null)
+        {
+            _serverProbe = new ServerProbeWindow(Meter);
+            _serverProbe.Closed += (_, _) => _serverProbe = null;
+            _serverProbe.Show();
+        }
+        _serverProbe.Activate();
+    }
 
     private TicketProbeWindow? _ticketProbe;
 
@@ -303,26 +316,28 @@ public partial class App : Application
         menu.Items.Add(L.S("Anzeigen / Verstecken", "Show / hide") + "    " + Settings.HotkeyToggle, null, (_, _) => SetVisible(!_overlay!.IsVisible));
         _clickItem = new Forms.ToolStripMenuItem(L.S("Durchklicken", "Click-through") + "    " + Settings.HotkeyClickThrough, null, (_, _) => ToggleClickThrough()) { Checked = Settings.ClickThrough };
         menu.Items.Add(_clickItem);
-        menu.Items.Add(L.S("Zurücksetzen", "Reset") + "    " + Settings.HotkeyReset, null, (_, _) => Meter.Reset());
+        menu.Items.Add(L.S("ZurÃ¼cksetzen", "Reset") + "    " + Settings.HotkeyReset, null, (_, _) => Meter.Reset());
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add(L.S("Einstellungen", "Settings"), null, (_, _) => ShowSettings());
         menu.Items.Add("Logs", null, (_, _) => ShowLogs());
         menu.Items.Add(L.S("Event-Timer", "Event timers"), null, (_, _) => ShowTimers());
         menu.Items.Add("Tickets", null, (_, _) => ShowTickets());
         menu.Items.Add(L.S("Odyle-Energie", "Odyle energy"), null, (_, _) => ShowEnergy());
+        menu.Items.Add(L.S("Energie & Tickets lernen", "Learn energy & tickets"), null, (_, _) => ShowTicketProbe());
+        menu.Items.Add(L.S("Server lernen (Raid)", "Learn servers (raid)"), null, (_, _) => ShowServerProbe());
         menu.Items.Add(L.S("Gearscore & CP finden (Beta)", "Find gear score & CP (beta)"), null, (_, _) => ShowGearProbe());
         var party = new Forms.ToolStripMenuItem(L.S("Nur ich / meine Gruppe", "Only me / my party")) { Checked = Settings.PartyOnly, CheckOnClick = true };
         party.CheckedChanged += (_, _) => { Settings.PartyOnly = party.Checked; Settings.Save(); };
         menu.Items.Add(party);
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add(L.S("Demo-Kampf (Test)", "Demo fight (test)"), null, (_, _) => { SetVisible(true); Meter.StartDemo(); });
-        menu.Items.Add(L.S("Einstellungsordner öffnen", "Open settings folder"), null, (_, _) =>
+        menu.Items.Add(L.S("Einstellungsordner Ã¶ffnen", "Open settings folder"), null, (_, _) =>
         {
             Directory.CreateDirectory(Settings.Dir);
             Process.Start(new ProcessStartInfo("explorer.exe", Settings.Dir) { UseShellExecute = true });
         });
         if (KofiUrl.Length > 0)
-            menu.Items.Add(L.S("PeakMeter unterstützen ☕", "Support PeakMeter ☕"), null, (_, _) =>
+            menu.Items.Add(L.S("PeakMeter unterstÃ¼tzen â˜•", "Support PeakMeter â˜•"), null, (_, _) =>
                 Process.Start(new ProcessStartInfo(KofiUrl) { UseShellExecute = true }));
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add(L.S("Beenden", "Exit"), null, (_, _) => Shutdown());
@@ -330,7 +345,7 @@ public partial class App : Application
         _tray = new Forms.NotifyIcon
         {
             Icon = TrayGlyph(),
-            Text = $"PeakMeter v{Version} – Aion 2 DPS",
+            Text = $"PeakMeter v{Version} â€“ Aion 2 DPS",
             ContextMenuStrip = menu,
             Visible = true,
         };
@@ -363,7 +378,7 @@ public partial class App : Application
     }
 }
 
-/// <summary>Capture → decoder → combat tracker, plus the name cache so players keep their names across restarts.</summary>
+/// <summary>Capture â†’ decoder â†’ combat tracker, plus the name cache so players keep their names across restarts.</summary>
 public sealed class Meter : IDisposable
 {
     private readonly Settings _settings;
@@ -422,7 +437,7 @@ public sealed class Meter : IDisposable
             if (Key(before) != Key(Roster)) RosterChanged?.Invoke();
         };
 
-        // World boss respawns: kills seen nearby and the in-game field boss list (map → exploration → field monsters).
+        // World boss respawns: kills seen nearby and the in-game field boss list (map â†’ exploration â†’ field monsters).
         Bosses = new BossTimers(Path.Combine(Settings.Dir, "boss-timers.json"), Data, Path.Combine(AppContext.BaseDirectory, "data"), persistent: !demo);
         Bosses.SetCurrentServer(Tracker.SelfServerId);
         Tracker.BossNoticed += n => { if (!_demoOnly && !DemoRunning) Bosses.OnNotice(n); };
@@ -459,7 +474,7 @@ public sealed class Meter : IDisposable
             {
                 if (e is ResourceRawEvent raw)
                 {
-                    // Other counters in the same message (tickets, keys …): logged once each, to learn their layout.
+                    // Other counters in the same message (tickets, keys â€¦): logged once each, to learn their layout.
                     var hex = Convert.ToHexString(raw.Raw);
                     if (_seenRaw.Add(hex)) Log($"Counter message (unknown): {hex} [char {Tracker.SelfName}]");
                     return;
@@ -536,7 +551,10 @@ public sealed class Meter : IDisposable
     /// energy values the player enters as markers in between. Only on this PC; used to find where the server sends
     /// Odyle energy. Returns false when no live capture is running.
     /// </summary>
-    public bool StartProbe(string kind = "energy")
+    private bool _probeWide;
+
+    /// <param name="wide">Also keep spawns, big packets and unpacked bundles (login state, other players' servers).</param>
+    public bool StartProbe(string kind = "energy", bool wide = false)
     {
         if (_capture is not LiveCapture live) return false;
         lock (_probeGate)
@@ -547,6 +565,7 @@ public sealed class Meter : IDisposable
             _probe = new StreamWriter(ProbePath);
             _probeCounts.Clear();
             _probeUntil = Environment.TickCount64 + 10 * 60_000;
+            _probeWide = wide;
             _probe.WriteLine($"# PeakMeter {kind} probe {DateTime.Now:O}  (time_ms opcode length hex)");
         }
         live.Pipeline.Parser.Tap = ProbeTap;
@@ -578,7 +597,11 @@ public sealed class Meter : IDisposable
 
     private void ProbeTap(long timeMs, ushort opcode, ReadOnlySpan<byte> body)
     {
-        if (ProbeSkip.Contains(opcode) || body.Length > 32768) return;
+        if (_probeWide
+                ? opcode is AionMeter.Core.Protocol.Opcodes.Heartbeat or AionMeter.Core.Protocol.Opcodes.Damage or AionMeter.Core.Protocol.Opcodes.Dot
+                      or AionMeter.Core.Protocol.Opcodes.Cast or AionMeter.Core.Protocol.Opcodes.HitNotice or AionMeter.Core.Protocol.Opcodes.HpMp
+                      or AionMeter.Core.Protocol.Opcodes.RemainHp || body.Length > 2_000_000
+                : ProbeSkip.Contains(opcode) || body.Length > 32768) return;
         if (Environment.TickCount64 > _probeUntil)
         {
             ThreadPool.QueueUserWorkItem(_ => StopProbe());
@@ -589,7 +612,7 @@ public sealed class Meter : IDisposable
             if (_probe is null) return;
             // Anything sent hundreds of times in five minutes is movement or combat, not a resource counter.
             var n = _probeCounts[opcode] = _probeCounts.GetValueOrDefault(opcode) + 1;
-            if (n > 300) return;
+            if (n > (_probeWide ? 4000 : 300)) return;
             _probe.Write(timeMs);
             _probe.Write(' ');
             _probe.Write(opcode.ToString("X4"));

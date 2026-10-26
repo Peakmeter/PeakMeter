@@ -21,6 +21,7 @@ public partial class TicketProbeWindow : Window
     {
         _meter = meter;
         InitializeComponent();
+        IcoOdyle.Source = EventIcons.Get("odyle");
         IcoNightmare.Source = EventIcons.Get("nightmare");
         IcoAscension.Source = EventIcons.Get("ascension");
         IcoDaily.Source = EventIcons.Get("daily");
@@ -58,8 +59,8 @@ public partial class TicketProbeWindow : Window
             MainIcon.Text = "";
             StepText.Text = _marks switch
             {
-                0 => L.S("Schritt 1 von 3: Geh im Spiel zur Charakterauswahl und logge dich wieder ein (dabei schickt das Spiel alle Zähler). Dann trag unten ein, was das Spiel bei den Tickets anzeigt, und klick „Werte merken“.",
-                         "Step 1 of 3: In the game, go to character select and log in again (the game then sends every counter). Then enter what the game shows for the tickets and click “Save values”."),
+                0 => L.S("Schritt 1 von 3: Geh im Spiel zur Charakterauswahl und logge dich wieder ein – beim Einloggen schickt das Spiel Energie und alle Zähler. Dann trag die Odyle-Energie (z. B. 0 und 475 bei „0 (+475) / 840“) und die Tickets ein und klick „Werte merken“.",
+                         "Step 1 of 3: In the game, go to character select and log in again – on login the game sends the energy and every counter. Then enter the Odyle energy (e.g. 0 and 475 for “0 (+475) / 840”) and the tickets and click “Save values”."),
                 1 => L.S("Schritt 2 von 3: Verbrauche jetzt einen Eintritt (z. B. Täglichen Dungeon oder Albtraum betreten). Dann die NEUEN Werte eintragen und „Werte merken“.",
                          "Step 2 of 3: Now use one entry (e.g. enter the daily dungeon or nightmare). Then enter the NEW values and click “Save values”."),
                 _ => L.S("Schritt 3 von 3: Super! Noch einmal etwas verbrauchen oder den Charakter wechseln und die Werte eintragen – oder auf „Fertig“.",
@@ -79,8 +80,8 @@ public partial class TicketProbeWindow : Window
                 : _done
                     ? L.S("Die Aufnahme hatte zu wenige Werte. Bitte nochmal – PeakMeter führt dich durch.",
                           "The recording had too few values. Please try again – PeakMeter guides you.")
-                    : L.S("PeakMeter kennt die Ticket-Zähler noch nicht. Hilf ihm, sie in den Spieldaten zu finden: dauert 3 Minuten und bleibt auf deinem PC. Du kannst die Werte auch einfach so eintragen – sie erscheinen dann bis zum nächsten Reset im Tickets-Fenster.",
-                          "PeakMeter does not know the ticket counters yet. Help it find them in the game data: takes 3 minutes and stays on your PC. You can also just enter the values – they show in the tickets window until the next reset.");
+                    : L.S("PeakMeter sieht die Energie bisher nur, wenn sie sich ändert, und kennt die Tickets noch nicht. Mit einem Neu-Einloggen lernt er beides: dauert 3 Minuten und bleibt auf deinem PC. Du kannst die Werte auch einfach so eintragen – sie erscheinen dann bis zum nächsten Reset im Tickets-Fenster.",
+                          "PeakMeter only sees the energy when it changes and does not know the tickets yet. One re-login teaches it both: takes 3 minutes and stays on your PC. You can also just enter the values – they show in the tickets window until the next reset.");
             if (!_done) StatusText.Text = who is null ? L.S("Kein Charakter erkannt – erst im Spiel einloggen.", "No character detected – log in first.") : who;
         }
         SaveLabel.Text = L.S("Werte merken", "Save values");
@@ -97,7 +98,7 @@ public partial class TicketProbeWindow : Window
         {
             _marks = 0;
             _done = false;
-            if (!_meter.StartProbe("tickets"))
+            if (!_meter.StartProbe("tickets", wide: true))
             {
                 StatusText.Text = L.S("Erst AION 2 starten", "Start AION 2 first");
                 return;
@@ -127,7 +128,16 @@ public partial class TicketProbeWindow : Window
             }
             values[key] = v;
         }
-        if (values.Count == 0)
+        int? pool = null, bonus = null;
+        foreach (var (box, set) in new (TextBox, Action<int>)[] { (InPool, v => pool = v), (InBonus, v => bonus = v) })
+        {
+            var t = box.Text.Trim();
+            if (t.Length == 0) continue;
+            if (!int.TryParse(t, out var v) || v < 0 || v > 5000) { StatusText.Text = L.S("Bitte nur Zahlen eintragen.", "Numbers only, please."); box.Focus(); return; }
+            set(v);
+        }
+        if (pool is { } p) _meter.Odyle.SetFromGame(p, bonus ?? 0);
+        if (values.Count == 0 && pool is null)
         {
             StatusText.Text = L.S("Trag mindestens einen Wert ein.", "Enter at least one value.");
             return;
@@ -138,10 +148,11 @@ public partial class TicketProbeWindow : Window
             StatusText.Text = L.S("Kein Charakter erkannt – erst im Spiel einloggen.", "No character detected – log in first.");
             return;
         }
-        _meter.Characters.SetTickets(name, _meter.Tracker.SelfServerId, values);
+        if (values.Count > 0) _meter.Characters.SetTickets(name, _meter.Tracker.SelfServerId, values);
         if (_meter.ProbeRunning)
         {
-            _meter.ProbeMark("tickets " + string.Join(' ', values.Select(kv => $"{kv.Key}={kv.Value}")) + $" char={name}");
+            _meter.ProbeMark("tickets " + string.Join(' ', values.Select(kv => $"{kv.Key}={kv.Value}"))
+                             + (pool is null ? "" : $" odyle={pool} bonus={bonus ?? 0}") + $" char={name}");
             _marks++;
             if (_marks >= 3)
             {
