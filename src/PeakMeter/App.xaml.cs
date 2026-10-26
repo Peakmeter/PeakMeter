@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Energie & Tickets lernen, Server lernen im Raid";
-    private const string WhatsNewEn = "learn energy & tickets, learn servers in raids";
+    private const string WhatsNew = "Odyle-Energie wird beim Einloggen automatisch gelesen";
+    private const string WhatsNewEn = "Odyle energy is read automatically at login";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -481,8 +481,14 @@ public sealed class Meter : IDisposable
                 }
                 if (e is not OdyleEnergyEvent o) return;
                 Log($"Odyle from game: pool {o.Regen}, bonus {o.Bonus}, change {o.Change:+0;-0;0} ({Convert.ToHexString(o.Raw)})");
-                if (Tracker.SelfName is { } self) Characters.Odyle(self, Tracker.SelfServerId, o.Regen, o.Bonus);
-                System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.SetFromGame(o.Regen, o.Bonus));
+                // At login the energy can arrive just before the game says which character it is: wait a moment,
+                // so a character switch does not file one character's energy under the previous one.
+                ThreadPool.QueueUserWorkItem(_ =>
+                {
+                    if (o.Change == 0) Thread.Sleep(4000);
+                    if (Tracker.SelfName is { } self) Characters.Odyle(self, Tracker.SelfServerId, o.Regen, o.Bonus);
+                    System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.SetFromGame(o.Regen, o.Bonus));
+                });
             };
             _capture.StatusChanged += st =>
             {

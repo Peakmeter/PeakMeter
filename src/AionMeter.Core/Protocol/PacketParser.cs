@@ -94,6 +94,9 @@ public sealed class PacketParser
             case Opcodes.InstanceTimer:
                 ParseInstanceTimer(body);
                 break;
+            case Opcodes.ResourceList:
+                ParseResourceList(body);
+                break;
             case Opcodes.OdyleEnergy:
                 ParseOdyle(body);
                 break;
@@ -885,6 +888,21 @@ public sealed class PacketParser
     /// <c>01 0C 01 | varint ? | varint regen | varint bonus | u8 ? | i32 change</c>. Only accepted when the numbers are
     /// plausible, so an unknown variant of the message is ignored rather than shown wrong.
     /// </summary>
+    /// <summary>
+    /// The full list of counters the server sends at login. The Odyle record inside looks like the change message:
+    /// 0C 01 87 93 03 &lt;pool&gt; &lt;bonus&gt; (e.g. 840 / 40 = "840 (+40)", EU capture 2026-10-26).
+    /// </summary>
+    private void ParseResourceList(ReadOnlySpan<byte> b)
+    {
+        ReadOnlySpan<byte> key = [0x0C, 0x01, 0x87, 0x93, 0x03];
+        var at = b.IndexOf(key);
+        if (at < 0) return;
+        var o = at + key.Length;
+        if (!Wire.TryVarint(b, ref o, out var pool) || !Wire.TryVarint(b, ref o, out var bonus)) return;
+        if (pool > 2000 || bonus > 5000) return;
+        Emit(new OdyleEnergyEvent(TimeMs, (int)pool, (int)bonus, 0, b.Slice(at, o - at).ToArray()));
+    }
+
     private void ParseOdyle(ReadOnlySpan<byte> b)
     {
         // The same message carries other counters too (tickets, keys …): passed on raw so they can be learned.

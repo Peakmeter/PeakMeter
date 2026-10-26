@@ -28,6 +28,7 @@ public static class Opcodes
     public const ushort BattleToggle = 0x218D;   // KR only, unverified on Global
     public const ushort HpMp = 0x1B92;
     public const ushort PartyRoster = 0x0297;
+    public const ushort ResourceList = 0x0B61;   // PeakMeter: every counter at login, Odyle energy included
     public const ushort OdyleEnergy = 0x0C61;    // PeakMeter: Odyle energy (regen pool + bonus pool), sent when it changes
     public const ushort FieldBossList = 0x0191;  // a map's field bosses: alive since / back at (in-game map list)
 
