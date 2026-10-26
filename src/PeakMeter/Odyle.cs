@@ -72,6 +72,19 @@ public sealed class Odyle(Settings s)
         Updated?.Invoke();
     }
 
+    /// <summary>A character without a known value logged in: show nothing rather than another character's energy.</summary>
+    public void Clear()
+    {
+        if (!Known && s.OdyleFromGameAt is null) return;
+        s.OdyleValue = -1;
+        s.OdyleBonus = 0;
+        s.OdyleSetAt = null;
+        s.OdyleFromGameAt = null;
+        s.OdyleFullNotified = false;
+        s.Save();
+        Updated?.Invoke();
+    }
+
     /// <summary>The total the game shows, entered by hand: anything above the cap counts as bonus.</summary>
     public void Set(int total)
     {

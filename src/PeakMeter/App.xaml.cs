@@ -414,6 +414,7 @@ public sealed class Meter : IDisposable
     private (int Pool, int Bonus, long At)? _loginEnergy;
     private string? _identity;
     private long _identityAt;
+    private long _liveEnergyAt = long.MinValue / 2;
 
     public Meter(Settings settings, bool demo, bool saveDemo = false)
     {
@@ -446,8 +447,23 @@ public sealed class Meter : IDisposable
                 }
                 if (!switched) return;
             }
-            if (Characters.Get(name, server) is { OdylePool: >= 0, OdyleAt: { } at } c)
-                System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.Restore(c.OdylePool, c.OdyleBonus, at));
+            var stored = Characters.Get(name, server);
+            if (stored is { OdylePool: >= 0, OdyleAt: { } at })
+                System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.Restore(stored.OdylePool, stored.OdyleBonus, at));
+            else
+            {
+                // Nothing known for this character: the value on screen belongs to someone else (the previous
+                // character, or whoever was logged in when PeakMeter last ran). Only a value the game sent just
+                // now, before the name, may stay.
+                var fresh = now - Interlocked.Read(ref _liveEnergyAt) < 60_000;
+                if (!fresh)
+                {
+                    Log($"Energy: no value known for {name} yet, hiding the previous one");
+                    System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.Clear());
+                }
+                else if (Odyle.Known)
+                    Characters.Odyle(name, server, Odyle.Pool(DateTimeOffset.Now), Odyle.Bonus);
+            }
         };
         Records = new Records(History, this);
         // Values entered before the bonus pool existed: anything above the cap was bonus energy.
@@ -508,6 +524,7 @@ public sealed class Meter : IDisposable
                 if (e is not OdyleEnergyEvent o) return;
                 Log($"Odyle from game: pool {o.Regen}, bonus {o.Bonus}, change {o.Change:+0;-0;0} ({Convert.ToHexString(o.Raw)})");
                 try { File.AppendAllText(Path.Combine(Settings.Dir, "energy-events.txt"), $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {Tracker.SelfName}  pool {o.Regen}  bonus {o.Bonus}  change {o.Change}  {Convert.ToHexString(o.Raw)}{Environment.NewLine}"); } catch { }
+                Interlocked.Exchange(ref _liveEnergyAt, Environment.TickCount64);
                 // The value is always the logged-in character's: show it right away.
                 System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.SetFromGame(o.Regen, o.Bonus));
                 // Which character that is: at a login (Change 0) the name record can come before or after the energy,
