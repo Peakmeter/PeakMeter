@@ -182,8 +182,14 @@ public partial class Overlay : Window
             var f = boss.HpFraction;
             HpFill.Width = Math.Max(0, HpTrack.ActualWidth * f);
             HpText.Text = boss.Hp <= 0 ? L.S("tot", "dead") : (f * 100).ToString(f < 0.1 ? "0.0" : "0", System.Globalization.CultureInfo.InvariantCulture) + "%";
+            HpAmount.Text = boss.MaxHpKnown && boss.MaxHp > 0 ? $"{Format.Compact(Math.Max(0, boss.Hp))} / {Format.Compact(boss.MaxHp)} HP" : "";
+            KillText.Text = KillEstimate(snap, boss);
         }
-        else HpPanel.Visibility = Visibility.Collapsed;
+        else
+        {
+            HpPanel.Visibility = Visibility.Collapsed;
+            _hpSamples.Clear();
+        }
 
         _showingEmpty = false;
         EmptyText.Visibility = Visibility.Collapsed;
@@ -192,6 +198,29 @@ public partial class Overlay : Window
         UpdateCompare(snap);
         UpdateRows(snap);
         UpdateDetail();
+    }
+
+    private readonly Queue<(long Ms, long Hp)> _hpSamples = new();
+    private int _hpBoss;
+
+    /// <summary>
+    /// "Kill in ~1:23": the boss's HP left divided by how fast it dropped over the last 20 s (or the whole fight
+    /// when shorter) – the current pace, so phases and burst windows are reflected quickly.
+    /// </summary>
+    private string KillEstimate(EncounterSnapshot snap, BossSnapshot boss)
+    {
+        if (boss.Hp <= 0) return L.S($"Gelegt in {Format.ClockShort(snap.CombatMs)}", $"Down in {Format.ClockShort(snap.CombatMs)}");
+        if (!snap.IsActive || _segment is not null || !boss.MaxHpKnown) { _hpSamples.Clear(); return ""; }
+        if (_hpBoss != boss.NpcCode || (_hpSamples.Count > 0 && snap.CombatMs < _hpSamples.Last().Ms)) { _hpSamples.Clear(); _hpBoss = boss.NpcCode; }
+        if (_hpSamples.Count == 0 || _hpSamples.Last().Ms != snap.CombatMs) _hpSamples.Enqueue((snap.CombatMs, boss.Hp));
+        while (_hpSamples.Count > 2 && snap.CombatMs - _hpSamples.Peek().Ms > 20_000) _hpSamples.Dequeue();
+        var (ms0, hp0) = _hpSamples.Peek();
+        var span = snap.CombatMs - ms0;
+        var lost = hp0 - boss.Hp;
+        if (span < 3_000 || lost <= 0) return L.S("Kill in …", "Kill in …");
+        var leftMs = boss.Hp / (lost / (double)span);
+        if (leftMs > 60 * 60_000) return L.S("Kill in > 1 Std.", "Kill in > 1 h");
+        return L.S($"Kill in ~{Format.ClockShort((long)leftMs)}", $"Kill in ~{Format.ClockShort((long)leftMs)}");
     }
 
     /// <summary>In a boss fight: your DPS against last time, and the best kill time so far.</summary>

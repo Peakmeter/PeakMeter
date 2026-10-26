@@ -82,6 +82,10 @@
 
                 <!-- Boss HP -->
                 <Grid x:Name="HpPanel" Margin="2,8,2,2" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="44" />
@@ -98,6 +102,12 @@
                     </Border>
                     <TextBlock x:Name="HpText" Grid.Column="1" Text="100%" Foreground="{StaticResource TextSoft}" FontSize="10.5"
                                HorizontalAlignment="Right" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" />
+                    <!-- HP left and when the boss will be down at the current pace -->
+                    <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="0,3,0,0">
+                        <TextBlock x:Name="HpAmount" Foreground="{StaticResource TextDim}" FontSize="10.5" Typography.NumeralAlignment="Tabular" />
+                        <TextBlock x:Name="KillText" Foreground="{StaticResource TextSoft}" FontSize="10.5" HorizontalAlignment="Right"
+                                   Typography.NumeralAlignment="Tabular" ToolTip="{local:T De='Geschätzt aus dem Schaden der letzten 20 Sekunden', En='Estimated from the damage of the last 20 seconds'}" />
+                    </Grid>
                 </Grid>
 
                 <!-- You against your last fight with this boss, and the best kill time -->
