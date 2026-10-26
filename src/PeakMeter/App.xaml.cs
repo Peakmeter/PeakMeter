@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Feldboss ohne Gruppe zeigt nur dich, DPS ab deinem ersten Treffer";
-    private const string WhatsNewEn = "field bosses without a party show only you, DPS from your first hit";
+    private const string WhatsNew = "Skill-Icons im Meter und in den Logs";
+    private const string WhatsNewEn = "skill icons in the meter and the logs";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -81,6 +81,7 @@ public partial class App : Application
         DispatcherUnhandledException += (_, ex) => ex.Handled = true;
 
         Settings = Settings.Load();
+        SkillIcons.Init(Path.Combine(AppContext.BaseDirectory, "data"));
         L.En = Settings.Language == "en";
         if (!Settings.RememberClickThrough) Settings.ClickThrough = false;
         if (Settings.Region == "na") Settings.Region = "nae"; // before 1.18 NA was one choice

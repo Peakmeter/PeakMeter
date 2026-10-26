@@ -113,7 +113,9 @@
                 <ColumnDefinition Width="40" />
             </Grid.ColumnDefinitions>
             <Border CornerRadius="3" HorizontalAlignment="Left" Width="{Binding BarWidth}" Background="{Binding BarBrush}" Grid.ColumnSpan="3" />
-            <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextSoft}" FontSize="11" Margin="6,0,6,0"
+            <Image Source="{Binding Icon}" Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0"
+                   RenderOptions.BitmapScalingMode="HighQuality" />
+            <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextSoft}" FontSize="11" Margin="23,0,6,0"
                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
             <TextBlock Grid.Column="1" Text="{Binding Damage}" Foreground="{StaticResource Text}" FontSize="11"
                        VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" />

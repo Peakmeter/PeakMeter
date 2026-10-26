@@ -466,6 +466,7 @@ public partial class Overlay : Window
             var s = skills[i];
             var vm = _skills[i];
             vm.Name = s.Name;
+            vm.Icon = SkillIcons.Get(s.SkillCode);
             vm.Damage = Format.Compact(s.Damage);
             vm.Share = Format.Share(s.Share);
             vm.BarWidth = Math.Round(width * s.Damage / top);
@@ -958,7 +959,9 @@ public sealed class SkillVm : Vm
     private string _name = "", _damage = "", _share = "";
     private double _bar;
     private Brush? _brush;
+    private ImageSource? _icon;
 
+    public ImageSource? Icon { get => _icon; set => Set(ref _icon, value); }
     public string Name { get => _name; set => Set(ref _name, value); }
     public string Damage { get => _damage; set => Set(ref _damage, value); }
     public string Share { get => _share; set => Set(ref _share, value); }

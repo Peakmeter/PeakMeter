@@ -11,6 +11,10 @@ open-source meters licensed under GPL-3.0, which is why AionMeter as a whole is 
 | `src/AionMeter.App/Assets/Classes/*.png` (class emblems; brawler downscaled to 128 px) | same repository, `AionDpsMeter.UI/Assets/Classes`, commit `2e8d67d`, GPL-3.0 |
 | `boss_portraits.json` (NPC code → portrait file) | built from [MetaBot.GG's boss list](https://metabot.gg/en/aion-2/bosses) (2026-10-05): each dungeon boss's portrait file, matched to every NPC code with the same English name in `npcs/en.json`. The portraits themselves are not bundled: the app downloads them from MetaBot.GG at runtime (credit: [MetaBot.GG](https://metabot.gg)) |
 
+Skill icons are not bundled either: PeakMeter downloads them at runtime from the game's official image server
+(`assets.playnccdn.com/static-aion2-gamedata/resources/`, © NCSOFT), the same way A2Tools-DPS-Meter does, and keeps
+them in `%AppData%\PeakMeter\icons`.
+
 Formats AionMeter reads (every file is optional):
 
 - `skills/<lang>.json` — `{ "16040000": "Skill name", … }`

@@ -34,7 +34,12 @@ public partial class LogsWindow : Window
         _meter = meter;
         InitializeComponent();
         _meter.FightSaved += OnSaved;
-        Closed += (_, _) => _meter.FightSaved -= OnSaved;
+        SkillIcons.Loaded += ShowRecord;
+        Closed += (_, _) =>
+        {
+            _meter.FightSaved -= OnSaved;
+            SkillIcons.Loaded -= ShowRecord;
+        };
         SizeChanged += (_, _) => ShowRecord();
         LoadList();
     }
@@ -152,6 +157,7 @@ public partial class LogsWindow : Window
         Skills.ItemsSource = skills.Select(x => new SkillVm
         {
             Name = $"{x.Name}   ×{x.Hits + x.DotTicks}",
+            Icon = SkillIcons.Get(x.SkillCode),
             Damage = Format.Compact(x.Damage),
             Share = Format.Share(x.Share),
             BarWidth = Math.Round(swidth * x.Damage / stop),
