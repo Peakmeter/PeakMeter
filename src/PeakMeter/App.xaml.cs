@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Profil-Knopf bei jedem Spieler (Ausrüstung, Daevanion, Skills auf aion2index.com)";
-    private const string WhatsNewEn = "profile button for every player (gear, Daevanion, skills on aion2index.com)";
+    private const string WhatsNew = "Server hinter dem Namen wie im Spiel, Verlauf durch alle Logs, Region NA-Ost/West";
+    private const string WhatsNewEn = "server after the name like in the game, history through all logs, NA East/West";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -83,6 +83,7 @@ public partial class App : Application
         Settings = Settings.Load();
         L.En = Settings.Language == "en";
         if (!Settings.RememberClickThrough) Settings.ClickThrough = false;
+        if (Settings.Region == "na") Settings.Region = "nae"; // before 1.18 NA was one choice
         Meter = new Meter(Settings, demo: e.Args.Contains("--demo"), saveDemo: e.Args.Contains("--save-demo"));
 
         _overlay = new Overlay(this);
@@ -120,6 +121,9 @@ public partial class App : Application
         }
         Meter.Start();
         if (e.Args.Contains("--demo")) Meter.StartDemo();
+        if (e.Args.Contains("--step-back")) // test aid: show the previous fight in the meter
+            new System.Windows.Threading.DispatcherTimer(TimeSpan.FromSeconds(4), System.Windows.Threading.DispatcherPriority.Background,
+                (t, _) => { ((System.Windows.Threading.DispatcherTimer)t!).Stop(); _overlay?.StepBack(); }, Dispatcher).Start();
         if (e.Args.Contains("--open-all"))
         {
             ShowTimers(); ShowLogs(); ShowEnergy(); ShowGearProbe(); ShowTickets(); ShowSettings();

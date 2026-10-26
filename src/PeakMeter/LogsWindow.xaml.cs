@@ -110,6 +110,7 @@ public partial class LogsWindow : Window
             result, s.Zone,
         }.Where(x => !string.IsNullOrEmpty(x)));
 
+        var selfServer = s.Combatants.FirstOrDefault(c => c.IsSelf)?.ServerId ?? 0;
         var list = s.Combatants.OrderBy(c => c.IsUnknownSummons).ThenByDescending(c => c.Damage).ToList();
         var top = Math.Max(1, list.Count > 0 ? list.Max(c => c.Damage) : 1);
         var width = Math.Max(0, Rows.ActualWidth > 0 ? Rows.ActualWidth : 400);
@@ -119,7 +120,8 @@ public partial class LogsWindow : Window
             {
                 ActorId = c.ActorId,
                 Rank = c.IsUnknownSummons ? "" : (i + 1).ToString(),
-                Name = c.IsUnknownSummons ? L.S("Beschwörungen", "Summons") : c.Name,
+                Name = c.IsUnknownSummons ? L.S("Beschwörungen", "Summons")
+                    : c.Name + Armory.Tag(_meter.Data.ServerName(c.ServerId), _meter.Data.ServerName(selfServer)),
                 Dps = Format.Compact(c.Dps),
                 Share = Format.Share(c.Share),
                 Power = c.CombatPower > 0 ? "  " + Format.Power(c.CombatPower) : "",

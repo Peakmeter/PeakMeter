@@ -28,6 +28,9 @@ public partial class Overlay : Window
     private readonly ObservableCollection<RowVm> _rows = new();
     private readonly ObservableCollection<SkillVm> _skills = new();
     private Guid? _segment;          // null = live
+    private AionMeter.Core.Storage.HistoryEntry? _savedEntry;   // a saved fight (older than this session) shown via ◀ ▶
+    private FightRecord? _savedRecord;
+    private bool Browsing => _segment is not null || _savedRecord is not null;
     private uint? _selected;         // player whose skills are shown
     private EncounterSnapshot? _last;
     private long _lastTopmost;
@@ -150,12 +153,16 @@ public partial class Overlay : Window
     private void Refresh()
     {
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var snap = _meter.Tracker.Snapshot(_segment, now);
+        var snap = _savedRecord?.Summary ?? _meter.Tracker.Snapshot(_segment, now);
         if (snap is null && _segment is not null)
         {
             _segment = null; // the fight fell out of memory: back to live
             snap = _meter.Tracker.Snapshot(null, now);
         }
+        // A finished "fight" without any damage (a mob tagged for a second) must not replace the last real result.
+        if (!Browsing && snap is { IsActive: false, TotalDamage: <= 0 }
+            && _meter.Tracker.Segments().Where(s => !s.IsActive && s.TotalDamage > 0).OrderByDescending(s => s.StartedAt).FirstOrDefault() is { } real)
+            snap = _meter.Tracker.Snapshot(real.Id, now) ?? snap;
         _last = snap;
 
         if (snap is null || snap.Combatants.Count == 0)
@@ -168,7 +175,7 @@ public partial class Overlay : Window
         TitleText.Text = zone is null ? snap.Title : $"{zone}  ▸  {snap.Title}";
         var shown = Visible(snap);
         var players = shown.List.Count(c => !c.IsUnknownSummons);
-        var tag = _segment is null ? (snap.IsActive ? "LIVE" : L.S("Ende", "End")) : L.S("Verlauf", "History");
+        var tag = !Browsing ? (snap.IsActive ? "LIVE" : L.S("Ende", "End")) : L.S("Verlauf", "History");
         var who = shown.Filtered ? (_meter.Roster is null ? "Solo" : L.S("Gruppe", "Party")) : L.S("Alle", "All");
         SubText.Text = players <= 1 && shown.Filtered
             ? $"{tag} · {who} · {Format.Compact(shown.Dps)} DPS"
@@ -210,7 +217,7 @@ public partial class Overlay : Window
     private string KillEstimate(EncounterSnapshot snap, BossSnapshot boss)
     {
         if (boss.Hp <= 0) return L.S($"Gelegt in {Format.ClockShort(snap.CombatMs)}", $"Down in {Format.ClockShort(snap.CombatMs)}");
-        if (!snap.IsActive || _segment is not null || !boss.MaxHpKnown) { _hpSamples.Clear(); return ""; }
+        if (!snap.IsActive || Browsing || !boss.MaxHpKnown) { _hpSamples.Clear(); return ""; }
         if (_hpBoss != boss.NpcCode || (_hpSamples.Count > 0 && snap.CombatMs < _hpSamples.Last().Ms)) { _hpSamples.Clear(); _hpBoss = boss.NpcCode; }
         if (_hpSamples.Count == 0 || _hpSamples.Last().Ms != snap.CombatMs) _hpSamples.Enqueue((snap.CombatMs, boss.Hp));
         while (_hpSamples.Count > 2 && snap.CombatMs - _hpSamples.Peek().Ms > 20_000) _hpSamples.Dequeue();
@@ -354,7 +361,15 @@ public partial class Overlay : Window
     private string NameOf(CombatantSnapshot c) =>
         c.IsUnknownSummons ? L.S("Beschwörungen", "Summons")
         : _settings.HideNames && !c.IsSelf ? ClassStyle.Name(c.Class)
-        : c.Name;
+        : c.Name + Armory.Tag(ServerOf(c.Name, c.ServerId), _meter.Data.ServerName(_meter.Tracker.SelfServerId));
+
+    /// <summary>The game sends other players' servers only in the party list: use it when the player has none.</summary>
+    private string ServerOf(string name, int serverId)
+    {
+        if (serverId == 0)
+            serverId = _meter.Roster?.Members.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase))?.ServerId ?? 0;
+        return _meter.Data.ServerName(serverId);
+    }
 
     private string PowerOf(CombatantSnapshot c)
     {
@@ -409,14 +424,17 @@ public partial class Overlay : Window
 
     private void UpdateDetail()
     {
-        if (_selected is not { } id || _meter.Tracker.Detail(_segment, id) is not { } d)
+        var d = _selected is not { } id ? null
+            : _savedRecord is { } rec ? rec.Details.FirstOrDefault(x => x.ActorId == id)
+            : _meter.Tracker.Detail(_segment, id);
+        if (d is null)
         {
             DetailPanel.Visibility = Visibility.Collapsed;
             return;
         }
         DetailPanel.Visibility = Visibility.Visible;
         DetailTitle.Text = d.Name;
-        _profile = (d.Name, _meter.Data.ServerName(d.ServerId));
+        _profile = (d.Name, ServerOf(d.Name, d.ServerId));
         DetailStats.Text = $"{Format.Compact(d.Damage)} · {L.S("Krit", "Crit")} {Format.Percent(d.Quality.CritRate)} · Max {Format.Compact(d.Quality.MaxHit)}";
 
         var skills = d.Skills.OrderByDescending(s => s.Damage).Take(MaxSkills).ToList();
@@ -702,17 +720,33 @@ public partial class Overlay : Window
 
     private void Header_Wheel(object sender, MouseWheelEventArgs e) => Step(e.Delta < 0 ? +1 : -1);
     private void Older_Click(object sender, RoutedEventArgs e) => Step(+1);
+    public void StepBack() => Step(+1);
     private void Newer_Click(object sender, RoutedEventArgs e) => Step(-1);
 
     /// <summary>+1 = an older fight, −1 = a newer one; reaching the newest returns to live.</summary>
+    /// <remarks>
+    /// The fights of this session come from memory; older ones from the saved logs, so the history still works
+    /// right after PeakMeter restarted (e.g. after an update).
+    /// </remarks>
     private void Step(int direction)
     {
-        var fights = _meter.Tracker.Segments().OrderByDescending(s => s.StartedAt).ToList();
-        if (fights.Count == 0) return;
-        var index = _segment is { } id ? fights.FindIndex(f => f.Id == id) : 0;
+        var live = _meter.Tracker.Segments().Where(s => s.IsActive || s.TotalDamage > 0).OrderByDescending(s => s.StartedAt).ToList();
+        var oldest = live.Count > 0 ? live[^1].StartedAt.AddSeconds(-2) : DateTimeOffset.MaxValue;
+        var fights = live.Select(s => (Seg: (Guid?)s.Id, Saved: (AionMeter.Core.Storage.HistoryEntry?)null))
+            .Concat(_meter.History.List(200).Where(e => e.StartedAt < oldest).Select(e => (Seg: (Guid?)null, Saved: (AionMeter.Core.Storage.HistoryEntry?)e)))
+            .ToList();
+        if (live.Count == 0) fights.Insert(0, (null, null)); // position 0 is always "live"
+        if (fights.Count <= 1) return;
+        var index = _segment is { } id ? fights.FindIndex(f => f.Seg == id)
+                  : _savedEntry is { } cur ? fights.FindIndex(f => f.Saved?.FileName == cur.FileName)
+                  : 0;
         if (index < 0) index = 0;
         index = Math.Clamp(index + direction, 0, fights.Count - 1);
-        _segment = index == 0 ? null : fights[index].Id;
+        var pick = fights[index];
+        _segment = index == 0 ? null : pick.Seg;
+        _savedEntry = index == 0 ? null : pick.Saved;
+        _savedRecord = _savedEntry is { } entry ? _meter.History.Load(entry.Path) : null;
+        if (_savedEntry is not null && _savedRecord is null) _savedEntry = null; // file gone: stay on live
         _selected = null;
         Refresh();
     }
@@ -745,6 +779,8 @@ public partial class Overlay : Window
     {
         _meter.Reset();
         _segment = null;
+        _savedEntry = null;
+        _savedRecord = null;
         _selected = null;
         Refresh();
     }

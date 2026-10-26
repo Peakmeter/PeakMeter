@@ -13,11 +13,15 @@ public static class Armory
     public static string Url(string name, string server, string region)
     {
         var slug = server.Trim().ToLowerInvariant();
-        // Europe has one region code; North America is split East/West, which the meter cannot tell apart → search.
-        if (region == "eu" && slug.Length > 0 && slug.All(char.IsAsciiLetter))
-            return $"{Site}/c/eu/{slug}/{Uri.EscapeDataString(name)}";
+        // The region from the settings (eu / nae / naw) and the server name give the profile's address.
+        if (region is "eu" or "nae" or "naw" && slug.Length > 0 && slug.All(char.IsAsciiLetter))
+            return $"{Site}/c/{region}/{slug}/{Uri.EscapeDataString(name)}";
         return $"{Site}/search?q={Uri.EscapeDataString(name)}" + (region == "eu" ? "&region=eu" : "");
     }
+
+    /// <summary>"[Zik]" like the game shows it: the first three letters of a server that is not your own.</summary>
+    public static string Tag(string server, string ownServer) =>
+        server.Length >= 3 && server.All(char.IsLetter) && !string.Equals(server, ownServer, StringComparison.OrdinalIgnoreCase) ? $" [{server[..3]}]" : "";
 
     public static void Open(string name, string server, string region)
     {

@@ -357,6 +357,8 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.18 – Server hinter dem Namen wie im Spiel, z. B. „RipHaku [Zik]“ · Region Europa / NA-Ost / NA-West · Profil-Knopf öffnet Gruppenmitglieder direkt\n\n" +
+        "v1.17.1 – Verlauf im Meter (◀ ▶ / Mausrad) geht jetzt auch durch die gespeicherten Logs, auch nach einem Neustart · leere 1-Sekunden-Kämpfe überdecken das letzte Ergebnis nicht mehr\n\n" +
         "v1.17 – „Profil“-Knopf bei jedem Spieler: Ausrüstung, Daevanion, Arcana und Skills auf aion2index.com\n\n" +
         "v1.16 – Boss-Leben in Zahlen und geschätzte Zeit bis zum Kill\n\n" +
         "v1.15.1 – Raid: das ganze Team wird wieder angezeigt · Logs springen beim Farmen nicht mehr nach oben\n\n" +
@@ -369,6 +371,8 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.18 – Server after the name like in the game, e.g. “RipHaku [Zik]” · region Europe / NA East / NA West · profile button opens party members directly\n\n" +
+        "v1.17.1 – Meter history (◀ ▶ / mouse wheel) now goes through the saved logs too, even after a restart · empty one-second fights no longer replace the last result\n\n" +
         "v1.17 – “Profile” button for every player: gear, Daevanion, arcana and skills on aion2index.com\n\n" +
         "v1.16 – Boss HP in numbers and the estimated time to kill\n\n" +
         "v1.15.1 – Raids: the whole team shows again · logs no longer jump to the top while farming\n\n" +
