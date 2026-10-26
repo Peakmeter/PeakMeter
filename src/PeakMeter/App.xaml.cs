@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Energie stimmt jetzt auch nach einem Charakterwechsel";
-    private const string WhatsNewEn = "energy is right after a character switch too";
+    private const string WhatsNew = "Kampfkraft aller Gruppenmitglieder";
+    private const string WhatsNewEn = "combat power for every party member";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";

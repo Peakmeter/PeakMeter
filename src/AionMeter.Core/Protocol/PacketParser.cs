@@ -596,7 +596,14 @@ public sealed class PacketParser
             var slot = b[o + 1];
             var server = Wire.U16(b, o + 8);
             int nameLength = b[o + 10];
-            if (nameLength == 0) break; // vacant slot: the rest are vacant too
+            if (nameLength == 0)
+            {
+                // A vacant slot. Others can follow (slots 1 and 5 filled, 2-4 empty): look past it.
+                var later = FindLaterMember(b, o + 11, slot, (int)count);
+                if (later < 0) break;
+                o = later;
+                continue;
+            }
             if (server is 0 or > 9_999 || nameLength > 40 || o + 11 + nameLength + 12 > b.Length ||
                 !Wire.TryName(b.Slice(o + 11, nameLength), out var name)) break;
             o += 11 + nameLength;
@@ -611,17 +618,28 @@ public sealed class PacketParser
                 o += 4;
             }
 
+            // Combat power sits past the member's server id, repeated here. A member visiting another server has
+            // that server here instead: then any plausible server with a tag byte 1-4 and a combat power after it.
             var anchor = -1;
             for (var at = o; at <= Math.Min(o + 10, b.Length - 2); at++)
                 if (Wire.U16(b, at) == server) { anchor = at; break; }
+            if (anchor < 0)
+                for (var at = o; at <= Math.Min(o + 10, b.Length - 13); at++)
+                {
+                    var world = Wire.U16(b, at);
+                    var tag = b[at + 4];
+                    var p = BinaryPrimitives.ReadUInt64LittleEndian(b[(at + 5)..]);
+                    if (world is >= 1000 and <= 2999 && tag is >= 1 and <= 4 && p is >= 1 and <= MaxCombatPower) { anchor = at; break; }
+                }
             if (anchor < 0 || anchor + 5 + 8 > b.Length) break;
             var power = BinaryPrimitives.ReadUInt64LittleEndian(b[(anchor + 5)..]);
             if (power > MaxCombatPower) break;
             o = anchor + 5 + 8;
             members.Add(new PartyMemberInfo(name, server, (int)level, gear is >= 1 and <= 50_000 ? (int)gear : 0, (long)power, cls));
 
-            if (i + 1 == count) break;
+            if (slot >= count) break;
             var nextMember = FindRosterMember(b, o, (byte)(slot + 1));
+            if (nextMember < 0) nextMember = FindVacantSlot(b, o, (byte)(slot + 1));
             if (nextMember < 0) break;
             o = nextMember;
         }
@@ -638,9 +656,27 @@ public sealed class PacketParser
     }
 
     /// <summary>The start of the roster record for <paramref name="slot"/>, by its header shape, within 32 bytes.</summary>
-    private static int FindRosterMember(ReadOnlySpan<byte> b, int from, byte slot)
+    private static int FindRosterMember(ReadOnlySpan<byte> b, int from, byte slot) => FindRosterMember(b, from, slot, 32);
+
+    /// <summary>A named member in a later slot, past vacant records (about 35-37 bytes each).</summary>
+    private static int FindLaterMember(ReadOnlySpan<byte> b, int from, byte slot, int count)
     {
-        for (var i = from; i <= Math.Min(from + 32, b.Length - 12); i++)
+        for (var next = slot + 1; next <= Math.Min(count, 12); next++)
+            if (FindRosterMember(b, from, (byte)next, 48 * (next - slot)) is var at and >= 0) return at;
+        return -1;
+    }
+
+    /// <summary>A vacant record for <paramref name="slot"/>: zero mask, the slot, zero dbid, empty name.</summary>
+    private static int FindVacantSlot(ReadOnlySpan<byte> b, int from, byte slot)
+    {
+        for (var i = from; i <= Math.Min(from + 32, b.Length - 11); i++)
+            if (b[i] == 0 && b[i + 1] == slot && !b.Slice(i + 2, 9).ContainsAnyExcept((byte)0)) return i;
+        return -1;
+    }
+
+    private static int FindRosterMember(ReadOnlySpan<byte> b, int from, byte slot, int span)
+    {
+        for (var i = from; i <= Math.Min(from + span, b.Length - 12); i++)
         {
             if (b[i + 1] != slot) continue;
             var server = Wire.U16(b, i + 8);
