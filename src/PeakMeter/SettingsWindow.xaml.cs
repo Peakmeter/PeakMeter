@@ -363,6 +363,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.24.1 – Maus über die Energie im Meter: Energie aller Charaktere auf einen Blick\n\n" +
         "v1.24 – Server-Kürzel hinter mehr Namen: aus der Gruppenliste und aus den Besitzer-Daten von Beschwörungen und Beute, auch in den Logs\n\n" +
         "v1.23.2 – Kampfkraft aller Gruppenmitglieder, auch mit leeren Plätzen in der Gruppe und Spielern von anderen Servern\n\n" +
         "v1.23.1 – Charakterwechsel: die Energie des neuen Charakters erscheint sofort und landet beim richtigen Charakter\n\n" +
@@ -387,6 +388,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.24.1 – Hover the energy in the meter: every character’s energy at a glance\n\n" +
         "v1.24 – Server tags after more names: from the party list and from summon and loot owner records, in the logs too\n\n" +
         "v1.23.2 – Combat power for every party member, also with empty slots and players from other servers\n\n" +
         "v1.23.1 – Character switch: the new character’s energy shows right away and is stored with the right character\n\n" +

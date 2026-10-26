@@ -345,5 +345,8 @@
  "Region": "Регион",
  "Audio": "Звук",
  "Debug": "Отладка",
- "UPDATES": "ОБНОВЛЕНИЯ"
+ "UPDATES": "ОБНОВЛЕНИЯ",
+ "All characters:": "Все персонажи:",
+ "full": "полная",
+ "“–”: log in once with PeakMeter running · details in the tickets window": "«–»: один раз войдите с запущенным PeakMeter · подробности в окне билетов"
 }

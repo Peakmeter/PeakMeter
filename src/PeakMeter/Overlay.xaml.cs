@@ -632,12 +632,46 @@ public partial class Overlay : Window
         // like the game: "135 (+755)" = regenerating pool and bonus
         EnergyText.Text = o.Bonus > 0 ? $"{o.Pool(now)} (+{o.Bonus})" : o.Pool(now).ToString();
         EnergyButton.ToolTip = (o.Bonus > 0 ? L.S("Odyle-Energie", "Odyle energy") + $": {o.Pool(now)}/{o.Cap} + {o.Bonus} Bonus" : L.S("Odyle-Energie", "Odyle energy") + $": {o.Pool(now)}/{o.Cap}")
-                               + (o.FromGameAt is not null ? L.S(" · vom Spiel erkannt", " · read from the game") : L.S(" · von Hand", " · entered by hand"));
+                               + (o.FromGameAt is not null ? L.S(" · vom Spiel erkannt", " · read from the game") : L.S(" · von Hand", " · entered by hand"))
+                               + RosterEnergy(now);
         var near = o.FullAt(now) is not { } full || full - now < TimeSpan.FromHours(3);
         EnergyButton.Foreground = (Brush)FindResource(near ? "Accent" : "TextDim");
     }
 
     private void Energy_Click(object sender, RoutedEventArgs e) => _app.ShowEnergy();
+
+    /// <summary>
+    /// Every character's energy for the hover text, counted forward since each was last played – no relogging just
+    /// to look. "~" = estimated, "–" = not seen with PeakMeter yet.
+    /// </summary>
+    private string RosterEnergy(DateTimeOffset now)
+    {
+        var o = _meter.Odyle;
+        var self = _meter.Tracker.SelfName;
+        var chars = _meter.Characters.All();
+        if (chars.Count < 2) return "";
+        var sb = new StringBuilder(Environment.NewLine + Environment.NewLine + L.S("Alle Charaktere:", "All characters:"));
+        foreach (var c in chars.Take(12))
+        {
+            string text;
+            bool full;
+            if (c.Name == self && c.ServerId == _meter.Tracker.SelfServerId && o.Known)
+            {
+                text = o.Bonus > 0 ? $"{o.Pool(now)} (+{o.Bonus})" : o.Pool(now).ToString();
+                full = o.Full(now);
+            }
+            else
+            {
+                var (total, gained, isFull) = Characters.Estimate(c, o.Cap, o.Regen, now);
+                full = isFull;
+                text = total < 0 ? "–" : (gained > 0 ? "~" : "") + (total - c.OdyleBonus) + (c.OdyleBonus > 0 ? $" (+{c.OdyleBonus})" : "");
+            }
+            sb.Append(Environment.NewLine).Append(c.Name).Append("   ").Append(text);
+            if (full) sb.Append("  · ").Append(L.S("voll", "full"));
+        }
+        sb.Append(Environment.NewLine).Append(L.S("„–“: einmal mit PeakMeter einloggen · Details im Tickets-Fenster", "“–”: log in once with PeakMeter running · details in the tickets window"));
+        return sb.ToString();
+    }
 
     // ------------------------------------------------------------------ events
 
