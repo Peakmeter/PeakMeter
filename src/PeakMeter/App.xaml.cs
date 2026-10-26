@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Kampfkraft aller Gruppenmitglieder";
-    private const string WhatsNewEn = "combat power for every party member";
+    private const string WhatsNew = "Server-Kürzel hinter mehr Namen, auch in den Logs";
+    private const string WhatsNewEn = "server tags after more names, in the logs too";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";

@@ -40,6 +40,14 @@ public sealed class PacketParser
     {
         OpcodeCounts[opcode] = OpcodeCounts.GetValueOrDefault(opcode) + 1;
         Tap?.Invoke(TimeMs, opcode, body);
+        if (opcode == 0x048D && body.Length >= 10) // an ownership record on its own: give the scan its two marker bytes
+        {
+            var whole = new byte[body.Length + 2];
+            whole[0] = 0x04;
+            whole[1] = 0x8D;
+            body.CopyTo(whole.AsSpan(2));
+            ScanForOwners(whole);
+        }
 
         switch (opcode)
         {
@@ -110,6 +118,7 @@ public sealed class PacketParser
                 {
                     ScanForIdentities(body);
                     ScanForRoster(body);
+                    ScanForOwners(body);
                     ScanEmbeddedBundles(body);
                 }
                 break;
@@ -138,6 +147,7 @@ public sealed class PacketParser
                     Tap?.Invoke(TimeMs, 0xFFFF, target.AsSpan(0, decoded)); // recordings: 0xFFFF = an unpacked bundle
                     ScanForIdentities(target.AsSpan(0, decoded));
                     ScanForRoster(target.AsSpan(0, decoded));
+                    ScanForOwners(target.AsSpan(0, decoded));
                 }
                 finally
                 {
@@ -649,6 +659,49 @@ public sealed class PacketParser
     }
 
     /// <summary>Rosters also ride inside other packets and in the bundles embedded in them, like identity records.</summary>
+    /// <summary>
+    /// Ownership / loot records <c>04 8D &lt;summon varint&gt; &lt;4 bytes&gt; … &lt;owner varint&gt; &lt;server u16&gt; &lt;len&gt;&lt;name&gt;</c>:
+    /// they name a player together with their server, which spawns of other players do not carry. Layout and checks
+    /// as documented by A2Tools-DPS-Meter (GPL-3.0): the owner id must end right at the server id, the server lies in
+    /// 1000-2999 and the whole name field must be a name.
+    /// </summary>
+    private void ScanForOwners(ReadOnlySpan<byte> b)
+    {
+        for (var i = 0; i + 12 < b.Length; i++)
+        {
+            if (b[i] != 0x04 || b[i + 1] != 0x8D) continue;
+            var o = i + 2;
+            if (!Wire.TryVarint(b, ref o, out var summon) || summon is < 100 or > 9_999_999) continue;
+            var after = o + 4;
+            if (after >= b.Length || b[after] == 0) continue; // all zeros: a despawn, no owner
+            var end = Math.Min(b.Length - 3, after + 128);
+            for (var s = after + 1; s < end; s++)
+            {
+                var server = Wire.U16(b, s);
+                if (server is < 1000 or > 2999) continue;
+                var owner = VarintEndingAt(b, s, after);
+                if (owner is not { } id || id == summon) continue;
+                int len = b[s + 2];
+                if (len is < 1 or > 40 || s + 3 + len > b.Length || !Wire.TryName(b.Slice(s + 3, len), out var name)) continue;
+                Emit(new PlayerSeenEvent(TimeMs, (uint)id, name, server, GameClass.Unknown));
+                i = s + 2 + len;
+                break;
+            }
+        }
+    }
+
+    /// <summary>A varint (id 100-99 999) that ends exactly at <paramref name="end"/> and starts at or after <paramref name="min"/>.</summary>
+    private static long? VarintEndingAt(ReadOnlySpan<byte> b, int end, int min)
+    {
+        // Longest first: the last byte of "ED 74" (14 957) alone also reads as an id (116).
+        for (var start = Math.Max(min, end - 3); start <= end - 1; start++)
+        {
+            var o = start;
+            if (Wire.TryVarint(b, ref o, out var v) && o == end && v is >= 100 and <= 99_999) return (long)v;
+        }
+        return null;
+    }
+
     private void ScanForRoster(ReadOnlySpan<byte> b)
     {
         for (var i = 0; i + 40 < b.Length; i++)

@@ -105,7 +105,13 @@ public sealed class CombatTracker
                     selfName = s.Name;
                     break;
                 case PartyRosterEvent roster:
-                    foreach (var m in roster.Members) _entities.SetGear(m.Name, m.GearScore, m.CombatPower);
+                    foreach (var m in roster.Members)
+                    {
+                        _entities.SetGear(m.Name, m.GearScore, m.CombatPower);
+                        // The party list carries each member's server: keep it with the player for the "[Zik]" tag.
+                        if (m.ServerId != 0 && _entities.FindPlayerByName(m.Name) is { } id && _entities.TryGetPlayer(id, out var pl) && pl.ServerId == 0)
+                            pl.ServerId = m.ServerId;
+                    }
                     _pendingRosters.Add(roster);
                     break;
                 case PlayerSeenEvent p:
