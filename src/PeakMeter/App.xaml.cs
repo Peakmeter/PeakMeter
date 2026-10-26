@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "9 Sprachen und die Regionen Korea und Taiwan";
-    private const string WhatsNewEn = "9 languages and the regions Korea and Taiwan";
+    private const string WhatsNew = "Energie stimmt jetzt auch nach einem Charakterwechsel";
+    private const string WhatsNewEn = "energy is right after a character switch too";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -409,6 +409,12 @@ public sealed class Meter : IDisposable
 
     private readonly bool _saveDemo;
 
+    // Character switch: the login's energy waits here until the game names the character.
+    private readonly object _loginGate = new();
+    private (int Pool, int Bonus, long At)? _loginEnergy;
+    private string? _identity;
+    private long _identityAt;
+
     public Meter(Settings settings, bool demo, bool saveDemo = false)
     {
         _saveDemo = saveDemo;
@@ -421,10 +427,26 @@ public sealed class Meter : IDisposable
         Odyle = new Odyle(settings);
         Tracker.Options.IdleTimeoutMs = Math.Clamp(settings.IdleTimeoutSec, 3, 120) * 1000;
         Timers.SetRegion(settings.Region);
-        // A different character logged in: its own Odyle energy comes back.
+        // The game says who is logged in (again every few minutes). A switch to another character brings that
+        // character's energy back – unless the login already sent its exact energy, which then belongs to it.
         Tracker.SelfIdentified += name =>
         {
-            if (Characters.Get(name, Tracker.SelfServerId) is { OdylePool: >= 0, OdyleAt: { } at } c)
+            var server = Tracker.SelfServerId;
+            var now = Environment.TickCount64;
+            lock (_loginGate)
+            {
+                var switched = !string.Equals(name, _identity, StringComparison.Ordinal);
+                _identity = name;
+                _identityAt = now;
+                if (_loginEnergy is { } le && now - le.At < 10 * 60_000)
+                {
+                    _loginEnergy = null;
+                    Characters.Odyle(name, server, le.Pool, le.Bonus);
+                    return;
+                }
+                if (!switched) return;
+            }
+            if (Characters.Get(name, server) is { OdylePool: >= 0, OdyleAt: { } at } c)
                 System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.Restore(c.OdylePool, c.OdyleBonus, at));
         };
         Records = new Records(History, this);
@@ -486,14 +508,20 @@ public sealed class Meter : IDisposable
                 if (e is not OdyleEnergyEvent o) return;
                 Log($"Odyle from game: pool {o.Regen}, bonus {o.Bonus}, change {o.Change:+0;-0;0} ({Convert.ToHexString(o.Raw)})");
                 try { File.AppendAllText(Path.Combine(Settings.Dir, "energy-events.txt"), $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {Tracker.SelfName}  pool {o.Regen}  bonus {o.Bonus}  change {o.Change}  {Convert.ToHexString(o.Raw)}{Environment.NewLine}"); } catch { }
-                // At login the energy can arrive just before the game says which character it is: wait a moment,
-                // so a character switch does not file one character's energy under the previous one.
-                ThreadPool.QueueUserWorkItem(_ =>
+                // The value is always the logged-in character's: show it right away.
+                System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.SetFromGame(o.Regen, o.Bonus));
+                // Which character that is: at a login (Change 0) the game may name the character only after the
+                // energy. Unless it just did, the value waits for the name instead of going to the previous one.
+                lock (_loginGate)
                 {
-                    if (o.Change == 0) Thread.Sleep(4000);
-                    if (Tracker.SelfName is { } self) Characters.Odyle(self, Tracker.SelfServerId, o.Regen, o.Bonus);
-                    System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.SetFromGame(o.Regen, o.Bonus));
-                });
+                    var now = Environment.TickCount64;
+                    if (o.Change == 0 && (_identity is null || now - _identityAt > 5_000))
+                    {
+                        _loginEnergy = (o.Regen, o.Bonus, now);
+                        return;
+                    }
+                }
+                if (Tracker.SelfName is { } self) Characters.Odyle(self, Tracker.SelfServerId, o.Regen, o.Bonus);
             };
             _capture.StatusChanged += st =>
             {
