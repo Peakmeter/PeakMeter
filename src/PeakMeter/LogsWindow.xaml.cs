@@ -24,6 +24,10 @@ public partial class LogsWindow : Window
     private FightRecord? _record;
     private uint? _selected;
     private string? _loaded;
+    private (string Name, string Server) _profile;
+
+    private void Profile_Click(object sender, RoutedEventArgs e) =>
+        Armory.Open(_profile.Name, _profile.Server, ((App)Application.Current).Settings.Region);
 
     public LogsWindow(Meter meter)
     {
@@ -136,6 +140,7 @@ public partial class LogsWindow : Window
         }
         SkillPanel.Visibility = Visibility.Visible;
         SkillTitle.Text = d.Name;
+        _profile = (d.Name, _meter.Data.ServerName(d.ServerId));
         SkillStats.Text = L.S($"{Format.Compact(d.Damage)} Schaden · {Format.Compact(d.Dps)} DPS · Krit {Format.Percent(d.Quality.CritRate)} · ", $"{Format.Compact(d.Damage)} damage · {Format.Compact(d.Dps)} DPS · crit {Format.Percent(d.Quality.CritRate)} · ") +
                           $"Max {Format.Compact(d.Quality.MaxHit)}";
         var skills = d.Skills.OrderByDescending(x => x.Damage).ToList();

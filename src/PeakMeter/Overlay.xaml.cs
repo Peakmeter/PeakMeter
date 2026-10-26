@@ -403,6 +403,10 @@ public partial class Overlay : Window
         }
     }
 
+    private (string Name, string Server) _profile;
+
+    private void Profile_Click(object sender, RoutedEventArgs e) => Armory.Open(_profile.Name, _profile.Server, _settings.Region);
+
     private void UpdateDetail()
     {
         if (_selected is not { } id || _meter.Tracker.Detail(_segment, id) is not { } d)
@@ -412,6 +416,7 @@ public partial class Overlay : Window
         }
         DetailPanel.Visibility = Visibility.Visible;
         DetailTitle.Text = d.Name;
+        _profile = (d.Name, _meter.Data.ServerName(d.ServerId));
         DetailStats.Text = $"{Format.Compact(d.Damage)} · {L.S("Krit", "Crit")} {Format.Percent(d.Quality.CritRate)} · Max {Format.Compact(d.Quality.MaxHit)}";
 
         var skills = d.Skills.OrderByDescending(s => s.Damage).Take(MaxSkills).ToList();

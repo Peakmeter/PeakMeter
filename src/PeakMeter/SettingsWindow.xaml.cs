@@ -357,6 +357,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.17 – „Profil“-Knopf bei jedem Spieler: Ausrüstung, Daevanion, Arcana und Skills auf aion2index.com\n\n" +
         "v1.16 – Boss-Leben in Zahlen und geschätzte Zeit bis zum Kill\n\n" +
         "v1.15.1 – Raid: das ganze Team wird wieder angezeigt · Logs springen beim Farmen nicht mehr nach oben\n\n" +
         "v1.15 – Eigene Logos für Shugo-Fest, Luftangriff, Rift, Belagerung, Weltbosse · Tickets-Fenster neu: Odyle, Albtraum, Aszensusritus, Täglicher Dungeon, Shugo- und Invasions-Schlüssel, nach Server sortiert · „Tickets lernen“ · Unterstützen-Seite mit Ko-fi\n\n" +
@@ -368,6 +369,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.17 – “Profile” button for every player: gear, Daevanion, arcana and skills on aion2index.com\n\n" +
         "v1.16 – Boss HP in numbers and the estimated time to kill\n\n" +
         "v1.15.1 – Raids: the whole team shows again · logs no longer jump to the top while farming\n\n" +
         "v1.15 – Own icons for Shugo festival, air raid, rift, siege, world bosses · new tickets window: Odyle, nightmare, ascension, daily dungeon, Shugo and invasion keys, grouped by server · “Learn tickets” · support page with Ko-fi\n\n" +

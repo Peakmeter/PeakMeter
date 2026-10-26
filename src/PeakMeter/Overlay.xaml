@@ -183,7 +183,16 @@
                         BorderBrush="{StaticResource Edge}" BorderThickness="0,1,0,0">
                     <StackPanel>
                         <Grid Margin="2,0,2,6">
-                            <TextBlock x:Name="DetailTitle" Foreground="{StaticResource Text}" FontSize="12" FontWeight="SemiBold" />
+                            <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="DetailTitle" Foreground="{StaticResource Text}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <Button x:Name="ProfileButton" Style="{StaticResource Chip}" Margin="8,0,0,0" Height="20" Click="Profile_Click" VerticalAlignment="Center"
+                                        ToolTip="{local:T De='Ausrüstung, Daevanion, Arcana und Skills auf aion2index.com', En='Gear, Daevanion, arcana and skills on aion2index.com'}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE8A7;" FontFamily="{StaticResource IconFont}" FontSize="10" Margin="0,1,5,0" />
+                                        <TextBlock Text="{local:T De=Profil, En=Profile}" FontSize="10.5" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
                             <TextBlock x:Name="DetailStats" HorizontalAlignment="Right" Foreground="{StaticResource TextDim}" FontSize="10.5"
                                        Typography.NumeralAlignment="Tabular" />
                         </Grid>

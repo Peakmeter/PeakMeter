@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Boss-Leben in Zahlen und geschätzte Zeit bis zum Kill";
-    private const string WhatsNewEn = "boss HP in numbers and the estimated time to kill";
+    private const string WhatsNew = "Profil-Knopf bei jedem Spieler (Ausrüstung, Daevanion, Skills auf aion2index.com)";
+    private const string WhatsNewEn = "profile button for every player (gear, Daevanion, skills on aion2index.com)";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
