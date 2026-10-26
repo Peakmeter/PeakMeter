@@ -422,6 +422,21 @@ public partial class Overlay : Window
 
     private void Profile_Click(object sender, RoutedEventArgs e) => Armory.Open(_profile.Name, _profile.Server, _settings.Region);
 
+    private void UpdatePing()
+    {
+        if (_meter.PingMs is not { } ms)
+        {
+            PingPanel.Visibility = Visibility.Collapsed;
+            return;
+        }
+        PingPanel.Visibility = Visibility.Visible;
+        PingText.Text = $"{Math.Round(ms)}ms";
+        var c = ms < 60 ? Color.FromRgb(0x3F, 0xD1, 0x8B) : ms < 120 ? Color.FromRgb(0xFF, 0xB0, 0x70) : Color.FromRgb(0xFF, 0x4D, 0x6D);
+        var brush = new SolidColorBrush(c);
+        PingText.Foreground = brush;
+        PingIcon.Foreground = brush;
+    }
+
     private void UpdateDetail()
     {
         var d = _selected is not { } id ? null
@@ -602,6 +617,7 @@ public partial class Overlay : Window
 
     private void UpdateEnergy()
     {
+        UpdatePing();
         var o = _meter.Odyle;
         var now = DateTimeOffset.Now;
         if (!o.Known)
@@ -610,8 +626,8 @@ public partial class Overlay : Window
             EnergyButton.Foreground = (Brush)FindResource("TextDim");
             return;
         }
-        var cur = o.Current(now);
-        EnergyText.Text = cur.ToString();
+        // like the game: "135 (+755)" = regenerating pool and bonus
+        EnergyText.Text = o.Bonus > 0 ? $"{o.Pool(now)} (+{o.Bonus})" : o.Pool(now).ToString();
         EnergyButton.ToolTip = (o.Bonus > 0 ? L.S("Odyle-Energie", "Odyle energy") + $": {o.Pool(now)}/{o.Cap} + {o.Bonus} Bonus" : L.S("Odyle-Energie", "Odyle energy") + $": {o.Pool(now)}/{o.Cap}")
                                + (o.FromGameAt is not null ? L.S(" · vom Spiel erkannt", " · read from the game") : L.S(" · von Hand", " · entered by hand"));
         var near = o.FullAt(now) is not { } full || full - now < TimeSpan.FromHours(3);

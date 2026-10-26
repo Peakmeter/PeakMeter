@@ -50,10 +50,12 @@ public partial class TicketsWindow : Window
         var rows = _meter.Characters.All().Select(c =>
         {
             var (total, gained, full) = Characters.Estimate(c, o.Cap, o.Regen, now);
+            var bonus = c.OdyleBonus;
             var current = c.Name == self && c.ServerId == selfServer;
             if (current && o.Known)
             {
                 total = o.Current(now);
+                bonus = o.Bonus;
                 gained = 0;
                 full = o.Full(now);
             }
@@ -63,8 +65,8 @@ public partial class TicketsWindow : Window
                 Key = c.Key,
                 Name = c.Name,
                 Seen = current ? L.S("Spielst du gerade", "Playing now") : L.S("Zuletzt gespielt ", "Last played ") + Ago(now - c.LastSeen),
-                Odyle = total >= 0 ? total.ToString(L.Culture) : "–",
-                Gain = gained > 0 ? $"(+{gained})" : "",
+                Odyle = total < 0 ? "–" : (gained > 0 ? "~" : "") + (total - bonus).ToString(L.Culture),
+                Gain = total >= 0 && bonus > 0 ? $"(+{bonus})" : "",
                 Full = full,
                 Current = current,
                 Nightmare = Ticket(c, "nightmare", lastReset),

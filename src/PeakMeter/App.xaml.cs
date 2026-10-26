@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Odyle-Energie wird beim Einloggen automatisch gelesen";
-    private const string WhatsNewEn = "Odyle energy is read automatically at login";
+    private const string WhatsNew = "Ping im Meter, Energie wie im Spiel: 135 (+755)";
+    private const string WhatsNewEn = "ping in the meter, energy like in the game: 135 (+755)";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -399,6 +399,9 @@ public sealed class Meter : IDisposable
     public event Action? FightSaved;
     private readonly bool _demoOnly;
     private IEventSource? _capture;
+
+    /// <summary>The game's ping in ms, measured from the captured traffic; null when not connected.</summary>
+    public double? PingMs => (_capture as LiveCapture)?.Ping.Ms;
     private DemoFightSource? _demo;
     private int _savedVersion;
     private long _lastSave;
@@ -481,6 +484,7 @@ public sealed class Meter : IDisposable
                 }
                 if (e is not OdyleEnergyEvent o) return;
                 Log($"Odyle from game: pool {o.Regen}, bonus {o.Bonus}, change {o.Change:+0;-0;0} ({Convert.ToHexString(o.Raw)})");
+                try { File.AppendAllText(Path.Combine(Settings.Dir, "energy-events.txt"), $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {Tracker.SelfName}  pool {o.Regen}  bonus {o.Bonus}  change {o.Change}  {Convert.ToHexString(o.Raw)}{Environment.NewLine}"); } catch { }
                 // At login the energy can arrive just before the game says which character it is: wait a moment,
                 // so a character switch does not file one character's energy under the previous one.
                 ThreadPool.QueueUserWorkItem(_ =>

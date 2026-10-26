@@ -357,6 +357,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.21 – Ping im Meter (aus dem Datenverkehr gemessen) · Energie wie im Spiel: „135 (+755)“\n\n" +
         "v1.20 – Odyle-Energie wird beim Einloggen automatisch gelesen, für jeden Charakter\n\n" +
         "v1.19 – „Energie & Tickets lernen“ mit Energie-Feldern (Neu-Einloggen) · „Server lernen (Raid)“ · Energie-Werte aus dem Spiel sofort übernehmen\n\n" +
         "v1.18 – Server hinter dem Namen wie im Spiel, z. B. „RipHaku [Zik]“ · Region Europa / NA-Ost / NA-West · Profil-Knopf öffnet Gruppenmitglieder direkt\n\n" +
@@ -373,6 +374,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.21 – Ping in the meter (measured from the traffic) · energy like in the game: “135 (+755)”\n\n" +
         "v1.20 – Odyle energy is read automatically at login, for every character\n\n" +
         "v1.19 – “Learn energy & tickets” with energy fields (re-login) · “Learn servers (raid)” · energy values from the game apply right away\n\n" +
         "v1.18 – Server after the name like in the game, e.g. “RipHaku [Zik]” · region Europe / NA East / NA West · profile button opens party members directly\n\n" +

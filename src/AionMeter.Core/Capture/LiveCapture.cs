@@ -24,6 +24,9 @@ public sealed class LiveCaptureOptions
 public sealed class LiveCapture : IEventSource
 {
     private readonly LiveCaptureOptions _options;
+
+    /// <summary>The game's ping to its server, measured from the captured traffic.</summary>
+    public PingMeter Ping { get; } = new();
     private readonly PacketPipeline _pipeline;
     private readonly object _gate = new();
     private CancellationTokenSource? _cts;
@@ -272,7 +275,11 @@ public sealed class LiveCapture : IEventSource
         {
             _writer?.Write(raw);
             if (SegmentReader.TryRead(raw, out var seg))
+            {
                 _pipeline.OnSegment(seg.TimeMs, seg.Key, seg.Seq, seg.Syn, seg.FinOrRst, seg.Payload);
+                if (seg.Key.DstPort == PacketPipeline.GamePort) Ping.Sent(seg.Seq, seg.Payload.Length, seg.TimeUs);
+                else if (seg.Key.SrcPort == PacketPipeline.GamePort && seg.HasAck) Ping.Acked(seg.Ack, seg.TimeUs);
+            }
         }
         catch (Exception ex) when (ex is not OutOfMemoryException)
         {
@@ -307,7 +314,8 @@ public readonly record struct CaptureHealth(long Received, long Dropped, long Ga
 /// <summary>Link layer → TCP segment, shared by live capture and pcap replay.</summary>
 public static class SegmentReader
 {
-    public readonly record struct Segment(long TimeMs, FlowKey Key, uint Seq, bool Syn, bool FinOrRst, byte[] Payload);
+    public readonly record struct Segment(long TimeMs, FlowKey Key, uint Seq, bool Syn, bool FinOrRst, byte[] Payload,
+        uint Ack = 0, bool HasAck = false, long TimeUs = 0);
 
     public static bool TryRead(RawCapture raw, out Segment segment)
     {
@@ -328,7 +336,8 @@ public static class SegmentReader
         var t = raw.Timeval;
         var ms = (long)t.Seconds * 1000 + (long)t.MicroSeconds / 1000;
         var key = new FlowKey(ip.SourceAddress, tcp.SourcePort, ip.DestinationAddress, tcp.DestinationPort);
-        segment = new Segment(ms, key, tcp.SequenceNumber, tcp.Synchronize, tcp.Finished || tcp.Reset, tcp.PayloadData ?? []);
+        segment = new Segment(ms, key, tcp.SequenceNumber, tcp.Synchronize, tcp.Finished || tcp.Reset, tcp.PayloadData ?? [],
+            tcp.AcknowledgmentNumber, tcp.Acknowledgment, (long)t.Seconds * 1_000_000 + (long)t.MicroSeconds);
         return true;
     }
 }
