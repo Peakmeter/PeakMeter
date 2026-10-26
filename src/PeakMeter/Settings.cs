@@ -61,7 +61,7 @@ public sealed class Settings
     /// <summary>A fight ends after this many seconds without damage (no boss alive).</summary>
     public int IdleTimeoutSec { get; set; } = 10;
     /// <summary>"e" = eDPS (whole fight) or "a" = aDPS (own active time).</summary>
-    public string DpsMode { get; set; } = "e";
+    public string DpsMode { get; set; } = "a";
     /// <summary>Number after each name: "cp" (combat power), "gs" (gear score) or "none".</summary>
     public string ValueChip { get; set; } = "cp";
     /// <summary>Show each player's total damage next to the DPS.</summary>
@@ -114,6 +114,12 @@ public sealed class Settings
                     if (s.Opacity >= 0.99) s.Opacity = 0.85;
                     s.SettingsVersion = 2;
                 }
+                if (s.SettingsVersion < 3)
+                {
+                    // v3: DPS from your own first hit (aDPS), like the other meters; joining late no longer lowers it.
+                    s.DpsMode = "a";
+                    s.SettingsVersion = 3;
+                }
                 return s;
             }
         }
@@ -125,7 +131,7 @@ public sealed class Settings
     {
         try
         {
-            SettingsVersion = 2;
+            SettingsVersion = 3;
             Directory.CreateDirectory(Dir);
             File.WriteAllText(FilePath, JsonSerializer.Serialize(this, Json));
         }

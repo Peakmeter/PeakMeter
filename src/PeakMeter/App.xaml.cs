@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Ping im Meter, Energie wie im Spiel: 135 (+755)";
-    private const string WhatsNewEn = "ping in the meter, energy like in the game: 135 (+755)";
+    private const string WhatsNew = "Feldboss ohne Gruppe zeigt nur dich, DPS ab deinem ersten Treffer";
+    private const string WhatsNewEn = "field bosses without a party show only you, DPS from your first hit";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";

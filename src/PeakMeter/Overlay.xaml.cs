@@ -180,7 +180,9 @@ public partial class Overlay : Window
         SubText.Text = players <= 1 && shown.Filtered
             ? $"{tag} · {who} · {Format.Compact(shown.Dps)} DPS"
             : L.S($"{tag} · {who} {Format.Compact(shown.Dps)} DPS · {players} Spieler", $"{tag} · {who} {Format.Compact(shown.Dps)} DPS · {players} players");
-        ClockText.Text = Format.ClockShort(snap.CombatMs);
+        // aDPS counts from your own first hit, so the clock does too (joining a running fight starts at 0:00)
+        var mine = snap.Combatants.FirstOrDefault(c => c.IsSelf);
+        ClockText.Text = Format.ClockShort(_settings.DpsMode == "a" && mine is { ActiveMs: > 0 } ? mine.ActiveMs : snap.CombatMs);
         ClockText.Foreground = snap.IsActive ? (Brush)FindResource("Text") : (Brush)FindResource("TextDim");
 
         if (snap.Boss is { } boss)
@@ -328,9 +330,9 @@ public partial class Overlay : Window
         {
             var roster = _meter.Roster;
             var self = _meter.Tracker.SelfName;
-            // Raids and alliances: the game sends no (or only your own) party list. In a boss fight or a dungeon
-            // everyone fighting is your group, so they stay visible instead of leaving only you.
-            var group = snap.Boss is not null || (snap.Zone is { Length: > 0 } z && z != "Open world");
+            // Raids and dungeons: the game sends no (or only your own) party list. Inside an instance everyone
+            // fighting is your group, so they stay visible. In the open world strangers on a field boss are not.
+            var group = snap.Zone is { Length: > 0 } z && z != "Open world";
             if (roster is not null)
             {
                 var names = roster.Members.Select(m => m.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
