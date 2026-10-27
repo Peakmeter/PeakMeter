@@ -141,6 +141,14 @@ public sealed class CombatTracker
                 case CastEvent c:
                     OnCast(c);
                     break;
+                case StaggerMarkEvent sm:
+                    OnStaggerMark(sm);
+                    break;
+                case StaggerGaugeEvent sg:
+                    OnStaggerGauge(sg);
+                    break;
+                case StaggerBreakEvent:
+                    break;
                 case HitNoticeEvent h:
                     OnHitNotice(h);
                     break;
@@ -280,6 +288,7 @@ public sealed class CombatTracker
 
         enc.TotalDamage += d.Damage;
         enc.DamageByTarget[target] = enc.DamageByTarget.GetValueOrDefault(target) + d.Damage;
+        NoteStaggerHit(target, source, d.SkillCode, (d.Flags & HitFlags.Dot) != 0, d.TimeMs);
         if (d.TimeMs > enc.LastDamageMs) enc.LastDamageMs = d.TimeMs;
     }
 
@@ -619,6 +628,85 @@ public sealed class CombatTracker
         if (string.IsNullOrEmpty(c.Name)) c.Name = $"#{c.ActorId}";
     }
 
+    // ---------------------------------------------------------------- stagger
+
+    /// <summary>One monster's gauge and the hits since its last update (A2Tools-DPS-Meter, <c>combat::stagger</c>).</summary>
+    private sealed class StaggerGauge
+    {
+        public long Rest = -1;
+        public readonly List<StaggerHit> Batch = new();
+        public bool Updated; // the gauge moved since the batch's last hit: the next hit starts a new batch
+        public long LastHitMs;
+    }
+
+    private sealed class StaggerHit(uint actor, int skill, bool dot)
+    {
+        public uint Actor = actor;
+        public int Skill = skill;
+        public bool Dot = dot;
+        public bool Marked;
+        public bool Taken;
+    }
+
+    private readonly Dictionary<uint, StaggerGauge> _gauges = new();
+
+    private StaggerGauge GaugeOf(uint entity)
+    {
+        if (!_gauges.TryGetValue(entity, out var g))
+        {
+            if (_gauges.Count > 500) _gauges.Clear();
+            _gauges[entity] = g = new StaggerGauge();
+        }
+        return g;
+    }
+
+    private void NoteStaggerHit(uint target, uint actor, int skill, bool dot, long timeMs)
+    {
+        var g = GaugeOf(target);
+        if (g.Updated || timeMs - g.LastHitMs > 30_000)
+        {
+            g.Batch.Clear();
+            g.Updated = false;
+        }
+        // A DoT tick only counts when no hit waits for the gauge (a hit's block carries DoT effects too).
+        if (dot && g.Batch.Any(h => !h.Dot)) return;
+        if (g.Batch.Count >= 64) g.Batch.RemoveAt(0);
+        g.Batch.Add(new StaggerHit(actor, skill, dot));
+        g.LastHitMs = timeMs;
+    }
+
+    private void OnStaggerMark(StaggerMarkEvent e)
+    {
+        if (!_gauges.TryGetValue(e.TargetId, out var g)) return;
+        var actor = _entities.ResolveOwner(e.ActorId);
+        for (var i = g.Batch.Count - 1; i >= 0; i--)
+        {
+            var h = g.Batch[i];
+            if (h.Actor != actor || h.Skill != e.SkillCode || h.Marked || h.Taken) continue;
+            h.Marked = true;
+            return;
+        }
+    }
+
+    /// <summary>What the gauge lost goes to the next marked hit, else the batch's last hit not yet taken.</summary>
+    private void OnStaggerGauge(StaggerGaugeEvent e)
+    {
+        var g = GaugeOf(e.EntityId);
+        var before = g.Rest < 0 ? e.Max : g.Rest;
+        g.Rest = e.Rest;
+        g.Updated = true;
+        var lost = before - e.Rest;
+        if (lost <= 0) return; // reset to full, or the first sight of a gauge already moving
+
+        var hit = g.Batch.FirstOrDefault(h => h.Marked && !h.Taken) ?? g.Batch.LastOrDefault(h => !h.Taken);
+        if (hit is not null) hit.Taken = true;
+        if (_current is not { IsActive: true } enc || !enc.DamageByTarget.ContainsKey(e.EntityId)) return;
+        enc.TotalStagger += lost;
+        if (hit is null || !enc.Combatants.TryGetValue(hit.Actor, out var c)) return; // unknown: still in the total
+        c.Stagger += lost;
+        c.StaggerBySkill[hit.Skill] = c.StaggerBySkill.GetValueOrDefault(hit.Skill) + lost;
+    }
+
     private bool IsPlayerInFight(uint id) =>
         _current is { IsActive: true } enc && id != Combatant.UnknownSummonsId && enc.Combatants.ContainsKey(id)
         && (_entities.IsPlayerLike(id) || id == _entities.SelfId);
@@ -808,7 +896,7 @@ public sealed class CombatTracker
                 t.Damage, t.Damage / seconds, (double)t.Damage / total,
                 t.Hits, t.Hits > 0 ? (double)t.Crits / t.Hits : 0,
                 t.Max, c.DamageTaken, c.ServerId, c.GearScore, c.CombatPower, c.Healing,
-                c.LastHitMs > c.FirstHitMs ? c.LastHitMs - c.FirstHitMs : 0, c.Deaths));
+                c.LastHitMs > c.FirstHitMs ? c.LastHitMs - c.FirstHitMs : 0, c.Deaths, c.Stagger));
         }
         rows.Sort((a, b) => b.Damage.CompareTo(a.Damage));
         // Pets without a known owner are not a player: list them last so they never take a place in the ranking.
@@ -834,7 +922,7 @@ public sealed class CombatTracker
         return new EncounterSnapshot(
             enc.Id, Title(enc), enc.Zone, ToTime(enc.StartMs), enc.ClockMs(nowMs), combatMs, enc.IsActive, enc.Reason,
             enc.TotalDamage, enc.TotalDamage / seconds, boss, rows, MainTargetCode(enc),
-            enc.Attackers.Count + rows.Count(r => !r.IsUnknownSummons && !enc.Attackers.Contains(r.ActorId)));
+            enc.Attackers.Count + rows.Count(r => !r.IsUnknownSummons && !enc.Attackers.Contains(r.ActorId)), enc.TotalStagger);
     }
 
     private CombatantDetail BuildDetail(Encounter enc, Combatant c, int maxCasts)
@@ -851,7 +939,8 @@ public sealed class CombatTracker
                     st.Damage / Math.Max(1, st.Hits + st.DotTicks),
                     st.Hits > 0 ? st.Min : 0, st.Max,
                     Rate(st.Crits, st.Hits), Rate(st.Back, st.Hits), Rate(st.Front, st.Hits),
-                    Rate(st.Perfect, st.Hits), Rate(st.Heavy, st.Hits), Rate(st.Multi, st.Hits));
+                    Rate(st.Perfect, st.Hits), Rate(st.Heavy, st.Hits), Rate(st.Multi, st.Hits),
+                    c.StaggerBySkill.GetValueOrDefault(s.SkillCode));
             })
             .OrderByDescending(s => s.Damage)
             .ToList();
@@ -865,7 +954,7 @@ public sealed class CombatTracker
         var casts = c.Casts.Count <= maxCasts ? c.Casts.ToArray() : c.Casts.GetRange(0, maxCasts).ToArray();
         return new CombatantDetail(
             c.ActorId, c.Name, c.Class, c.IsSelf, t.Damage, t.Damage / seconds, (double)t.Damage / Math.Max(1, enc.TotalDamage),
-            enc.CombatMs, c.DamageTaken, c.HitsTaken, quality, skills, c.PerSecond.ToArray(), casts, c.ServerId, c.GearScore, c.CombatPower);
+            enc.CombatMs, c.DamageTaken, c.HitsTaken, quality, skills, c.PerSecond.ToArray(), casts, c.ServerId, c.GearScore, c.CombatPower, c.Stagger);
     }
 
     private FightRecord BuildRecord(Encounter enc)

@@ -89,6 +89,9 @@ public sealed class Combatant
     public long Healing { get; set; }
     /// <summary>How often this player died during the fight.</summary>
     public int Deaths { get; set; }
+    /// <summary>Stagger this player took off monsters' gauges, in total and per skill.</summary>
+    public long Stagger { get; set; }
+    public Dictionary<int, long> StaggerBySkill { get; } = new();
 
     public long FirstHitMs { get; set; }
     public long LastHitMs { get; set; }
@@ -180,6 +183,8 @@ public sealed class Encounter
     public HashSet<uint> Attackers { get; } = new();
 
     public long TotalDamage { get; set; }
+    /// <summary>Stagger taken off monsters' gauges in this fight, by anyone (also what could not be attributed).</summary>
+    public long TotalStagger { get; set; }
 
     /// <summary>Fight length used for DPS: first hit to last hit, so idle tails never dilute the numbers.</summary>
     public long CombatMs => Math.Max(1_000, LastDamageMs - StartMs);

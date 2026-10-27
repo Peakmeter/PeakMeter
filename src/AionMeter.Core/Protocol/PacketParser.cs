@@ -57,6 +57,9 @@ public sealed class PacketParser
             case Opcodes.Damage:
                 ParseDamage(body);
                 break;
+            case Opcodes.StaggerGauge:
+                ParseStaggerGauge(body);
+                break;
             case Opcodes.Cast:
                 ParseCast(body);
                 break;
@@ -286,9 +289,10 @@ public sealed class PacketParser
             if (o + 1 < b.Length && b[o] == 0x01 && b[o + 1] == 0x00) o += 2; // chained record marker
             else if (!first) break;
 
-            if (first && IsCastMarker(b, o))
+            if (IsCastMarker(b, o))
             {
-                CastMarkers++;
+                if (first) CastMarkers++;
+                TryStaggerMark(b, o);
                 return;
             }
             if (!TryDamageRecord(b, ref o, out var ev, out var clean))
@@ -301,6 +305,37 @@ public sealed class PacketParser
             first = false;
             if (!clean) break; // tail length unsure: do not risk misreading a chained record
         }
+    }
+
+    /// <summary>
+    /// A switch-0 record of a player on someone else (not a cast): it marks the hit before it as one that took
+    /// stagger. <c>target varint, switch varint (0), flag varint, actor varint, skill u32</c>.
+    /// </summary>
+    private void TryStaggerMark(ReadOnlySpan<byte> b, int o)
+    {
+        if (!Wire.TryVarint(b, ref o, out var target) || !IsEntityId(target)) return;
+        if (!Wire.TryVarint(b, ref o, out _) || !Wire.TryVarint(b, ref o, out _)) return;
+        if (!Wire.TryVarint(b, ref o, out var actor) || !IsEntityId(actor) || actor == target) return;
+        if (!Wire.TryU32(b, ref o, out var skill) || skill is < 10_000_000 or > 299_999_999) return;
+        Emit(new StaggerMarkEvent(TimeMs, actor, target, NormalizeSkill((int)skill)));
+    }
+
+    /// <summary><c>entity varint</c>, then <c>03 01 max u32 rest u32 status u8</c> (the gauge) or <c>00 03 02</c> (a break).</summary>
+    private void ParseStaggerGauge(ReadOnlySpan<byte> b)
+    {
+        var o = 0;
+        if (!Wire.TryVarint(b, ref o, out var id) || !IsEntityId(id)) return;
+        var rest = b[o..];
+        if (rest.Length == 3 && rest[0] == 0x00 && rest[1] == 0x03 && rest[2] == 0x02)
+        {
+            Emit(new StaggerBreakEvent(TimeMs, id));
+            return;
+        }
+        if (rest.Length != 11 || rest[0] != 0x03 || rest[1] != 0x01) return;
+        var max = Wire.U32(rest, 2);
+        var left = Wire.U32(rest, 6);
+        if (max is 0 or > 1_000_000 || left > max) return;
+        Emit(new StaggerGaugeEvent(TimeMs, id, max, left, rest[10]));
     }
 
     /// <summary><c>04 38</c> records with switch 0 announce a cast (actor = target), they carry no damage.</summary>

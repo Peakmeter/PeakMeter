@@ -76,6 +76,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="42" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding Rank}" Foreground="{StaticResource TextDim}" FontSize="10.5"
@@ -86,10 +87,12 @@
                            FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"><Run Text="{Binding Name, Mode=OneWay}" /><Run
                            Text="{Binding Power, Mode=OneWay}" Foreground="{StaticResource TextDim}" FontSize="10.5" FontWeight="Normal" /><Run
                            Text="{Binding Deaths, Mode=OneWay}" Foreground="#E5736B" FontFamily="Segoe UI Symbol" FontSize="10.5" FontWeight="Normal" /></TextBlock>
-                <TextBlock Grid.Column="3" Text="{Binding Dps}" Foreground="{StaticResource Text}" FontSize="12.5"
+                <TextBlock Grid.Column="3" Text="{Binding Stagger}" Foreground="#E8B04B" FontSize="10.5" VerticalAlignment="Center"
+                           Margin="8,0,0,0" Typography.NumeralAlignment="Tabular" />
+                <TextBlock Grid.Column="4" Text="{Binding Dps}" Foreground="{StaticResource Text}" FontSize="12.5"
                            FontWeight="SemiBold" VerticalAlignment="Center" Margin="8,0,0,0"
                            Typography.NumeralAlignment="Tabular" />
-                <TextBlock Grid.Column="4" Text="{Binding Share}" Foreground="{StaticResource TextDim}" FontSize="10.5"
+                <TextBlock Grid.Column="5" Text="{Binding Share}" Foreground="{StaticResource TextDim}" FontSize="10.5"
                            HorizontalAlignment="Right" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" />
             </Grid>
         </Grid>
@@ -111,16 +114,19 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="40" />
             </Grid.ColumnDefinitions>
-            <Border CornerRadius="3" HorizontalAlignment="Left" Width="{Binding BarWidth}" Background="{Binding BarBrush}" Grid.ColumnSpan="3" />
+            <Border CornerRadius="3" HorizontalAlignment="Left" Width="{Binding BarWidth}" Background="{Binding BarBrush}" Grid.ColumnSpan="4" />
             <Image Source="{Binding Icon}" Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0"
                    RenderOptions.BitmapScalingMode="HighQuality" />
             <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextSoft}" FontSize="11" Margin="23,0,6,0"
                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-            <TextBlock Grid.Column="1" Text="{Binding Damage}" Foreground="{StaticResource Text}" FontSize="11"
+            <TextBlock Grid.Column="1" Text="{Binding Stagger}" Foreground="#E8B04B" FontSize="10" Margin="0,0,8,0"
                        VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" />
-            <TextBlock Grid.Column="2" Text="{Binding Share}" Foreground="{StaticResource TextDim}" FontSize="10"
+            <TextBlock Grid.Column="2" Text="{Binding Damage}" Foreground="{StaticResource Text}" FontSize="11"
+                       VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" />
+            <TextBlock Grid.Column="3" Text="{Binding Share}" Foreground="{StaticResource TextDim}" FontSize="10"
                        HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,6,0" Typography.NumeralAlignment="Tabular" />
         </Grid>
     </DataTemplate>

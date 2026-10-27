@@ -15,6 +15,9 @@ Skill icons are not bundled either: PeakMeter downloads them at runtime from the
 (`assets.playnccdn.com/static-aion2-gamedata/resources/`, © NCSOFT), the same way A2Tools-DPS-Meter does, and keeps
 them in `%AppData%\PeakMeter\icons`.
 
+The stagger share follows A2Tools-DPS-Meter's documented layout of the stagger gauge record (`05 E0`) and its rule
+for which hit took stagger (`src-tauri/src/combat/stagger.rs`, GPL-3.0), reimplemented in C#.
+
 The optional character portrait comes from NCSOFT's official character search (`api-search.plaync.com`) and profile
 image server (`profileimg.plaync.com`), the ones the AION 2 website uses, and is kept in `%AppData%\PeakMeter\portraits`.
 

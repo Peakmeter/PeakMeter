@@ -140,6 +140,7 @@ public partial class LogsWindow : Window
                 Share = Format.Share(c.Share),
                 Power = c.CombatPower > 0 ? "  " + Format.Power(c.CombatPower) : "",
                 Deaths = Overlay.DeathsText(c.Deaths),
+                Stagger = Overlay.StaggerText(c.Stagger, s.TotalStagger),
                 BarWidth = Math.Round(width * c.Damage / top),
                 IsSelf = c.IsSelf,
                 IsSelected = c.ActorId == _selected,
@@ -159,7 +160,7 @@ public partial class LogsWindow : Window
         SkillTitle.Text = d.Name;
         _profile = (d.Name, _meter.Data.ServerName(d.ServerId));
         SkillStats.Text = L.S($"{Format.Compact(d.Damage)} Schaden · {Format.Compact(d.Dps)} DPS · Krit {Format.Percent(d.Quality.CritRate)} · ", $"{Format.Compact(d.Damage)} damage · {Format.Compact(d.Dps)} DPS · crit {Format.Percent(d.Quality.CritRate)} · ") +
-                          $"Max {Format.Compact(d.Quality.MaxHit)}";
+                          $"Max {Format.Compact(d.Quality.MaxHit)}" + (d.Stagger > 0 ? $" · Stagger {d.Stagger}" : "");
         var skills = d.Skills.OrderByDescending(x => x.Damage).ToList();
         var stop = Math.Max(1, skills.Count > 0 ? skills[0].Damage : 1);
         var swidth = Math.Max(0, Skills.ActualWidth > 0 ? Skills.ActualWidth : width);
@@ -170,6 +171,7 @@ public partial class LogsWindow : Window
             Icon = SkillIcons.Get(x.SkillCode),
             Damage = Format.Compact(x.Damage),
             Share = Format.Share(x.Share),
+            Stagger = Overlay.StaggerText(x.Stagger, d.Stagger),
             BarWidth = Math.Round(swidth * x.Damage / stop),
             BarBrush = brush,
         }).ToList();

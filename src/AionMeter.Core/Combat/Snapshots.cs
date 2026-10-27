@@ -33,7 +33,8 @@ public sealed record CombatantSnapshot(
     long CombatPower = 0,
     long Healing = 0,
     long ActiveMs = 0,
-    int Deaths = 0)
+    int Deaths = 0,
+    long Stagger = 0)
 {
     /// <summary>aDPS: damage per second of the player's own active time (first to last hit), not the whole fight.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
@@ -58,7 +59,8 @@ public sealed record EncounterSnapshot(
     BossSnapshot? Boss,
     IReadOnlyList<CombatantSnapshot> Combatants,
     int TargetCode = 0,
-    int Attackers = 0)
+    int Attackers = 0,
+    long TotalStagger = 0)
 {
     /// <summary>Players who took part (the unknown-summons row is not one).</summary>
     [System.Text.Json.Serialization.JsonIgnore]
@@ -116,7 +118,8 @@ public sealed record SkillRow(
     double? FrontRate,
     double? PerfectRate,
     double? HeavyRate,
-    double? MultiRate);
+    double? MultiRate,
+    long Stagger = 0);
 
 public sealed record HitQuality(
     int Hits,
@@ -147,7 +150,8 @@ public sealed record CombatantDetail(
     IReadOnlyList<CastRecord> Casts,
     int ServerId = 0,
     int GearScore = 0,
-    long CombatPower = 0);
+    long CombatPower = 0,
+    long Stagger = 0);
 
 public sealed record SegmentInfo(Guid Id, string Title, DateTimeOffset StartedAt, long CombatMs, bool IsActive, EncounterEndReason Reason, long TotalDamage);
 

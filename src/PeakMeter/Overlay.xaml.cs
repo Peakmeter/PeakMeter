@@ -414,6 +414,7 @@ public partial class Overlay : Window
             r.Share = Format.Share(shares[c.ActorId]);
             r.Power = PowerOf(c);
             r.Deaths = DeathsText(c.Deaths);
+            r.Stagger = StaggerText(c.Stagger, snap.TotalStagger);
             r.BarWidth = Math.Round(width * Metric(c) / top);
             r.SetClass(c.Class);
             r.IsSelf = c.IsSelf;
@@ -453,7 +454,8 @@ public partial class Overlay : Window
         DetailPanel.Visibility = Visibility.Visible;
         DetailTitle.Text = d.Name;
         _profile = (d.Name, ServerOf(d.Name, d.ServerId));
-        DetailStats.Text = $"{Format.Compact(d.Damage)} · {L.S("Krit", "Crit")} {Format.Percent(d.Quality.CritRate)} · Max {Format.Compact(d.Quality.MaxHit)}";
+        DetailStats.Text = $"{Format.Compact(d.Damage)} · {L.S("Krit", "Crit")} {Format.Percent(d.Quality.CritRate)} · Max {Format.Compact(d.Quality.MaxHit)}"
+                           + (d.Stagger > 0 ? $" · Stagger {d.Stagger}" : "");
 
         var skills = d.Skills.OrderByDescending(s => s.Damage).Take(MaxSkills).ToList();
         var top = skills.Count > 0 ? Math.Max(1, skills[0].Damage) : 1;
@@ -470,6 +472,7 @@ public partial class Overlay : Window
             vm.Icon = SkillIcons.Get(s.SkillCode);
             vm.Damage = Format.Compact(s.Damage);
             vm.Share = Format.Share(s.Share);
+            vm.Stagger = StaggerText(s.Stagger, d.Stagger);
             vm.BarWidth = Math.Round(width * s.Damage / top);
             vm.BarBrush = brush;
         }
@@ -543,6 +546,10 @@ public partial class Overlay : Window
     }
 
     /// <summary>Own class emblem in a ring of the class colour next to the title, and a matching glow on top.</summary>
+    /// <summary>"⚡ 34%": the share of the stagger taken off monsters' gauges; empty when there was none.</summary>
+    internal static string StaggerText(long stagger, long total) =>
+        stagger > 0 && total > 0 ? $"\u26A1{Math.Round(100.0 * stagger / total):0}%" : "";
+
     internal static string DeathsText(int deaths) => deaths > 0 ? $"  \u2620 {deaths}" : "";
 
     private void UpdateSelf()
@@ -967,7 +974,9 @@ public sealed class RowVm : Vm
     private string _power = "";
     /// <summary>"  129.7K" after the name (combat power), empty when unknown.</summary>
     public string Power { get => _power; set => Set(ref _power, value); }
-    private string _deaths = "";
+    private string _deaths = "", _stagger = "";
+    /// <summary>"⚡34%": this player's share of the fight's stagger.</summary>
+    public string Stagger { get => _stagger; set => Set(ref _stagger, value); }
     /// <summary>"  ☠ 2" when the player died in this fight, else empty.</summary>
     public string Deaths { get => _deaths; set => Set(ref _deaths, value); }
     public double BarWidth { get => _bar; set => Set(ref _bar, value); }
@@ -1015,7 +1024,7 @@ public sealed class PartyVm : Vm
 
 public sealed class SkillVm : Vm
 {
-    private string _name = "", _damage = "", _share = "";
+    private string _name = "", _damage = "", _share = "", _stagger = "";
     private double _bar;
     private Brush? _brush;
     private ImageSource? _icon;
@@ -1024,6 +1033,8 @@ public sealed class SkillVm : Vm
     public string Name { get => _name; set => Set(ref _name, value); }
     public string Damage { get => _damage; set => Set(ref _damage, value); }
     public string Share { get => _share; set => Set(ref _share, value); }
+    /// <summary>"⚡40%": the skill's share of this player's stagger.</summary>
+    public string Stagger { get => _stagger; set => Set(ref _stagger, value); }
     public double BarWidth { get => _bar; set => Set(ref _bar, value); }
     public Brush? BarBrush { get => _brush; set => Set(ref _brush, value); }
 }

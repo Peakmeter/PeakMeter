@@ -30,6 +30,7 @@ public static class Opcodes
     public const ushort PartyRoster = 0x0297;
     public const ushort ResourceList = 0x0B61;   // PeakMeter: every counter at login, Odyle energy included
     public const ushort OdyleEnergy = 0x0C61;    // PeakMeter: Odyle energy (regen pool + bonus pool), sent when it changes
+    public const ushort StaggerGauge = 0x05E0;   // a monster's stagger gauge (A2Tools-DPS-Meter)
     public const ushort FieldBossList = 0x0191;  // a map's field bosses: alive since / back at (in-game map list)
 
     public static string Name(ushort op) => op switch

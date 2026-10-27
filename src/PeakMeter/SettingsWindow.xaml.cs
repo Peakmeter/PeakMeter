@@ -365,6 +365,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.27.0 – Stagger: ⚡ mit Prozent neben der DPS zeigt, wie viel Stagger jeder Spieler macht, und an den Skills, welcher Skill wie viel davon gemacht hat\n\n" +
         "v1.26.0 – Tode: ☠ mit Zahl hinter dem Namen zeigt, wie oft jemand im Kampf gestorben ist (Meter und Logs)\n\n" +
         "v1.25.1 – Kämpfe endeten auf manchen PCs nach 1 Sekunde (Uhr des Netzwerktreibers falsch): behoben\n\n" +
         "v1.25.0 – Neu in den Einstellungen: dein Charakterbild (offizielles Bild von NCSoft) statt Klassen-Logo im Meter\n\n" +
@@ -397,6 +398,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.27.0 – Stagger: ⚡ with a percentage next to the DPS shows each player's share of the stagger, and on the skills which skill did how much\n\n" +
         "v1.26.0 – Deaths: ☠ with a number after the name shows how often someone died in the fight (meter and logs)\n\n" +
         "v1.25.1 – Fights ended after 1 second on some PCs (network driver clock off): fixed\n\n" +
         "v1.25.0 – New setting: your character portrait (official NCSoft image) instead of the class emblem in the meter\n\n" +

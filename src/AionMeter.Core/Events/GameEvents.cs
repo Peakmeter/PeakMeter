@@ -127,6 +127,18 @@ public sealed record CastEvent(long TimeMs, uint ActorId, uint TargetId, int Ski
 /// </summary>
 public sealed record HitNoticeEvent(long TimeMs, uint ActorId, uint TargetId, int SkillCode) : GameEvent(TimeMs);
 
+/// <summary>A monster's stagger gauge after a hit took stagger off it (<c>05 E0</c>): it counts down from <paramref name="Max"/>.</summary>
+public sealed record StaggerGaugeEvent(long TimeMs, uint EntityId, uint Max, uint Rest, byte Status) : GameEvent(TimeMs);
+
+/// <summary>The stagger gauge broke (<c>05 E0 … 00 03 02</c>).</summary>
+public sealed record StaggerBreakEvent(long TimeMs, uint EntityId) : GameEvent(TimeMs);
+
+/// <summary>
+/// A value-less entry (switch 0) of a player's hit on a monster: the hit before it took stagger off the gauge
+/// (A2Tools-DPS-Meter, <c>combat::stagger</c>).
+/// </summary>
+public sealed record StaggerMarkEvent(long TimeMs, uint ActorId, uint TargetId, int SkillCode) : GameEvent(TimeMs);
+
 /// <summary>
 /// A countdown of the instance the player is in (<c>00 61</c>), as the game shows it: <paramref name="Kind"/> 1 is the
 /// 30 s wait after entering, 2 the dungeon's own time limit (60 min in Ferocious Horn Den); start and end are the
