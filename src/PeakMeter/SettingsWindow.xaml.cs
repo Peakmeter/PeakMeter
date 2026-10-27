@@ -365,6 +365,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.30.1 – Energie: falsche Werte (z. B. 590 (+1)) und ständige „Energie voll“-Meldungen seit v1.29.1 behoben\n\n" +
         "v1.30.0 – Pets: der Meter zeigt beim Monster, wie viele Seelen dir für sein Pet noch fehlen oder ob es schon voll ist, und nach jeder Seele den neuen Stand · neues Pet-Fenster (🐾) mit allen Pets, Stufe, Seelen und wo sie droppen\n\n" +
         "v1.29.1 – Energie: wird jetzt auch aus anderen Spiel-Nachrichten gelesen (z. B. nach einem Dungeon-Run) · ein anderer Zähler wurde fälschlich als 0 (+0) gelesen: behoben\n\n" +
         "v1.29.0 – Logs: Knopf „Buffs“ zeigt jeden Buff und Boss-Debuff mit Uptime und DPS mit / ohne (für die ganze Gruppe)\n\n" +
@@ -402,6 +403,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.30.1 – Energy: wrong values (e.g. 590 (+1)) and endless “energy full” toasts since v1.29.1 fixed\n\n" +
         "v1.30.0 – Pets: the meter shows for a monster how many souls its pet still needs or that it is full, and the new count after each soul · new pet window (🐾) with every pet, level, souls and where they drop\n\n" +
         "v1.29.1 – Energy: now also read from other game messages (e.g. after a dungeon run) · another counter was misread as 0 (+0): fixed\n\n" +
         "v1.29.0 – Logs: the “Buffs” button shows every buff and boss debuff with its uptime and the DPS with / without it (for the whole group)\n\n" +

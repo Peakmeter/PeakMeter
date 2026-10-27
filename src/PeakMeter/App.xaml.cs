@@ -578,6 +578,9 @@ public sealed class Meter : IDisposable
                 if (e is not OdyleEnergyEvent o) return;
                 Log($"Odyle from game: pool {o.Regen}, bonus {o.Bonus}, change {o.Change:+0;-0;0} ({Convert.ToHexString(o.Raw)})");
                 try { File.AppendAllText(Path.Combine(Settings.Dir, "energy-events.txt"), $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {Tracker.SelfName}  pool {o.Regen}  bonus {o.Bonus}  change {(o.Change == OdyleEnergyEvent.ElsewhereChange ? $"in {o.Opcode:X4}" : o.Change.ToString())}  {Convert.ToHexString(o.Raw.AsSpan(0, Math.Min(o.Raw.Length, 64)))}{Environment.NewLine}"); } catch { }
+                // Found in another message: only logged. The same bytes turn up in records that are not the logged-in
+                // character's energy (a player saw "590 (+1)" and endless "energy full" toasts from v1.29.1 on).
+                if (o.Change == OdyleEnergyEvent.ElsewhereChange) return;
                 Interlocked.Exchange(ref _liveEnergyAt, Environment.TickCount64);
                 // The value is always the logged-in character's: show it right away.
                 System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.SetFromGame(o.Regen, o.Bonus));
