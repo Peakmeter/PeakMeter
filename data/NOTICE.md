@@ -15,6 +15,9 @@ Skill icons are not bundled either: PeakMeter downloads them at runtime from the
 (`assets.playnccdn.com/static-aion2-gamedata/resources/`, © NCSOFT), the same way A2Tools-DPS-Meter does, and keeps
 them in `%AppData%\PeakMeter\icons`.
 
+The optional character portrait comes from NCSOFT's official character search (`api-search.plaync.com`) and profile
+image server (`profileimg.plaync.com`), the ones the AION 2 website uses, and is kept in `%AppData%\PeakMeter\portraits`.
+
 Formats AionMeter reads (every file is optional):
 
 - `skills/<lang>.json` — `{ "16040000": "Skill name", … }`

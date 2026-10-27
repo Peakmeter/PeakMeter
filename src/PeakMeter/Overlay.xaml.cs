@@ -511,6 +511,7 @@ public partial class Overlay : Window
 
     private readonly ObservableCollection<PartyVm> _party = new();
     private GameClass? _selfClass;
+    private ImageSource? _selfPortrait;
 
     private static readonly ImageSource? Logo = LoadLogo();
 
@@ -544,8 +545,15 @@ public partial class Overlay : Window
     private void UpdateSelf()
     {
         var c = _meter.Tracker.SelfClass;
-        if (c == _selfClass) return;
+        // Optional: the character's own portrait (loads in the background; the emblem until it is there).
+        var portrait = _settings.ShowPortrait && c != GameClass.Unknown
+            ? Portraits.Get(_meter.Tracker.SelfName, _meter.Tracker.SelfServerId, _settings.Region)
+            : null;
+        if (c == _selfClass && ReferenceEquals(portrait, _selfPortrait)) return;
         _selfClass = c;
+        _selfPortrait = portrait;
+        SelfIcon.Clip = null;
+        SelfIcon.Stretch = Stretch.Uniform;
         if (c == GameClass.Unknown)
         {
             // Not logged in yet (or not seen): the PeakMeter logo instead of a class emblem.
@@ -557,9 +565,20 @@ public partial class Overlay : Window
             ClassGlow.Visibility = Visibility.Collapsed;
             return;
         }
-        SelfIcon.Width = SelfIcon.Height = 20;
         var color = ClassStyle.ColorOf(c);
-        SelfIcon.Source = ClassStyle.Icon(c);
+        if (portrait is not null)
+        {
+            // Round picture inside the class-coloured ring.
+            SelfIcon.Width = SelfIcon.Height = 27;
+            SelfIcon.Stretch = Stretch.UniformToFill;
+            SelfIcon.Clip = new EllipseGeometry(new Point(13.5, 13.5), 13.5, 13.5);
+            SelfIcon.Source = portrait;
+        }
+        else
+        {
+            SelfIcon.Width = SelfIcon.Height = 20;
+            SelfIcon.Source = ClassStyle.Icon(c);
+        }
         SelfRing.Stroke = ClassStyle.Solid(c);
         SelfRing.Fill = new RadialGradientBrush(Color.FromArgb(0x55, color.R, color.G, color.B), Color.FromArgb(0x10, color.R, color.G, color.B));
         SelfBadge.Visibility = Visibility.Visible;

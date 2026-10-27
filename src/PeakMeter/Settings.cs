@@ -69,6 +69,8 @@ public sealed class Settings
     public bool Use24h { get; set; } = true;
     /// <summary>Other players by class name instead of their name (for streams and screenshots).</summary>
     public bool HideNames { get; set; }
+    /// <summary>The own character's portrait (official NCSoft image) instead of the class emblem in the header.</summary>
+    public bool ShowPortrait { get; set; }
     public double UiScale { get; set; } = 1.0;
     /// <summary>Update interval in a fight, milliseconds.</summary>
     public int RefreshMs { get; set; } = 250;
