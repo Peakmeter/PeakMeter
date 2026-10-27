@@ -1,4 +1,4 @@
-PeakMeter – kostenloser DPS-Meter für AION 2 (EU / NA)
+PeakMeter – kostenloser DPS-Meter für AION 2 (EU / NA / Korea)
 =====================================================
 
 INSTALLIEREN (2 Minuten)
@@ -9,17 +9,20 @@ INSTALLIEREN (2 Minuten)
      (PeakMeter ist neu und noch nicht signiert.)
    - Fehlt Npcap, öffnet sich die Download-Seite: Npcap mit den Standard-Einstellungen installieren,
      dann PeakMeter über das Desktop-Symbol starten.
-3. PeakMeter starten, BEVOR du einen Dungeon betrittst (Spielernamen kommen beim Ladebildschirm).
+3. PeakMeter starten, BEVOR du dich einloggst (Namen, Pets und Energie kommen beim Einloggen und Laden).
 
 WAS ES KANN
 -----------
-- Live-DPS: allein nur du, in der Gruppe nur deine Gruppe – mit Combat Power neben den Namen.
-- Boss-HP, Kampfzeit; Klick auf einen Spieler zeigt seine Skills.
-- Gruppe: Level, Gearscore und Combat Power aller Mitglieder (Personen-Symbol unten).
-- Logs: Boss-Kämpfe werden gespeichert (Uhr-Symbol unten).
-- Event-Timer mit sanftem Ton: Shugo-Festival, Luftangriff, Riss, Belagerung, Nahma … und alle 48 Weltbosse.
+- Live-DPS: allein nur du, in der Gruppe nur deine Gruppe – mit Combat Power und Server-Kürzel neben den Namen.
+- ⚡ Stagger-Anteil neben der DPS und ☠ wie oft jemand gestorben ist.
+- Boss-HP mit geschätzter Kill-Zeit; Klick auf einen Spieler zeigt seine Skills und den Profil-Link.
+- Pets: Beim Monster siehst du, wie viele Seelen dem Pet noch fehlen (grün = voll, orange = Stufe 2, rot = viel fehlt).
+  Pet-Fenster (Pfote unten): „Hier im Gebiet“, alle Pets, Knopf „Karte“ zeigt die Spawns.
+- Logs: jeder Kampf gespeichert, mit „Top-Skills“ der Gruppe und „Buffs“ (Uptime, DPS mit / ohne).
+- Event-Timer mit sanftem Ton: Shugo-Festival, Luftangriff, Riss, Belagerung, Nahma … und alle Weltbosse.
   Tipp: Im Spiel einmal Karte -> Erkundung -> Feldmonster öffnen, dann übernimmt PeakMeter die echten Respawn-Zeiten.
-- Odyle-Energie wird automatisch erkannt, sobald sie sich im Spiel ändert (Blitz-Symbol unten).
+- Odyle-Energie aus dem Spiel, für alle Charaktere („~“ = geschätzt, einmal neu einloggen).
+- 9 Sprachen und die Regionen Europa, NA-Ost, NA-West, Korea, Taiwan (Zahnrad unten -> Einstellungen).
 
 TASTEN
 ------
