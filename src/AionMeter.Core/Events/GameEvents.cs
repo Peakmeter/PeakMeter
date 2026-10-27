@@ -69,7 +69,14 @@ public sealed record PartyMemberInfo(string Name, int ServerId, int Level, int G
 /// </summary>
 /// <summary>Odyle energy from the server (PeakMeter): <paramref name="Regen"/> refills by itself up to the cap,
 /// <paramref name="Bonus"/> comes from items and does not; the game shows their sum.</summary>
-public sealed record OdyleEnergyEvent(long TimeMs, int Regen, int Bonus, int Change, byte[] Raw) : GameEvent(TimeMs);
+/// <param name="Change">0 = the login list (whose character is not known yet); otherwise a live update of the
+/// logged-in character (<see cref="ElsewhereChange"/> when it came in another message).</param>
+/// <param name="Opcode">The message it came in.</param>
+public sealed record OdyleEnergyEvent(long TimeMs, int Regen, int Bonus, int Change, byte[] Raw, ushort Opcode = 0) : GameEvent(TimeMs)
+{
+    /// <summary><see cref="Change"/> of an Odyle record found in another message (a reward, a dungeon exit …).</summary>
+    public const int ElsewhereChange = int.MinValue;
+}
 
 /// <summary>A counter message (<c>0C 61</c>) that is not Odyle energy: kept raw until its layout is known (PeakMeter).</summary>
 public sealed record ResourceRawEvent(long TimeMs, byte[] Raw) : GameEvent(TimeMs);

@@ -49,6 +49,11 @@ public sealed class PacketParser
             ScanForOwners(whole);
         }
 
+        // The Odyle record (0C 01 87 93 03 pool bonus) also rides in other messages: a dungeon run's reward takes
+        // energy without a 0C61. Wherever it shows up, it is the logged-in character's current energy.
+        if (opcode is not (Opcodes.ResourceList or Opcodes.OdyleEnergy or Opcodes.Heartbeat) && body.Length is >= 7 and <= 8192)
+            FindOdyle(opcode, body);
+
         switch (opcode)
         {
             case Opcodes.Heartbeat:
@@ -1077,16 +1082,28 @@ public sealed class PacketParser
         Emit(new OdyleEnergyEvent(TimeMs, (int)pool, (int)bonus, 0, b.Slice(at, o - at).ToArray()));
     }
 
+    private static ReadOnlySpan<byte> OdyleKey => [0x0C, 0x01, 0x87, 0x93, 0x03];
+
+    private void FindOdyle(ushort opcode, ReadOnlySpan<byte> b)
+    {
+        var at = b.IndexOf(OdyleKey);
+        if (at < 0) return;
+        var o = at + OdyleKey.Length;
+        if (!Wire.TryVarint(b, ref o, out var pool) || !Wire.TryVarint(b, ref o, out var bonus)) return;
+        if (pool > 2000 || bonus > 5000) return;
+        Emit(new OdyleEnergyEvent(TimeMs, (int)pool, (int)bonus, OdyleEnergyEvent.ElsewhereChange, b.ToArray(), opcode));
+    }
+
     private void ParseOdyle(ReadOnlySpan<byte> b)
     {
         // The same message carries other counters too (tickets, keys …): passed on raw so they can be learned.
-        if (b.Length < 7 || b[0] != 0x01 || b[2] != 0x01)
+        // Only "01 | 0C 01 87 93 03 …" is Odyle; "01 08 01 …" and the like are other counters (one read as 0 (+0)).
+        if (b.Length < 8 || b[0] != 0x01 || !b[1..].StartsWith(OdyleKey))
         {
             Emit(new ResourceRawEvent(TimeMs, b.ToArray()));
             return;
         }
-        var o = 3;
-        if (!Wire.TryVarint(b, ref o, out _)) return;
+        var o = 1 + OdyleKey.Length;
         if (!Wire.TryVarint(b, ref o, out var regen) || !Wire.TryVarint(b, ref o, out var bonus)) return;
         if (regen > 2000 || bonus > 5000) return;
         var change = o + 5 <= b.Length ? BinaryPrimitives.ReadInt32LittleEndian(b[(o + 1)..]) : 0;

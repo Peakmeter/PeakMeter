@@ -524,7 +524,7 @@ public sealed class Meter : IDisposable
                 }
                 if (e is not OdyleEnergyEvent o) return;
                 Log($"Odyle from game: pool {o.Regen}, bonus {o.Bonus}, change {o.Change:+0;-0;0} ({Convert.ToHexString(o.Raw)})");
-                try { File.AppendAllText(Path.Combine(Settings.Dir, "energy-events.txt"), $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {Tracker.SelfName}  pool {o.Regen}  bonus {o.Bonus}  change {o.Change}  {Convert.ToHexString(o.Raw)}{Environment.NewLine}"); } catch { }
+                try { File.AppendAllText(Path.Combine(Settings.Dir, "energy-events.txt"), $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {Tracker.SelfName}  pool {o.Regen}  bonus {o.Bonus}  change {(o.Change == OdyleEnergyEvent.ElsewhereChange ? $"in {o.Opcode:X4}" : o.Change.ToString())}  {Convert.ToHexString(o.Raw.AsSpan(0, Math.Min(o.Raw.Length, 64)))}{Environment.NewLine}"); } catch { }
                 Interlocked.Exchange(ref _liveEnergyAt, Environment.TickCount64);
                 // The value is always the logged-in character's: show it right away.
                 System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.SetFromGame(o.Regen, o.Bonus));
