@@ -52,6 +52,15 @@ public sealed class CombatTracker
         get { lock (_gate) return GameData.IsDungeonMap(_entities.MapId); }
     }
 
+    private int _lastHitCode;
+    private long _lastHitAt = long.MinValue / 2;
+
+    /// <summary>The NPC code of the monster you hit last, if within <paramref name="withinMs"/>; else 0.</summary>
+    public int LastHitNpcCode(long withinMs)
+    {
+        lock (_gate) return Environment.TickCount64 - _lastHitAt <= withinMs ? _lastHitCode : 0;
+    }
+
     /// <summary>The map the character is on (0 until a map load was seen).</summary>
     public int MapId
     {
@@ -274,6 +283,11 @@ public sealed class CombatTracker
         if (!sourceIsPlayer && IsLikelyNpc(source)) return; // NPC hitting NPC
 
         var npc = _entities.UpsertNpc(target);
+        if (source == _entities.SelfId && npc.NpcCode != 0)
+        {
+            _lastHitCode = npc.NpcCode;
+            _lastHitAt = Environment.TickCount64;
+        }
         if (npc.Hp == 0) return; // trailing DoT ticks on a corpse must not open a new segment after the kill
 
         if (Options.TargetMode == TargetMode.BossOnly)

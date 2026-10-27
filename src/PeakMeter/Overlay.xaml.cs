@@ -562,7 +562,8 @@ public partial class Overlay : Window
         var pets = _meter.Pets;
         var server = _meter.Tracker.SelfServerId;
         var parts = new List<(string Text, Brush Color)>();
-        if (_meter.LastSouls is { } last && Environment.TickCount64 - last.At < 60_000)
+        if (_meter.LastSouls is { } last && Environment.TickCount64 - last.At < 60_000
+            && (Browsing || _meter.Tracker.LastHitNpcCode(Environment.TickCount64 - last.At) == 0)) // until you hit the next monster
         {
             foreach (var (pet, amount) in last.Souls)
             {
@@ -572,7 +573,10 @@ public partial class Overlay : Window
                     : $"{book.Name(pet)} +{amount} → {L.S("St.", "Lv")} {level} · {points}/{PetCollection.Need(level)}", PetCollection.ColorOf(level)));
             }
         }
-        else if (_targetCode != 0 && book.ByNpc.TryGetValue(_targetCode, out var feeds))
+        // The monster you hit last (a fight keeps the one with the most damage as its target, so the next monster
+        // only showed seconds later); the fight's target when looking back at an older one.
+        else if ((Browsing ? _targetCode : _meter.Tracker.LastHitNpcCode(90_000) is var hit and not 0 ? hit : _targetCode) is var code
+                 && code != 0 && book.ByNpc.TryGetValue(code, out var feeds))
         {
             var known = pets.Known(server);
             foreach (var pet in feeds)
