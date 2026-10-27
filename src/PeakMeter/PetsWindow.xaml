@@ -79,7 +79,7 @@
         <DockPanel>
             <Grid DockPanel.Dock="Top" Background="Transparent" MouseLeftButtonDown="Bar_MouseDown" Margin="0,0,0,8">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="&#x1F43E;" FontFamily="Segoe UI Emoji" FontSize="15" Margin="0,0,10,0" VerticalAlignment="Center" />
+                    <Image Source="{StaticResource PawIcon}" Width="20" Height="20" Margin="0,0,10,0" VerticalAlignment="Center" />
                     <TextBlock Text="Pets" Foreground="{StaticResource Text}" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" />
                     <TextBlock x:Name="Summary" Foreground="{StaticResource TextDim}" FontSize="11" Margin="12,2,0,0" VerticalAlignment="Center" />
                 </StackPanel>

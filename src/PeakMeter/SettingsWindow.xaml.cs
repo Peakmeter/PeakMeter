@@ -365,6 +365,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.31.2 – Pet-Symbol: helle Pfote statt dunklem Emoji (Meter und Pet-Fenster)\n\n" +
         "v1.31.1 – Pet-Zeile wechselt sofort zum Monster, das du gerade triffst (vorher erst nach ~10 s)\n\n" +
         "v1.31.0 – Pet-Fenster: oben „Hier im Gebiet“ – alle Monster auf deiner Karte, deren Seelen dir noch fehlen, mit Gebiet, nächstem Kibelisk und wie viele gerade in der Nähe sind · Filter „nur dieses Gebiet“\n\n" +
         "v1.30.3 – Energie: solange das Spiel sie noch nicht geschickt hat, steht „~“ davor (geschätzt) und es kommt keine „voll“-Meldung\n\n" +
@@ -407,6 +408,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.31.2 – Pet symbol: a light paw instead of the dark emoji (meter and pet window)\n\n" +
         "v1.31.1 – The pet line switches at once to the monster you are hitting (it took ~10 s)\n\n" +
         "v1.31.0 – Pet window: “Here in the area” at the top – every monster on your map whose souls you still need, with its area, nearest Kibelisk and how many are nearby · filter “this area only”\n\n" +
         "v1.30.3 – Energy: until the game has sent it, it shows with “~” (estimated) and no “full” toast comes\n\n" +

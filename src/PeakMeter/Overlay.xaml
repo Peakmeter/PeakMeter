@@ -121,7 +121,7 @@
                 <Border x:Name="PetPanel" Visibility="Collapsed" Margin="2,6,2,0" Background="Transparent" Cursor="Hand"
                         MouseLeftButtonUp="Pet_Click" ToolTip="{local:T De='Pet-Seelen: Klick zeigt alle Pets', En='Pet souls: click for all pets'}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="&#x1F43E;" FontFamily="Segoe UI Emoji" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center" />
+                        <Image Source="{StaticResource PawIcon}" Width="14" Height="14" Margin="0,0,6,0" VerticalAlignment="Center" />
                         <TextBlock x:Name="PetText" Foreground="{StaticResource TextSoft}" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"
                                    TextTrimming="CharacterEllipsis" />
                     </StackPanel>
@@ -251,7 +251,7 @@
                         </StackPanel>
                         <Button Style="{StaticResource IconButton}" Content="&#xE8A5;" Click="Tickets_Click" ToolTip="Tickets" Height="20" />
                         <Button Style="{StaticResource IconButton}" Click="PetsButton_Click" Height="20" ToolTip="{local:T De='Pets: Seelen-Sammlung', En='Pets: soul collection'}">
-                            <TextBlock Text="&#x1F43E;" FontFamily="Segoe UI Emoji" FontSize="10.5" Opacity="0.75" />
+                            <Image Source="{StaticResource PawIcon}" Width="12" Height="12" />
                         </Button>
                         <Button x:Name="PartyButton" Style="{StaticResource IconButton}" Content="&#xE716;" Click="Party_Click" ToolTip="{local:T De='Gruppe: Gearscore und Combat Power', En='Party: gear score and combat power'}" Height="20" />
                         <Button Style="{StaticResource IconButton}" Content="&#xE713;" Click="Settings_Click" ToolTip="{local:T De='Einstellungen', En='Settings'}" Height="20" />
