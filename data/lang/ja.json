@@ -386,5 +386,6 @@
   "{0} spawns": "出現 {0} か所",
   "Map not known yet: after the next teleport or map load this shows what you can farm in the area.": "マップがまだ不明です：次のテレポートかマップ読み込みの後、ここで狩れるものが表示されます。",
   "No pet souls drop on this map.": "このマップではペットの魂は出ません。",
-  "All full: nothing here you still need. 🎉": "すべて完了：ここで必要なものはもうありません。🎉"
+  "All full: nothing here you still need. 🎉": "すべて完了：ここで必要なものはもうありません。🎉",
+  "Show pets (soul progress at the monster and the pet button)": "ペットを表示（モンスターの魂の進捗とペットボタン）"
 }

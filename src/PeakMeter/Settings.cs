@@ -71,6 +71,8 @@ public sealed class Settings
     public bool HideNames { get; set; }
     /// <summary>The own character's portrait (official NCSoft image) instead of the class emblem in the header.</summary>
     public bool ShowPortrait { get; set; }
+    /// <summary>The pet line and the pet button in the meter (off once every pet is done).</summary>
+    public bool ShowPets { get; set; } = true;
     public double UiScale { get; set; } = 1.0;
     /// <summary>Update interval in a fight, milliseconds.</summary>
     public int RefreshMs { get; set; } = 250;

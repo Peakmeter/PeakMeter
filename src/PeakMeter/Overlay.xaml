@@ -250,7 +250,7 @@
                             <TextBlock x:Name="PingText" FontSize="10.5" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" />
                         </StackPanel>
                         <Button Style="{StaticResource IconButton}" Content="&#xE8A5;" Click="Tickets_Click" ToolTip="Tickets" Height="20" />
-                        <Button Style="{StaticResource IconButton}" Click="PetsButton_Click" Height="20" ToolTip="{local:T De='Pets: Seelen-Sammlung', En='Pets: soul collection'}">
+                        <Button x:Name="PetsButton" Style="{StaticResource IconButton}" Click="PetsButton_Click" Height="20" ToolTip="{local:T De='Pets: Seelen-Sammlung', En='Pets: soul collection'}">
                             <Image Source="{StaticResource PawIcon}" Width="12" Height="12" />
                         </Button>
                         <Button x:Name="PartyButton" Style="{StaticResource IconButton}" Content="&#xE716;" Click="Party_Click" ToolTip="{local:T De='Gruppe: Gearscore und Combat Power', En='Party: gear score and combat power'}" Height="20" />

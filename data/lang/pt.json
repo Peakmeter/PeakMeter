@@ -385,5 +385,6 @@
   "{0} spawns": "{0} spawns",
   "Map not known yet: after the next teleport or map load this shows what you can farm in the area.": "Mapa ainda desconhecido: após o próximo teleporte ou carregamento aparece aqui o que dá para farmar.",
   "No pet souls drop on this map.": "Neste mapa não caem almas de mascote.",
-  "All full: nothing here you still need. 🎉": "Tudo completo: nada aqui te falta. 🎉"
+  "All full: nothing here you still need. 🎉": "Tudo completo: nada aqui te falta. 🎉",
+  "Show pets (soul progress at the monster and the pet button)": "Mostrar mascotes (progresso de almas no monstro e botão de mascotes)"
 }

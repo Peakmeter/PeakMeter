@@ -35,6 +35,7 @@ public partial class SettingsWindow : Window
         ShowTotal.IsChecked = _s.ShowTotal;
         HideNames.IsChecked = _s.HideNames;
         ShowPortrait.IsChecked = _s.ShowPortrait;
+        ShowPets.IsChecked = _s.ShowPets;
         Compact.IsChecked = _s.Compact;
         FocusMode.IsChecked = _s.FocusMode;
         FadeIdle.IsChecked = _s.FadeIdle;
@@ -146,6 +147,7 @@ public partial class SettingsWindow : Window
         _s.ShowTotal = ShowTotal.IsChecked == true;
         _s.HideNames = HideNames.IsChecked == true;
         _s.ShowPortrait = ShowPortrait.IsChecked == true;
+        _s.ShowPets = ShowPets.IsChecked == true;
         _s.Compact = Compact.IsChecked == true;
         _s.FocusMode = FocusMode.IsChecked == true;
         _s.FadeIdle = FadeIdle.IsChecked == true;
@@ -365,6 +367,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.31.3 – Neu in den Einstellungen: „Pets anzeigen“ – wer mit Pets fertig ist, kann die Pet-Zeile und den Pet-Knopf ausschalten\n\n" +
         "v1.31.2 – Pet-Symbol: helle Pfote statt dunklem Emoji (Meter und Pet-Fenster)\n\n" +
         "v1.31.1 – Pet-Zeile wechselt sofort zum Monster, das du gerade triffst (vorher erst nach ~10 s)\n\n" +
         "v1.31.0 – Pet-Fenster: oben „Hier im Gebiet“ – alle Monster auf deiner Karte, deren Seelen dir noch fehlen, mit Gebiet, nächstem Kibelisk und wie viele gerade in der Nähe sind · Filter „nur dieses Gebiet“\n\n" +
@@ -408,6 +411,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.31.3 – New setting: “Show pets” – done with pets? Turn off the pet line and the pet button\n\n" +
         "v1.31.2 – Pet symbol: a light paw instead of the dark emoji (meter and pet window)\n\n" +
         "v1.31.1 – The pet line switches at once to the monster you are hitting (it took ~10 s)\n\n" +
         "v1.31.0 – Pet window: “Here in the area” at the top – every monster on your map whose souls you still need, with its area, nearest Kibelisk and how many are nearby · filter “this area only”\n\n" +

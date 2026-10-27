@@ -385,5 +385,6 @@
   "{0} spawns": "{0} точек появления",
   "Map not known yet: after the next teleport or map load this shows what you can farm in the area.": "Карта пока неизвестна: после следующего телепорта или загрузки карты здесь появится, что можно фармить.",
   "No pet souls drop on this map.": "На этой карте души питомцев не выпадают.",
-  "All full: nothing here you still need. 🎉": "Всё заполнено: здесь вам больше ничего не нужно. 🎉"
+  "All full: nothing here you still need. 🎉": "Всё заполнено: здесь вам больше ничего не нужно. 🎉",
+  "Show pets (soul progress at the monster and the pet button)": "Показывать питомцев (прогресс душ у монстра и кнопка питомцев)"
 }

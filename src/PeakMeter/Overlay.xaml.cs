@@ -561,6 +561,12 @@ public partial class Overlay : Window
         var book = _meter.PetBook;
         var pets = _meter.Pets;
         var server = _meter.Tracker.SelfServerId;
+        PetsButton.Visibility = _settings.ShowPets ? Visibility.Visible : Visibility.Collapsed;
+        if (!_settings.ShowPets)
+        {
+            PetPanel.Visibility = Visibility.Collapsed;
+            return;
+        }
         var parts = new List<(string Text, Brush Color)>();
         if (_meter.LastSouls is { } last && Environment.TickCount64 - last.At < 60_000
             && (Browsing || _meter.Tracker.LastHitNpcCode(Environment.TickCount64 - last.At) == 0)) // until you hit the next monster
