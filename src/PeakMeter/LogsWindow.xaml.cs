@@ -176,7 +176,7 @@ public partial class LogsWindow : Window
 
     private void Rows_Click(object sender, MouseButtonEventArgs e)
     {
-        if ((e.OriginalSource as FrameworkElement)?.DataContext is not RowVm row) return;
+        if (RowHit.RowOf(e.OriginalSource) is not { } row) return;
         _selected = row.ActorId;
         ShowRecord();
     }
