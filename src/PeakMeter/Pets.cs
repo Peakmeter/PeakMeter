@@ -94,6 +94,20 @@ public sealed class PetCollection
     public const int MaxLevel = 3;
     /// <summary>Souls a pet needs to go from this level to the next: 5, 25, 75.</summary>
     public static int Need(int level) => level switch { 0 => 5, 1 => 25, 2 => 75, _ => 0 };
+    private static readonly System.Windows.Media.Brush Green = Frozen(0x5C, 0xD0, 0x8A);
+    private static readonly System.Windows.Media.Brush Orange = Frozen(0xF0, 0xA0, 0x40);
+    private static readonly System.Windows.Media.Brush Red = Frozen(0xF0, 0x60, 0x5A);
+
+    private static System.Windows.Media.Brush Frozen(byte r, byte g, byte b)
+    {
+        var brush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(r, g, b));
+        brush.Freeze();
+        return brush;
+    }
+
+    /// <summary>At a glance: green = level 3 (full), orange = level 2 (halfway), red = level 0-1 (most souls missing).</summary>
+    public static System.Windows.Media.Brush ColorOf(int level) => level >= MaxLevel ? Green : level == 2 ? Orange : Red;
+
     /// <summary>Souls still needed to reach level 3.</summary>
     public static int ToMax(int level, int points)
     {

@@ -86,6 +86,7 @@ public partial class PetsWindow : Window
                 Souls = !known ? "–" : level >= PetCollection.MaxLevel ? "MAX" : $"{points} / {need}",
                 Bar = !known ? 0 : level >= PetCollection.MaxLevel ? 98 : Math.Round(98.0 * points / Math.Max(1, need)),
                 Left = !known ? "–" : level >= PetCollection.MaxLevel ? "✓" : toMax.ToString(),
+                LevelBrush = known ? PetCollection.ColorOf(level) : (Brush)FindResource("TextDim"),
                 Full = isFull,
                 Sort = !known ? int.MaxValue : isFull ? int.MaxValue - 1 : toMax,
             });
@@ -128,6 +129,7 @@ public partial class PetsWindow : Window
         public string Souls { get; init; } = "";
         public double Bar { get; init; }
         public string Left { get; init; } = "";
+        public Brush? LevelBrush { get; init; }
         public bool Full { get; init; }
         public int Sort { get; init; }
     }

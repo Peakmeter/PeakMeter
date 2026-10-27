@@ -561,19 +561,15 @@ public partial class Overlay : Window
         var book = _meter.PetBook;
         var pets = _meter.Pets;
         var server = _meter.Tracker.SelfServerId;
-        var parts = new List<string>();
-        var fresh = false;
-        var allFull = true;
+        var parts = new List<(string Text, Brush Color)>();
         if (_meter.LastSouls is { } last && Environment.TickCount64 - last.At < 60_000)
         {
-            fresh = true;
             foreach (var (pet, amount) in last.Souls)
             {
                 var (level, points) = pets.Get(server, pet);
                 var full = level >= PetCollection.MaxLevel;
-                allFull &= full;
-                parts.Add(full ? $"{book.Name(pet)} +{amount} → ✓ {L.S("St.", "Lv")} 3"
-                    : $"{book.Name(pet)} +{amount} → {L.S("St.", "Lv")} {level} · {points}/{PetCollection.Need(level)}");
+                parts.Add((full ? $"{book.Name(pet)} +{amount} → ✓ {L.S("voll", "full")}"
+                    : $"{book.Name(pet)} +{amount} → {L.S("St.", "Lv")} {level} · {points}/{PetCollection.Need(level)}", PetCollection.ColorOf(level)));
             }
         }
         else if (_targetCode != 0 && book.ByNpc.TryGetValue(_targetCode, out var feeds))
@@ -583,16 +579,20 @@ public partial class Overlay : Window
             {
                 var (level, points) = pets.Get(server, pet);
                 var full = known && level >= PetCollection.MaxLevel;
-                allFull &= full;
-                parts.Add(!known ? $"{book.Name(pet)}: {L.S("Stand unbekannt – einmal neu einloggen", "progress unknown – log in once")}"
-                    : full ? $"{book.Name(pet)} ✓ {L.S("voll", "full")}"
-                    : $"{book.Name(pet)} {L.S("St.", "Lv")} {level} · {points}/{PetCollection.Need(level)}");
+                parts.Add(!known ? ($"{book.Name(pet)}: {L.S("Stand unbekannt – einmal neu einloggen", "progress unknown – log in once")}", (Brush)FindResource("TextDim"))
+                    : full ? ($"{book.Name(pet)} ✓ {L.S("voll", "full")}", PetCollection.ColorOf(level))
+                    : ($"{book.Name(pet)} {L.S("St.", "Lv")} {level} · {points}/{PetCollection.Need(level)}", PetCollection.ColorOf(level)));
             }
         }
         PetPanel.Visibility = parts.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (parts.Count == 0) return;
-        PetText.Text = string.Join("   ·   ", parts);
-        PetText.Foreground = (Brush)FindResource(fresh && !allFull ? "Accent" : allFull ? "TextDim" : "TextSoft");
+        // Each pet in its own colour, so a glance tells whether this monster is still worth farming.
+        PetText.Inlines.Clear();
+        for (var i = 0; i < parts.Count; i++)
+        {
+            if (i > 0) PetText.Inlines.Add(new System.Windows.Documents.Run("   ·   ") { Foreground = (Brush)FindResource("TextDim") });
+            PetText.Inlines.Add(new System.Windows.Documents.Run(parts[i].Text) { Foreground = parts[i].Color });
+        }
     }
 
     /// <summary>Own class emblem in a ring of the class colour next to the title, and a matching glow on top.</summary>
