@@ -12,7 +12,24 @@ public sealed class PetBook
     public sealed record Drop(int Npc, string? Chance, int Level, string? Region, int Spawns,
         IReadOnlyDictionary<string, string> NpcNames, IReadOnlyDictionary<string, string> MapNames,
         int MapId = 0, IReadOnlyDictionary<string, string>? ZoneNames = null, int Teleport = 0,
-        IReadOnlyDictionary<string, string>? TeleportNames = null);
+        IReadOnlyDictionary<string, string>? TeleportNames = null, double TeleportX = double.NaN, double TeleportY = double.NaN)
+    {
+        /// <summary>
+        /// aion2timers.com's interactive map with every spawn of this monster on its map, the nearest Kibelisk and the
+        /// distance (the link the A2Tools pet plugin uses).
+        /// </summary>
+        public string? MapUrl
+        {
+            get
+            {
+                if (MapId == 0 || Npc == 0) return null;
+                var url = $"https://www.aion2timers.com/map/?map={MapId}&pet={Npc}&petName={Uri.EscapeDataString(Local(NpcNames))}";
+                if (!double.IsNaN(TeleportX) && !double.IsNaN(TeleportY))
+                    url += FormattableString.Invariant($"&tx={TeleportX}&ty={TeleportY}");
+                return url;
+            }
+        }
+    }
 
     public sealed record Pet(int Id, IReadOnlyDictionary<string, string> Names, string? Genus, IReadOnlyList<Drop> Drops)
     {
@@ -50,7 +67,8 @@ public sealed class PetBook
                             d.TryGetProperty("level", out var lv) && lv.ValueKind == JsonValueKind.Number ? lv.GetInt32() : 0,
                             Str(d, "region"), d.TryGetProperty("spawns", out var sp) && sp.ValueKind == JsonValueKind.Number ? sp.GetInt32() : 0,
                             Texts(d, "name"), Texts(d, "map"),
-                            Int(d, "mapId"), Texts(d, "zone"), Int(d, "teleport"), Texts(d, "teleportName")));
+                            Int(d, "mapId"), Texts(d, "zone"), Int(d, "teleport"), Texts(d, "teleportName"),
+                            Coord(d, 0), Coord(d, 1)));
                 pets[id] = new Pet(id, Texts(p.Value, "names"), Str(p.Value, "genus"), drops);
             }
             foreach (var n in root.GetProperty("npcs").EnumerateObject())
@@ -62,6 +80,10 @@ public sealed class PetBook
         catch (Exception ex) when (ex is IOException or JsonException or KeyNotFoundException or InvalidOperationException) { }
         return book;
     }
+
+    private static double Coord(JsonElement d, int i) =>
+        d.TryGetProperty("teleportAt", out var at) && at.ValueKind == JsonValueKind.Array && at.GetArrayLength() > i
+            && at[i].ValueKind == JsonValueKind.Number ? at[i].GetDouble() : double.NaN;
 
     private static int Int(JsonElement e, string name) =>
         e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetInt32() : 0;

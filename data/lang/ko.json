@@ -387,5 +387,8 @@
   "Map not known yet: after the next teleport or map load this shows what you can farm in the area.": "지도를 아직 모릅니다: 다음 순간이동이나 지도 로딩 후 이 지역에서 파밍할 수 있는 것이 표시됩니다.",
   "No pet souls drop on this map.": "이 지도에서는 펫 영혼이 나오지 않습니다.",
   "All full: nothing here you still need. 🎉": "모두 완료: 여기서 더 필요한 것이 없습니다. 🎉",
-  "Show pets (soul progress at the monster and the pet button)": "펫 표시 (몬스터의 영혼 진행도와 펫 버튼)"
+  "Show pets (soul progress at the monster and the pet button)": "펫 표시 (몬스터의 영혼 진행도와 펫 버튼)",
+  "Map": "지도",
+  "Every spawn of this monster on the map (aion2timers.com)": "지도에서 이 몬스터의 모든 출현 위치 (aion2timers.com)",
+  "Where it drops, on the map (aion2timers.com)": "획득처를 지도에서 (aion2timers.com)"
 }

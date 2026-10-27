@@ -23,6 +23,8 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding Name}" Foreground="{StaticResource Text}" FontSize="12.5" FontWeight="SemiBold" />
                             <TextBlock Text="{Binding Genus}" Foreground="{Binding GenusBrush}" FontSize="10" Margin="8,2,0,0" />
+                            <Button Style="{StaticResource IconButton}" Content="&#xE707;" Width="20" Height="18" Margin="6,0,0,0" Click="Map_Click" Tag="{Binding Url}"
+                                    Visibility="{Binding UrlVisible}" ToolTip="{local:T De='Wo es droppt, auf der Karte (aion2timers.com)', En='Where it drops, on the map (aion2timers.com)'}" />
                         </StackPanel>
                         <TextBlock Text="{Binding Where}" Foreground="{StaticResource TextDim}" FontSize="10.5" Margin="0,1,0,0"
                                    TextTrimming="CharacterEllipsis" ToolTip="{Binding WhereAll}" />
@@ -67,10 +69,18 @@
                     </ItemsControl>
                     <TextBlock Text="{Binding Where}" Foreground="{StaticResource TextDim}" FontSize="10.5" Margin="0,1,0,0" TextTrimming="CharacterEllipsis" />
                 </StackPanel>
-                <Border Grid.Column="1" CornerRadius="6" Background="#2240C080" Padding="7,2" VerticalAlignment="Top" Margin="8,0,0,0"
-                        Visibility="{Binding NearVisible}">
-                    <TextBlock Text="{Binding Near}" Foreground="#5CD08A" FontSize="10.5" FontWeight="SemiBold" />
-                </Border>
+                <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Top">
+                    <Border CornerRadius="6" Background="#2240C080" Padding="7,2" HorizontalAlignment="Right" Visibility="{Binding NearVisible}">
+                        <TextBlock Text="{Binding Near}" Foreground="#5CD08A" FontSize="10.5" FontWeight="SemiBold" />
+                    </Border>
+                    <Button Style="{StaticResource Chip}" Height="22" Margin="0,4,0,0" HorizontalAlignment="Right" Click="Map_Click" Tag="{Binding Url}"
+                            Visibility="{Binding UrlVisible}" ToolTip="{local:T De='Alle Spawns dieses Monsters auf der Karte (aion2timers.com)', En='Every spawn of this monster on the map (aion2timers.com)'}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE707;" FontFamily="{StaticResource IconFont}" Foreground="{StaticResource Accent}" Margin="0,1,5,0" />
+                            <TextBlock Text="{local:T De=Karte, En=Map}" FontSize="10.5" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
             </Grid>
         </DataTemplate>
     </Window.Resources>

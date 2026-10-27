@@ -96,6 +96,8 @@ public partial class PetsWindow : Window
                 Where = string.Join(" · ", where),
                 Near = L.S($"● {count} in der Nähe", $"● {count} nearby"),
                 NearVisible = count > 0 ? Visibility.Visible : Visibility.Collapsed,
+                Url = drop.MapUrl,
+                UrlVisible = drop.MapUrl is null ? Visibility.Collapsed : Visibility.Visible,
                 Sort = (count > 0 ? 0 : 1_000_000) + minLeft,
             });
         }
@@ -122,6 +124,13 @@ public partial class PetsWindow : Window
         AreaList.ItemsSource = rows.OrderBy(r => r.Sort).ToList();
     }
 
+    private void Map_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not string { Length: > 0 } url) return;
+        try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true }); }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException) { }
+    }
+
     private void AreaOnly_Click(object sender, RoutedEventArgs e)
     {
         _areaOnly = !_areaOnly;
@@ -137,6 +146,8 @@ public partial class PetsWindow : Window
         public string Where { get; init; } = "";
         public string Near { get; init; } = "";
         public Visibility NearVisible { get; init; }
+        public string? Url { get; init; }
+        public Visibility UrlVisible { get; init; }
         public int Sort { get; init; }
     }
 
@@ -184,6 +195,8 @@ public partial class PetsWindow : Window
                 Genus = book.GenusName(p.Genus),
                 GenusBrush = p.Genus is not null && GenusBrushes.TryGetValue(p.Genus, out var gb) ? gb : (Brush)FindResource("TextDim"),
                 Where = where,
+                Url = best?.MapUrl,
+                UrlVisible = best?.MapUrl is null ? Visibility.Collapsed : Visibility.Visible,
                 WhereAll = string.Join(Environment.NewLine, p.Drops.Select(d =>
                     $"{PetBook.Local(d.NpcNames)} – {PetBook.Local(d.MapNames)}, {L.S("St.", "Lv")} {d.Level}, {d.Chance}, {d.Spawns}×")) is { Length: > 0 } w ? w : where,
                 Level = known ? $"{L.S("St.", "Lv")} {level}" : "–",
@@ -231,6 +244,8 @@ public partial class PetsWindow : Window
         public Brush? GenusBrush { get; init; }
         public string Where { get; init; } = "";
         public string WhereAll { get; init; } = "";
+        public string? Url { get; init; }
+        public Visibility UrlVisible { get; init; }
         public string Level { get; init; } = "";
         public string Souls { get; init; } = "";
         public double Bar { get; init; }
