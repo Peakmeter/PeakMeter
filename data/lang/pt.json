@@ -360,5 +360,21 @@
   "No buff data: fights are saved with buffs from v1.29.0 on.": "Sem dados de buffs: as lutas são salvas com buffs a partir da v1.29.0.",
   "No buffs were seen in this fight.": "Nenhum buff foi detectado nesta luta.",
   "debuff on the boss": "debuff no chefe",
-  "Buffs and debuffs: how long they were up and the DPS with and without them": "Buffs e debuffs: quanto tempo ficaram ativos e o DPS com e sem eles"
+  "Buffs and debuffs: how long they were up and the DPS with and without them": "Buffs e debuffs: quanto tempo ficaram ativos e o DPS com e sem eles",
+  "Pet souls: click for all pets": "Almas de mascote: clique para todos",
+  "Pets: soul collection": "Mascotes: coleção de almas",
+  "progress unknown – log in once": "progresso desconhecido – entre uma vez",
+  "full": "completo",
+  "Search pet or monster …": "Buscar mascote ou monstro …",
+  "Hide full": "Ocultar completos",
+  "Pets whose souls only come from chests": "Mascotes cujas almas só vêm de baús",
+  "Chest-only pets": "Só de baús",
+  "PET · WHERE IT DROPS": "MASCOTE · ONDE CAI",
+  "LEVEL": "NÍVEL",
+  "SOULS": "ALMAS",
+  "TO LV 3": "ATÉ NV. 3",
+  "only from pet soul chests": "só de baús de almas",
+  "No character seen yet. Log in with PeakMeter running.": "Nenhum personagem detectado. Entre com o PeakMeter aberto.",
+  "Progress not known yet: log in once with PeakMeter running, then PeakMeter knows all pets (per server).": "Progresso ainda desconhecido: entre uma vez com o PeakMeter aberto e ele conhecerá todos os mascotes (por servidor).",
+  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} no nv. 3 · faltam {2} almas"
 }

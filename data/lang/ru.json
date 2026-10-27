@@ -360,5 +360,21 @@
   "No buff data: fights are saved with buffs from v1.29.0 on.": "Нет данных о баффах: бои сохраняются с баффами начиная с v1.29.0.",
   "No buffs were seen in this fight.": "В этом бою баффы не обнаружены.",
   "debuff on the boss": "дебафф на боссе",
-  "Buffs and debuffs: how long they were up and the DPS with and without them": "Баффы и дебаффы: сколько они действовали и DPS с ними и без них"
+  "Buffs and debuffs: how long they were up and the DPS with and without them": "Баффы и дебаффы: сколько они действовали и DPS с ними и без них",
+  "Pet souls: click for all pets": "Души питомцев: нажмите, чтобы увидеть всех",
+  "Pets: soul collection": "Питомцы: сбор душ",
+  "progress unknown – log in once": "прогресс неизвестен – войдите один раз",
+  "full": "макс.",
+  "Search pet or monster …": "Поиск питомца или монстра …",
+  "Hide full": "Скрыть полные",
+  "Pets whose souls only come from chests": "Питомцы, чьи души есть только в сундуках",
+  "Chest-only pets": "Только из сундуков",
+  "PET · WHERE IT DROPS": "ПИТОМЕЦ · ГДЕ ПАДАЕТ",
+  "LEVEL": "УРОВЕНЬ",
+  "SOULS": "ДУШИ",
+  "TO LV 3": "ДО УР. 3",
+  "only from pet soul chests": "только из сундуков душ",
+  "No character seen yet. Log in with PeakMeter running.": "Персонаж ещё не обнаружен. Войдите в игру с запущенным PeakMeter.",
+  "Progress not known yet: log in once with PeakMeter running, then PeakMeter knows all pets (per server).": "Прогресс пока неизвестен: войдите один раз с запущенным PeakMeter, и он узнает всех питомцев (по серверу).",
+  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} на ур. 3 · осталось {2} душ"
 }

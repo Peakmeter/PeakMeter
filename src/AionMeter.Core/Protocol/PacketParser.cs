@@ -65,6 +65,15 @@ public sealed class PacketParser
             case Opcodes.StaggerGauge:
                 ParseStaggerGauge(body);
                 break;
+            case Opcodes.PetList:
+                ParsePetList(body);
+                break;
+            case Opcodes.PetSouls:
+                ParsePetSouls(body);
+                break;
+            case Opcodes.PetLevel:
+                ParsePetLevel(body);
+                break;
             case Opcodes.BuffAdded:
             case Opcodes.BuffChanged:
                 ParseBuffApplied(body, opcode == Opcodes.BuffAdded);
@@ -371,6 +380,55 @@ public sealed class PacketParser
         }
         if (o != b.Length) return;
         Emit(new BuffRemovedEvent(TimeMs, entity, instances));
+    }
+
+    private static bool IsPetId(uint id) => id is >= 1000 and < 10_000;
+
+    /// <summary><code>4 bytes, n varint, n × (pet u32, u32, level u32), m varint, m × (pet u32, points u32)</code></summary>
+    private void ParsePetList(ReadOnlySpan<byte> b)
+    {
+        var o = 4;
+        if (!Wire.TryVarint(b, ref o, out var n) || n > 2000) return;
+        var levels = new List<(int, int)>((int)n);
+        for (var i = 0; i < n; i++)
+        {
+            if (!Wire.TryU32(b, ref o, out var pet) || !Wire.TryU32(b, ref o, out _) || !Wire.TryU32(b, ref o, out var level)) return;
+            if (!IsPetId(pet) || level > 3) return;
+            levels.Add(((int)pet, (int)level));
+        }
+        if (!Wire.TryVarint(b, ref o, out var m) || m > 2000) return;
+        var points = new List<(int, int)>((int)m);
+        for (var i = 0; i < m; i++)
+        {
+            if (!Wire.TryU32(b, ref o, out var pet) || !Wire.TryU32(b, ref o, out var p)) return;
+            if (!IsPetId(pet) || p > 1000) return;
+            points.Add(((int)pet, (int)p));
+        }
+        Emit(new PetListEvent(TimeMs, levels, points));
+    }
+
+    /// <summary><code>n u8, n × (pet u32, amount u32)</code></summary>
+    private void ParsePetSouls(ReadOnlySpan<byte> b)
+    {
+        var o = 0;
+        if (!Wire.TryU8(b, ref o, out var n) || n is 0 or > 20) return;
+        var souls = new List<(int, int)>(n);
+        for (var i = 0; i < n; i++)
+        {
+            if (!Wire.TryU32(b, ref o, out var pet) || !Wire.TryU32(b, ref o, out var amount)) return;
+            if (!IsPetId(pet) || amount is 0 or > 100) return;
+            souls.Add(((int)pet, (int)amount));
+        }
+        Emit(new PetSoulEvent(TimeMs, souls));
+    }
+
+    /// <summary><code>2 bytes, pet u32, level u32</code></summary>
+    private void ParsePetLevel(ReadOnlySpan<byte> b)
+    {
+        var o = 2;
+        if (!Wire.TryU32(b, ref o, out var pet) || !Wire.TryU32(b, ref o, out var level)) return;
+        if (!IsPetId(pet) || level is 0 or > 3) return;
+        Emit(new PetLevelEvent(TimeMs, (int)pet, (int)level));
     }
 
     /// <summary><c>entity varint</c>, then <c>03 01 max u32 rest u32 status u8</c> (the gauge) or <c>00 03 02</c> (a break).</summary>

@@ -284,6 +284,19 @@ public partial class App : Application
         _ticketProbe.Activate();
     }
 
+    private PetsWindow? _pets;
+
+    public void ShowPets()
+    {
+        if (_pets is null)
+        {
+            _pets = new PetsWindow(Meter);
+            _pets.Closed += (_, _) => _pets = null;
+            _pets.Show();
+        }
+        _pets.Activate();
+    }
+
     public void ShowTickets()
     {
         if (_tickets is null)
@@ -417,6 +430,14 @@ public sealed class Meter : IDisposable
     private long _liveEnergyAt = long.MinValue / 2;
     private bool _skewLogged;
 
+    /// <summary>Pets: what drops whose souls, and the player's collection.</summary>
+    public PetBook PetBook { get; private set; } = null!;
+    public PetCollection Pets { get; private set; } = null!;
+    /// <summary>The last souls picked up (pet, amount), and when (Environment.TickCount64).</summary>
+    public (IReadOnlyList<(int Pet, int Amount)> Souls, long At)? LastSouls { get; private set; }
+    private (PetListEvent List, long At)? _petList;
+    private long _selfSeenAt = long.MinValue / 2;
+
     public Meter(Settings settings, bool demo, bool saveDemo = false)
     {
         _saveDemo = saveDemo;
@@ -427,6 +448,20 @@ public sealed class Meter : IDisposable
         if (!demo && _names.Load() is { } cached) Tracker.ImportCache(cached);
         Tracker.EncounterFinished += OnFightFinished;
         Odyle = new Odyle(settings);
+        PetBook = PetBook.Load(Path.Combine(AppContext.BaseDirectory, "data"));
+        Pets = new PetCollection(persistent: !demo);
+        // The pet list at login is the server's whose character the game names next (or just named).
+        Tracker.SelfIdentified += _ =>
+        {
+            var now = Environment.TickCount64;
+            _selfSeenAt = now;
+            if (_petList is { } pending && now - pending.At < 3 * 60_000)
+            {
+                _petList = null;
+                Pets.SetList(Tracker.SelfServerId, pending.List.Levels, pending.List.Points);
+                Log($"Pets: list of {pending.List.Levels.Count} levels / {pending.List.Points.Count} counts for server {Tracker.SelfServerId}");
+            }
+        };
         Tracker.Options.IdleTimeoutMs = Math.Clamp(settings.IdleTimeoutSec, 3, 120) * 1000;
         Timers.SetRegion(settings.Region);
         // The game says who is logged in (again every few minutes). A switch to another character brings that
@@ -521,6 +556,24 @@ public sealed class Meter : IDisposable
                     var hex = Convert.ToHexString(raw.Raw);
                     if (_seenRaw.Add(hex)) Log($"Counter message (unknown): {hex} [char {Tracker.SelfName}]");
                     return;
+                }
+                switch (e)
+                {
+                    case PetListEvent pl:
+                        if (Environment.TickCount64 - _selfSeenAt < 20_000 && Tracker.SelfServerId > 0)
+                        {
+                            Pets.SetList(Tracker.SelfServerId, pl.Levels, pl.Points);
+                            Log($"Pets: list of {pl.Levels.Count} levels / {pl.Points.Count} counts for server {Tracker.SelfServerId}");
+                        }
+                        else _petList = (pl, Environment.TickCount64);
+                        return;
+                    case PetSoulEvent ps:
+                        foreach (var (pet, amount) in ps.Souls) Pets.AddSouls(Tracker.SelfServerId, pet, amount);
+                        LastSouls = (ps.Souls, Environment.TickCount64);
+                        return;
+                    case PetLevelEvent lv:
+                        Pets.SetLevel(Tracker.SelfServerId, lv.Pet, lv.Level);
+                        return;
                 }
                 if (e is not OdyleEnergyEvent o) return;
                 Log($"Odyle from game: pool {o.Regen}, bonus {o.Bonus}, change {o.Change:+0;-0;0} ({Convert.ToHexString(o.Raw)})");

@@ -388,6 +388,7 @@ public partial class Overlay : Window
 
     private void UpdateRows(EncounterSnapshot snap)
     {
+        _targetCode = snap.TargetCode;
         var (list, shares, _, _) = Visible(snap);
         var top = list.Count > 0 ? Math.Max(1, list.Max(Metric)) : 1;
         var seconds = Math.Max(1, snap.CombatMs / 1000.0);
@@ -543,6 +544,55 @@ public partial class Overlay : Window
         UpdateSelf();
         UpdateParty();
         UpdateEnergy();
+        UpdatePet();
+    }
+
+    private int _targetCode;
+
+    private void Pet_Click(object sender, MouseButtonEventArgs e) => ((App)Application.Current).ShowPets();
+    private void PetsButton_Click(object sender, RoutedEventArgs e) => ((App)Application.Current).ShowPets();
+
+    /// <summary>
+    /// "Klaw +1 → St. 1 · 13/25" right after a soul; otherwise, for the monster being fought, each pet it feeds:
+    /// "Klaw St. 1 · 12/25" or "Klaw ✓ voll". Hidden for monsters that drop no souls.
+    /// </summary>
+    private void UpdatePet()
+    {
+        var book = _meter.PetBook;
+        var pets = _meter.Pets;
+        var server = _meter.Tracker.SelfServerId;
+        var parts = new List<string>();
+        var fresh = false;
+        var allFull = true;
+        if (_meter.LastSouls is { } last && Environment.TickCount64 - last.At < 60_000)
+        {
+            fresh = true;
+            foreach (var (pet, amount) in last.Souls)
+            {
+                var (level, points) = pets.Get(server, pet);
+                var full = level >= PetCollection.MaxLevel;
+                allFull &= full;
+                parts.Add(full ? $"{book.Name(pet)} +{amount} → ✓ {L.S("St.", "Lv")} 3"
+                    : $"{book.Name(pet)} +{amount} → {L.S("St.", "Lv")} {level} · {points}/{PetCollection.Need(level)}");
+            }
+        }
+        else if (_targetCode != 0 && book.ByNpc.TryGetValue(_targetCode, out var feeds))
+        {
+            var known = pets.Known(server);
+            foreach (var pet in feeds)
+            {
+                var (level, points) = pets.Get(server, pet);
+                var full = known && level >= PetCollection.MaxLevel;
+                allFull &= full;
+                parts.Add(!known ? $"{book.Name(pet)}: {L.S("Stand unbekannt – einmal neu einloggen", "progress unknown – log in once")}"
+                    : full ? $"{book.Name(pet)} ✓ {L.S("voll", "full")}"
+                    : $"{book.Name(pet)} {L.S("St.", "Lv")} {level} · {points}/{PetCollection.Need(level)}");
+            }
+        }
+        PetPanel.Visibility = parts.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        if (parts.Count == 0) return;
+        PetText.Text = string.Join("   ·   ", parts);
+        PetText.Foreground = (Brush)FindResource(fresh && !allFull ? "Accent" : allFull ? "TextDim" : "TextSoft");
     }
 
     /// <summary>Own class emblem in a ring of the class colour next to the title, and a matching glow on top.</summary>

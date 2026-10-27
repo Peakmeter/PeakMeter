@@ -361,5 +361,21 @@
   "No buff data: fights are saved with buffs from v1.29.0 on.": "버프 데이터 없음: v1.29.0부터 전투에 버프가 저장됩니다.",
   "No buffs were seen in this fight.": "이 전투에서는 버프가 감지되지 않았습니다.",
   "debuff on the boss": "보스 디버프",
-  "Buffs and debuffs: how long they were up and the DPS with and without them": "버프와 디버프: 유지 시간과 있을 때 / 없을 때의 DPS"
+  "Buffs and debuffs: how long they were up and the DPS with and without them": "버프와 디버프: 유지 시간과 있을 때 / 없을 때의 DPS",
+  "Pet souls: click for all pets": "펫 영혼: 클릭하면 모든 펫",
+  "Pets: soul collection": "펫: 영혼 수집",
+  "progress unknown – log in once": "진행도 알 수 없음 – 한 번 재접속",
+  "full": "완료",
+  "Search pet or monster …": "펫 또는 몬스터 검색 …",
+  "Hide full": "완료 숨기기",
+  "Pets whose souls only come from chests": "영혼을 상자에서만 얻는 펫",
+  "Chest-only pets": "상자 전용 펫",
+  "PET · WHERE IT DROPS": "펫 · 획득처",
+  "LEVEL": "단계",
+  "SOULS": "영혼",
+  "TO LV 3": "3단계까지",
+  "only from pet soul chests": "펫 영혼 상자에서만",
+  "No character seen yet. Log in with PeakMeter running.": "아직 캐릭터가 감지되지 않았습니다. PeakMeter를 켠 채로 접속하세요.",
+  "Progress not known yet: log in once with PeakMeter running, then PeakMeter knows all pets (per server).": "진행도를 아직 모릅니다: PeakMeter를 켠 채로 한 번 재접속하면 모든 펫을 알게 됩니다 (서버별).",
+  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} 3단계 · 영혼 {2}개 남음"
 }

@@ -360,5 +360,21 @@
   "No buff data: fights are saved with buffs from v1.29.0 on.": "Sin datos de buffs: los combates se guardan con buffs a partir de la v1.29.0.",
   "No buffs were seen in this fight.": "No se detectaron buffs en este combate.",
   "debuff on the boss": "debuff en el jefe",
-  "Buffs and debuffs: how long they were up and the DPS with and without them": "Buffs y debuffs: cuánto tiempo estuvieron activos y el DPS con y sin ellos"
+  "Buffs and debuffs: how long they were up and the DPS with and without them": "Buffs y debuffs: cuánto tiempo estuvieron activos y el DPS con y sin ellos",
+  "Pet souls: click for all pets": "Almas de mascota: clic para todas",
+  "Pets: soul collection": "Mascotas: colección de almas",
+  "progress unknown – log in once": "progreso desconocido – inicia sesión una vez",
+  "full": "completo",
+  "Search pet or monster …": "Buscar mascota o monstruo …",
+  "Hide full": "Ocultar completos",
+  "Pets whose souls only come from chests": "Mascotas cuyas almas solo salen de cofres",
+  "Chest-only pets": "Solo de cofres",
+  "PET · WHERE IT DROPS": "MASCOTA · DÓNDE CAE",
+  "LEVEL": "NIVEL",
+  "SOULS": "ALMAS",
+  "TO LV 3": "HASTA NV. 3",
+  "only from pet soul chests": "solo de cofres de almas",
+  "No character seen yet. Log in with PeakMeter running.": "Aún no se ha detectado ningún personaje. Inicia sesión con PeakMeter abierto.",
+  "Progress not known yet: log in once with PeakMeter running, then PeakMeter knows all pets (per server).": "Progreso aún desconocido: inicia sesión una vez con PeakMeter abierto y conocerá todas tus mascotas (por servidor).",
+  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} en nv. 3 · faltan {2} almas"
 }

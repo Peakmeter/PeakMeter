@@ -117,6 +117,16 @@
                     <TextBlock x:Name="BestText" Foreground="{StaticResource TextDim}" FontSize="10.5" VerticalAlignment="Center" Margin="10,0,0,0" />
                 </StackPanel>
 
+                <!-- Pets: the souls of the monster you fight, or the ones you just picked up -->
+                <Border x:Name="PetPanel" Visibility="Collapsed" Margin="2,6,2,0" Background="Transparent" Cursor="Hand"
+                        MouseLeftButtonUp="Pet_Click" ToolTip="{local:T De='Pet-Seelen: Klick zeigt alle Pets', En='Pet souls: click for all pets'}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#x1F43E;" FontFamily="Segoe UI Emoji" FontSize="10.5" Margin="0,0,5,0" VerticalAlignment="Center" />
+                        <TextBlock x:Name="PetText" Foreground="{StaticResource TextSoft}" FontSize="10.5" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </Border>
+
                 <!-- Players -->
                 <ItemsControl x:Name="Rows" Margin="0,8,0,0" ItemTemplate="{StaticResource RowTemplate}" Focusable="False"
                               PreviewMouseLeftButtonUp="Rows_Click" />
@@ -240,6 +250,9 @@
                             <TextBlock x:Name="PingText" FontSize="10.5" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" />
                         </StackPanel>
                         <Button Style="{StaticResource IconButton}" Content="&#xE8A5;" Click="Tickets_Click" ToolTip="Tickets" Height="20" />
+                        <Button Style="{StaticResource IconButton}" Click="PetsButton_Click" Height="20" ToolTip="{local:T De='Pets: Seelen-Sammlung', En='Pets: soul collection'}">
+                            <TextBlock Text="&#x1F43E;" FontFamily="Segoe UI Emoji" FontSize="10.5" Opacity="0.75" />
+                        </Button>
                         <Button x:Name="PartyButton" Style="{StaticResource IconButton}" Content="&#xE716;" Click="Party_Click" ToolTip="{local:T De='Gruppe: Gearscore und Combat Power', En='Party: gear score and combat power'}" Height="20" />
                         <Button Style="{StaticResource IconButton}" Content="&#xE713;" Click="Settings_Click" ToolTip="{local:T De='Einstellungen', En='Settings'}" Height="20" />
                         <Button Style="{StaticResource IconButton}" Content="&#xE81C;" Click="Logs_Click" ToolTip="{local:T De='Logs (gespeicherte Kämpfe)', En='Logs (saved fights)'}" Height="20" />

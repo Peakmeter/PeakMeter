@@ -23,6 +23,11 @@ from [taengu/A2Tools-DPS-Meter](https://github.com/taengu/A2Tools-DPS-Meter) `sr
 GPL-3.0; the buff record layout (`2a 38`, `2b 38`, `2c 38`) follows its `src-tauri/src/capture/abnormal.rs` (itself
 ported from Seralth's Daevalog, GPL-3.0), reimplemented in C#. Buff icons are downloaded at runtime like skill icons.
 
+`pets.json` (pet names, genus, and which monsters drop each pet's souls) is built from
+[taengu/A2Tools-Plugins](https://github.com/taengu/A2Tools-Plugins) `plugins/pet-souls/pets.js` and `sources.js`, commit
+`072af60` (2026-10-27), GPL-3.0, themselves from the game's tables. The pet records (`00 90` list, `0D 90` souls,
+`14 90` level) follow that plugin's decoders, reimplemented in C#.
+
 The optional character portrait comes from NCSOFT's official character search (`api-search.plaync.com`) and profile
 image server (`profileimg.plaync.com`), the ones the AION 2 website uses, and is kept in `%AppData%\PeakMeter\portraits`.
 

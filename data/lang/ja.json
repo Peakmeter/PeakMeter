@@ -361,5 +361,21 @@
   "No buff data: fights are saved with buffs from v1.29.0 on.": "バフデータなし：v1.29.0 以降の戦闘からバフが保存されます。",
   "No buffs were seen in this fight.": "この戦闘ではバフが検出されませんでした。",
   "debuff on the boss": "ボスへのデバフ",
-  "Buffs and debuffs: how long they were up and the DPS with and without them": "バフとデバフ：稼働時間と、あり / なしの DPS"
+  "Buffs and debuffs: how long they were up and the DPS with and without them": "バフとデバフ：稼働時間と、あり / なしの DPS",
+  "Pet souls: click for all pets": "ペットの魂：クリックで全ペット",
+  "Pets: soul collection": "ペット：魂の収集",
+  "progress unknown – log in once": "進捗不明 – 一度ログインし直してください",
+  "full": "完了",
+  "Search pet or monster …": "ペットまたはモンスターを検索 …",
+  "Hide full": "完了を隠す",
+  "Pets whose souls only come from chests": "魂が箱からしか出ないペット",
+  "Chest-only pets": "箱限定ペット",
+  "PET · WHERE IT DROPS": "ペット · 入手場所",
+  "LEVEL": "段階",
+  "SOULS": "魂",
+  "TO LV 3": "段階3まで",
+  "only from pet soul chests": "ペット魂の箱からのみ",
+  "No character seen yet. Log in with PeakMeter running.": "キャラクターがまだ検出されていません。PeakMeter を起動したままログインしてください。",
+  "Progress not known yet: log in once with PeakMeter running, then PeakMeter knows all pets (per server).": "進捗はまだ不明です：PeakMeter を起動したまま一度ログインし直すと、全ペットが分かります（サーバーごと）。",
+  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} 段階3 · 残り {2} 個の魂"
 }

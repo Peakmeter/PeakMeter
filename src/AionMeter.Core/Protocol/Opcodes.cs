@@ -33,6 +33,9 @@ public static class Opcodes
     public const ushort BuffAdded = 0x2A38;      // a buff/debuff put on (A2Tools-DPS-Meter / Daevalog)
     public const ushort BuffChanged = 0x2B38;    // renewed or changed
     public const ushort BuffRemoved = 0x2C38;    // taken off, by instance
+    public const ushort PetList = 0x0090;        // every pet's level and souls at login (A2Tools-Plugins pet-souls)
+    public const ushort PetSouls = 0x0D90;       // souls picked up
+    public const ushort PetLevel = 0x1490;       // a pet reached a level
     public const ushort StaggerGauge = 0x05E0;   // a monster's stagger gauge (A2Tools-DPS-Meter)
     public const ushort FieldBossList = 0x0191;  // a map's field bosses: alive since / back at (in-game map list)
 

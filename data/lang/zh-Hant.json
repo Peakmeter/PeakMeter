@@ -361,5 +361,21 @@
   "No buff data: fights are saved with buffs from v1.29.0 on.": "沒有增益資料：從 v1.29.0 起戰鬥才會保存增益。",
   "No buffs were seen in this fight.": "這場戰鬥沒有偵測到增益。",
   "debuff on the boss": "首領身上的減益",
-  "Buffs and debuffs: how long they were up and the DPS with and without them": "增益與減益：持續多久，以及有無時的 DPS"
+  "Buffs and debuffs: how long they were up and the DPS with and without them": "增益與減益：持續多久，以及有無時的 DPS",
+  "Pet souls: click for all pets": "寵物靈魂：點擊查看全部寵物",
+  "Pets: soul collection": "寵物：靈魂收集",
+  "progress unknown – log in once": "進度未知 – 請重新登入一次",
+  "full": "已滿",
+  "Search pet or monster …": "搜尋寵物或怪物 …",
+  "Hide full": "隱藏已滿",
+  "Pets whose souls only come from chests": "靈魂只來自寶箱的寵物",
+  "Chest-only pets": "僅寶箱寵物",
+  "PET · WHERE IT DROPS": "寵物 · 掉落處",
+  "LEVEL": "等級",
+  "SOULS": "靈魂",
+  "TO LV 3": "到 3 級",
+  "only from pet soul chests": "只來自寵物靈魂寶箱",
+  "No character seen yet. Log in with PeakMeter running.": "尚未偵測到角色。請在 PeakMeter 執行時登入。",
+  "Progress not known yet: log in once with PeakMeter running, then PeakMeter knows all pets (per server).": "進度尚未知：在 PeakMeter 執行時重新登入一次，即可得知所有寵物（依伺服器）。",
+  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} 達 3 級 · 還差 {2} 個靈魂"
 }

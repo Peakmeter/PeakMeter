@@ -360,5 +360,21 @@
   "No buff data: fights are saved with buffs from v1.29.0 on.": "Pas de données de buffs : les combats sont enregistrés avec les buffs à partir de la v1.29.0.",
   "No buffs were seen in this fight.": "Aucun buff n'a été détecté dans ce combat.",
   "debuff on the boss": "débuff sur le boss",
-  "Buffs and debuffs: how long they were up and the DPS with and without them": "Buffs et débuffs : leur durée active et le DPS avec et sans eux"
+  "Buffs and debuffs: how long they were up and the DPS with and without them": "Buffs et débuffs : leur durée active et le DPS avec et sans eux",
+  "Pet souls: click for all pets": "Âmes de familier : clic pour tous les familiers",
+  "Pets: soul collection": "Familiers : collection d'âmes",
+  "progress unknown – log in once": "progression inconnue – reconnectez-vous une fois",
+  "full": "complet",
+  "Search pet or monster …": "Chercher un familier ou un monstre …",
+  "Hide full": "Masquer les complets",
+  "Pets whose souls only come from chests": "Familiers dont les âmes ne viennent que des coffres",
+  "Chest-only pets": "Familiers de coffres",
+  "PET · WHERE IT DROPS": "FAMILIER · OÙ IL TOMBE",
+  "LEVEL": "NIVEAU",
+  "SOULS": "ÂMES",
+  "TO LV 3": "JUSQU'AU NIV. 3",
+  "only from pet soul chests": "uniquement des coffres d'âmes",
+  "No character seen yet. Log in with PeakMeter running.": "Aucun personnage détecté. Connectez-vous avec PeakMeter ouvert.",
+  "Progress not known yet: log in once with PeakMeter running, then PeakMeter knows all pets (per server).": "Progression encore inconnue : reconnectez-vous une fois avec PeakMeter ouvert, il connaîtra alors tous vos familiers (par serveur).",
+  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} au niv. 3 · encore {2} âmes"
 }

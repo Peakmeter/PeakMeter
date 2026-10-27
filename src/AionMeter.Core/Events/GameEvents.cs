@@ -147,6 +147,16 @@ public sealed record BuffAppliedEvent(long TimeMs, uint EntityId, int Instance, 
 /// <summary>Buffs taken off an entity (<c>2c 38</c>), by instance.</summary>
 public sealed record BuffRemovedEvent(long TimeMs, uint EntityId, int[] Instances) : GameEvent(TimeMs);
 
+/// <summary>Every pet's level and soul points, sent at login (<c>00 90</c>). A pet missing from both lists is not collected yet.</summary>
+public sealed record PetListEvent(long TimeMs, IReadOnlyList<(int Pet, int Level)> Levels, IReadOnlyList<(int Pet, int Points)> Points)
+    : GameEvent(TimeMs);
+
+/// <summary>Souls picked up, per pet (<c>0D 90</c>): a kill can feed several pets.</summary>
+public sealed record PetSoulEvent(long TimeMs, IReadOnlyList<(int Pet, int Amount)> Souls) : GameEvent(TimeMs);
+
+/// <summary>A pet reached a level (<c>14 90</c>).</summary>
+public sealed record PetLevelEvent(long TimeMs, int Pet, int Level) : GameEvent(TimeMs);
+
 /// <summary>The stagger gauge broke (<c>05 E0 … 00 03 02</c>).</summary>
 public sealed record StaggerBreakEvent(long TimeMs, uint EntityId) : GameEvent(TimeMs);
 
