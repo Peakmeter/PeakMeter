@@ -367,6 +367,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.31.4 – Logs: Kampfname wird nicht mehr von den Knöpfen abgeschnitten · Demo zeigt Stagger, Tode, Buffs und Pets\n\n" +
         "v1.31.3 – Neu in den Einstellungen: „Pets anzeigen“ – wer mit Pets fertig ist, kann die Pet-Zeile und den Pet-Knopf ausschalten\n\n" +
         "v1.31.2 – Pet-Symbol: helle Pfote statt dunklem Emoji (Meter und Pet-Fenster)\n\n" +
         "v1.31.1 – Pet-Zeile wechselt sofort zum Monster, das du gerade triffst (vorher erst nach ~10 s)\n\n" +
@@ -411,6 +412,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.31.4 – Logs: the fight name is no longer cut off by the buttons · the demo shows stagger, deaths, buffs and pets\n\n" +
         "v1.31.3 – New setting: “Show pets” – done with pets? Turn off the pet line and the pet button\n\n" +
         "v1.31.2 – Pet symbol: a light paw instead of the dark emoji (meter and pet window)\n\n" +
         "v1.31.1 – The pet line switches at once to the monster you are hitting (it took ~10 s)\n\n" +

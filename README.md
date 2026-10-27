@@ -5,8 +5,8 @@
 <h1 align="center">PeakMeter</h1>
 
 <p align="center">
-  <b>A free, clean and lightweight DPS meter for AION 2 (EU / NA).</b><br>
-  Live damage, healing and tanking · boss HP · fight logs · event &amp; world boss timers · Odyle energy · updates itself.
+  <b>A free, clean and lightweight DPS meter for AION 2 (EU / NA / Korea).</b><br>
+  Live damage, healing and tanking · stagger · deaths · buffs · pet souls · fight logs · event &amp; world boss timers · Odyle energy · 9 languages · updates itself.
 </p>
 
 <p align="center">
@@ -17,28 +17,60 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshot-overlay.png" width="420" alt="PeakMeter overlay during a boss fight (demo)">
+  <img src="docs/screenshot-overlay.png" width="430" alt="PeakMeter during a boss fight: DPS, stagger share and a death (demo)">
   &nbsp;
-  <img src="docs/screenshot-settings.png" width="300" alt="PeakMeter settings">
+  <img src="docs/screenshot-pet-line.png" width="430" alt="After the kill: the pet soul you just got (demo)">
 </p>
 
 <p align="center"><b>English</b> · <a href="#deutsch">Deutsch</a></p>
 
+<p align="center"><sub>All screenshots use the built-in demo with made-up names.</sub></p>
+
 ## Features
 
-- **Live overlay** – DPS, share and combat power per player, boss HP, fight clock. Solo it shows only you, in a party only your party (like the game's own frames).
-- **DPS / HEAL / TANK** – switch between damage dealt, healing done and damage taken.
-- **Better than last time?** – in a boss fight you see your DPS against your last attempt, plus your best kill time.
-- **Party** – level, gear score and combat power of every member as soon as you join a party.
-- **Fight logs** – every boss fight is saved: ranking, every skill with hits, crit and max hit; best kills are marked.
-- **Event timers** – Shugo Festival, air raid / dimensional invasion, Spacetime Rift, sieges, Nahma, resets … with a soft chime that never hurts your ears.
-- **World boss timers** – all 48 field bosses of Verteron and Altgard. Open *Map → Exploration → Field monsters* once and PeakMeter takes the exact respawn times from the server.
-- **Odyle energy** – read straight from the game whenever it changes, counted forward in between; chimes before regeneration is wasted.
-- **Alerts at the right edge** – events, world bosses and full energy slide in as small cards and slide out again.
-- **Tickets window** – all your characters with their Odyle energy, estimated forward since you last played each.
-- **Settings like the big meters** – eDPS / aDPS, combat power or gear score next to names, total damage, hide player names (for streams), UI scale, refresh rate, focus mode, fade when idle, only over the game, region EU / NA.
+### In the fight
+- **Live overlay** – DPS, share and combat power per player, boss HP with time-to-kill, fight clock. Solo it shows only you, in a party only your party (like the game's own frames).
+- **⚡ Stagger** – each player's share of the boss's stagger gauge, right next to their DPS.
+- **☠ Deaths** – how often someone died in the fight, after their name.
+- **DPS / HEAL / TANK** – damage dealt, healing done or damage taken; eDPS or aDPS.
+- **Better than last time?** – your DPS against your last attempt on this boss, plus your best kill time.
+- **Party** – level, gear score and combat power of every member, server tags like in game, a link to each player's profile on aion2index.com.
+
+### Pets
+<p align="center">
+  <img src="docs/screenshot-pets.png" width="560" alt="Pet window: here in the area, and every pet with level, souls and where it drops (demo)">
+</p>
+
+- **Pet souls at the monster** – hit a monster and the meter tells you which pet it feeds and how far along that pet is: 🟢 full, 🟠 level 2, 🔴 many souls missing. Right after a kill: the soul you just got. No more opening the pet menu to check.
+- **Here in the area** – the pet window lists every monster on your current map whose souls you still need, with its area, the nearest Kibelisk, spawns, and how many are in view right now.
+- **All pets** – level, souls, souls left to level 3 and where each pet drops; search by pet or monster, hide full pets, filter to this area. Can be switched off once you're done.
+
+### Fight logs
+<p align="center">
+  <img src="docs/screenshot-logs-topskills.png" width="49%" alt="Logs: the group's strongest skills (demo)">
+  <img src="docs/screenshot-logs-buffs.png" width="49%" alt="Logs: buffs with uptime and DPS with / without (demo)">
+</p>
+
+- **Every fight saved** – ranking, every skill with hits, crit and max hit, its icon and its share of the stagger; best kills are marked.
+- **Top skills** – the whole group's strongest skills in one list: who carried the fight with what.
+- **Buffs** – every buff and every debuff on the boss: uptime and the DPS with and without it.
+
+### Around the fight
+- **Event timers** – Shugo Festival, air raid / dimensional invasion, Spacetime Rift, sieges, Nahma, resets … with a soft chime.
+- **World boss timers** – all field bosses of Verteron and Altgard, exact respawn times from the game's own list.
+- **Odyle energy** – read from the game, counted forward in between, for every character (hover the energy); "~" marks an estimate until the game sends the value.
+- **Alerts at the right edge** – events, world bosses and full energy slide in as small cards.
+- **Optional character portrait** – your official in-game portrait instead of the class emblem.
+
+### Everywhere
+- **9 languages** – English, Deutsch, Français, Español, Português, Русский, 한국어, 繁體中文, 日本語 (interface, skill, boss, buff and pet names).
+- **Regions** – Europe, NA East, NA West, Korea, Taiwan (event times and profile links).
+- **Settings like the big meters** – combat power or gear score next to names, total damage, hide player names (for streams), UI scale, refresh rate, focus mode, fade when idle, only over the game, custom hotkeys, start with Windows, **automatic updates**.
 - **Light on your PC** – no GPU use, low priority; ~0.2 % CPU idle, ~65 MB RAM.
-- **German &amp; English**, settings window, custom hotkeys, start with Windows, **automatic updates**.
+
+<p align="center">
+  <img src="docs/screenshot-settings.png" width="560" alt="Settings: region and nine languages">
+</p>
 
 ## Install
 
@@ -46,7 +78,7 @@
 2. Download the newest **`PeakMeter-v…-win-x64.zip`** from [Releases](https://github.com/Peakmeter/PeakMeter/releases/latest), unzip it.
 3. Double-click **`PeakMeter installieren.cmd`** – it installs PeakMeter for your user (no admin), adds a desktop shortcut and starts it.
    If Windows says *"Windows protected your PC"*: *More info → Run anyway* (PeakMeter is not code-signed yet).
-4. Start PeakMeter **before** entering a dungeon (player names arrive on loading screens).
+4. Start PeakMeter **before** logging in: names, your pets and your energy arrive at login and on loading screens.
 
 | Key | |
 |---|---|
@@ -55,18 +87,18 @@
 | Ctrl+Shift+L | click-through |
 | Ctrl + mouse wheel | background transparency |
 
-Language, hotkeys and more: ⚙ in the overlay footer or right-click the tray icon.
+Language, region, hotkeys and more: ⚙ in the overlay footer or right-click the tray icon.
 
 ## Is it safe?
 
 PeakMeter only **reads your own game's network traffic** (like Wireshark) and only shows what already happened or what the game tells you anyway – no radar, no hidden information, no automation. It never touches game memory, never injects anything and never sends anything to the game. Still, any third-party tool may be against the game's terms of service – use it at your own risk. PeakMeter is a community project and not affiliated with NCSOFT.
 
-The only thing PeakMeter itself sends is the update check to `api.github.com`.
+PeakMeter itself only contacts `api.github.com` (update check), NCSOFT's image server for skill, buff and character pictures, and NCSOFT's character search for the optional portrait.
 
 ## Support
 
 PeakMeter is free and stays free. If it helps you, a coffee on **[Ko-fi](https://ko-fi.com/peakmeter)** keeps it going. ☕
-Bugs and ideas: [Issues](https://github.com/Peakmeter/PeakMeter/issues). The file `%AppData%\PeakMeter\peakmeter.log` helps (states and numbers only, no names or chat).
+Bugs and ideas: [Issues](https://github.com/Peakmeter/PeakMeter/issues). The file `%AppData%\PeakMeter\peakmeter.log` helps (states and numbers only, no chat).
 
 ---
 
@@ -74,17 +106,32 @@ Bugs and ideas: [Issues](https://github.com/Peakmeter/PeakMeter/issues). The fil
 
 ## Deutsch
 
-**PeakMeter** ist ein kostenloser, schlanker DPS-Meter für AION 2 (EU/NA).
+**PeakMeter** ist ein kostenloser, schlanker DPS-Meter für AION 2 (EU / NA / Korea).
 
-- **Live-Overlay** mit DPS, Anteil und Combat Power – allein nur du, in der Gruppe nur deine Gruppe.
-- **DPS / HEAL / TANK** umschaltbar, **Vergleich mit deinem letzten Versuch** und **Bestzeiten** bei Bossen.
-- **Gruppe** mit Level, Gearscore und Combat Power, **Logs** aller Boss-Kämpfe.
-- **Event-Timer** (Shugo, Luftangriff, Riss, Belagerung, Nahma …) und **alle 48 Weltbosse** mit sanftem Klingelton.
-- **Odyle-Energie** automatisch aus dem Spiel.
-- **Hinweise rechts am Bildschirmrand**, **Tickets-Fenster** mit Odyle pro Charakter, **Einstellungen** wie bei den großen Metern (aDPS, GS/CP, Namen ausblenden, Skalierung, Fokusmodus …).
-- **Schont den PC**, Deutsch &amp; Englisch, Einstellungen, eigene Tasten, **automatische Updates**.
+**Im Kampf**
+- **Live-Overlay** mit DPS, Anteil und Combat Power, Boss-HP mit geschätzter Kill-Zeit – allein nur du, in der Gruppe nur deine Gruppe.
+- **⚡ Stagger:** Wie viel jeder vom Stagger des Bosses macht, direkt neben der DPS.
+- **☠ Tode:** Wie oft jemand im Kampf gestorben ist.
+- **DPS / HEAL / TANK**, eDPS oder aDPS, **Vergleich mit deinem letzten Versuch** und **Bestzeiten**.
+- **Gruppe** mit Level, Gearscore, Combat Power, Server-Kürzel wie im Spiel und Profil-Link zu aion2index.com.
 
-**Installieren:** [Npcap](https://npcap.com/#download) installieren → neueste ZIP unter [Releases](https://github.com/Peakmeter/PeakMeter/releases/latest) laden und entpacken → `PeakMeter installieren.cmd` doppelklicken. Bei „Der Computer wurde durch Windows geschützt“: *Weitere Informationen → Trotzdem ausführen*.
+**Pets**
+- **Pet-Seelen beim Monster:** Haust du ein Monster, zeigt der Meter, für welches Pet es Seelen gibt und wie weit es ist – 🟢 voll, 🟠 Stufe 2, 🔴 fehlt noch viel. Nach dem Kill die Seele, die du gerade bekommen hast. Kein Pet-Menü mehr nötig.
+- **Hier im Gebiet:** Das Pet-Fenster zeigt alle Monster auf deiner Karte, deren Seelen dir noch fehlen – mit Gebiet, nächstem Kibelisk, Spawns und wie viele gerade in der Nähe sind.
+- **Alle Pets** mit Stufe, Seelen, wie viele bis Stufe 3 fehlen und wo sie droppen. In den Einstellungen abschaltbar, wenn du fertig bist.
+
+**Logs**
+- Jeder Kampf gespeichert, mit allen Skills, Icons und Stagger-Anteil.
+- **Top-Skills:** die stärksten Skills der ganzen Gruppe.
+- **Buffs:** jeder Buff und Boss-Debuff mit Uptime und DPS mit / ohne.
+
+**Außerdem**
+- **Event-Timer** (Shugo, Luftangriff, Riss, Belagerung, Nahma …) und **alle Weltbosse** mit sanftem Klingelton.
+- **Odyle-Energie** aus dem Spiel, für alle Charaktere („~“ = geschätzt).
+- **9 Sprachen** (Deutsch, English, Français, Español, Português, Русский, 한국어, 繁體中文, 日本語) und **Regionen** Europa, NA-Ost, NA-West, Korea, Taiwan.
+- Optional dein **Charakterbild** statt Klassen-Logo, **Hinweise** am Bildschirmrand, **Einstellungen** wie bei den großen Metern, **automatische Updates**, schont den PC.
+
+**Installieren:** [Npcap](https://npcap.com/#download) installieren → neueste ZIP unter [Releases](https://github.com/Peakmeter/PeakMeter/releases/latest) laden und entpacken → `PeakMeter installieren.cmd` doppelklicken. Bei „Der Computer wurde durch Windows geschützt“: *Weitere Informationen → Trotzdem ausführen*. PeakMeter **vor dem Einloggen** starten, dann kennt er Namen, Pets und Energie.
 
 PeakMeter liest nur den Netzwerkverkehr deines eigenen Spiels – kein Speicherzugriff, nichts wird ans Spiel gesendet. Nutzung auf eigenes Risiko; kein offizielles Produkt von NCSOFT.
 
@@ -95,12 +142,15 @@ Gefällt dir PeakMeter? Unterstütze es auf **[Ko-fi](https://ko-fi.com/peakmete
 ## Build it yourself
 
 .NET 10 SDK, then `powershell -ExecutionPolicy Bypass -File build.ps1` → `dist\PeakMeter-v<version>-win-x64.zip` (+ SHA-256).
+`PeakMeter.exe --profile test --demo` runs the demo fight in a separate test profile.
 
 ## Credits &amp; license
 
 Network decoding, combat tracking and game data (`src/AionMeter.Core`, `data/`) come from
 [cyberbadger6969/aion2-dps-meter](https://github.com/cyberbadger6969/aion2-dps-meter) (GPL-3.0), whose data tables come from
 [taengu/A2Tools-DPS-Meter](https://github.com/taengu/A2Tools-DPS-Meter) and
-[Kuroukihime/AIon2-Dps-Meter](https://github.com/Kuroukihime/AIon2-Dps-Meter) (see `data/NOTICE.md`).
+[Kuroukihime/AIon2-Dps-Meter](https://github.com/Kuroukihime/AIon2-Dps-Meter).
+The stagger, buff and pet record layouts, buff names and pet data follow A2Tools-DPS-Meter and
+[taengu/A2Tools-Plugins](https://github.com/taengu/A2Tools-Plugins) (GPL-3.0); details in `data/NOTICE.md`.
 The interface, logs, timers, Odyle energy decoding, updater and installer are PeakMeter's own.
-PeakMeter is therefore licensed under **GPL-3.0** (`LICENSE`). Game data © NCSOFT.
+PeakMeter is therefore licensed under **GPL-3.0** (`LICENSE`). Game data and images © NCSOFT.

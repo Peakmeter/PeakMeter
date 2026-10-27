@@ -125,6 +125,9 @@ public partial class App : Application
         if (e.Args.Contains("--step-back")) // test aid: show the previous fight in the meter
             new System.Windows.Threading.DispatcherTimer(TimeSpan.FromSeconds(4), System.Windows.Threading.DispatcherPriority.Background,
                 (t, _) => { ((System.Windows.Threading.DispatcherTimer)t!).Stop(); _overlay?.StepBack(); }, Dispatcher).Start();
+        if (e.Args.Contains("--shots")) // test aid for screenshots: after the demo fight, open the windows worth showing
+            new System.Windows.Threading.DispatcherTimer(TimeSpan.FromSeconds(90), System.Windows.Threading.DispatcherPriority.Background,
+                (t, _) => { ((System.Windows.Threading.DispatcherTimer)t!).Stop(); ShowPets(); ShowLogs(); ShowSettings(); }, Dispatcher).Start();
         if (e.Args.Contains("--open-all"))
         {
             ShowTimers(); ShowLogs(); ShowEnergy(); ShowGearProbe(); ShowTickets(); ShowSettings(); ShowTicketProbe(); ShowServerProbe();
@@ -563,6 +566,65 @@ public sealed class Meter : IDisposable
 
     public bool DemoRunning => _demo?.IsRunning == true;
 
+    /// <summary>What the meter does with the game's events besides the fight tracker (energy, pets, counters).
+    /// The demo feeds it too.</summary>
+    private void OnGameEvent(GameEvent e)
+    {
+        if (e is ResourceRawEvent raw)
+        {
+            // Other counters in the same message (tickets, keys …): logged once each, to learn their layout.
+            var hex = Convert.ToHexString(raw.Raw);
+            if (_seenRaw.Add(hex)) Log($"Counter message (unknown): {hex} [char {Tracker.SelfName}]");
+            return;
+        }
+        switch (e)
+        {
+            case NpcSeenEvent ns when PetBook.ByNpc.ContainsKey(ns.NpcCode):
+                lock (_petMobs) _petMobs[ns.ActorId] = (ns.NpcCode, Environment.TickCount64);
+                break;
+            case DeathEvent de:
+                lock (_petMobs) _petMobs.Remove(de.ActorId);
+                break;
+            case ZoneChangedEvent { IsTeleport: false }:
+                lock (_petMobs) _petMobs.Clear();
+                break;
+            case PetListEvent pl:
+                if (Environment.TickCount64 - _selfSeenAt < 20_000 && Tracker.SelfServerId > 0)
+                {
+                    Pets.SetList(Tracker.SelfServerId, pl.Levels, pl.Points);
+                    Log($"Pets: list of {pl.Levels.Count} levels / {pl.Points.Count} counts for server {Tracker.SelfServerId}");
+                }
+                else _petList = (pl, Environment.TickCount64);
+                return;
+            case PetSoulEvent ps:
+                foreach (var (pet, amount) in ps.Souls) Pets.AddSouls(Tracker.SelfServerId, pet, amount);
+                LastSouls = (ps.Souls, Environment.TickCount64);
+                return;
+            case PetLevelEvent lv:
+                Pets.SetLevel(Tracker.SelfServerId, lv.Pet, lv.Level);
+                return;
+        }
+        if (e is not OdyleEnergyEvent o) return;
+        Log($"Odyle from game: pool {o.Regen}, bonus {o.Bonus}, change {o.Change:+0;-0;0} ({Convert.ToHexString(o.Raw)})");
+        try { File.AppendAllText(Path.Combine(Settings.Dir, "energy-events.txt"), $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {Tracker.SelfName}  pool {o.Regen}  bonus {o.Bonus}  change {(o.Change == OdyleEnergyEvent.ElsewhereChange ? $"in {o.Opcode:X4}" : o.Change.ToString())}  {Convert.ToHexString(o.Raw.AsSpan(0, Math.Min(o.Raw.Length, 64)))}{Environment.NewLine}"); } catch { }
+        // Found in another message: only logged. The same bytes turn up in records that are not the logged-in
+        // character's energy (a player saw "590 (+1)" and endless "energy full" toasts from v1.29.1 on).
+        if (o.Change == OdyleEnergyEvent.ElsewhereChange) return;
+        Interlocked.Exchange(ref _liveEnergyAt, Environment.TickCount64);
+        EnergyConfirmed = true;
+        // The value is always the logged-in character's: show it right away.
+        System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.SetFromGame(o.Regen, o.Bonus));
+        // Which character that is: at a login (Change 0) the name record can come before or after the energy,
+        // and the previous character's name record also repeats now and then. So a login's energy always
+        // waits for the next name record (it repeats every few minutes) instead of going to the previous one.
+        if (o.Change == 0)
+        {
+            lock (_loginGate) _loginEnergy = (o.Regen, o.Bonus, Environment.TickCount64);
+            return;
+        }
+        if (Tracker.SelfName is { } self) Characters.Odyle(self, Tracker.SelfServerId, o.Regen, o.Bonus);
+    }
+
     public void Start()
     {
         if (_demoOnly || !LiveCapture.IsNpcapInstalled()) return;
@@ -570,62 +632,7 @@ public sealed class Meter : IDisposable
         {
             _capture = new LiveCapture(Data, new LiveCaptureOptions { DeviceName = _settings.CaptureDevice });
             _capture.EventDecoded += Tracker.Process;
-            _capture.EventDecoded += e =>
-            {
-                if (e is ResourceRawEvent raw)
-                {
-                    // Other counters in the same message (tickets, keys …): logged once each, to learn their layout.
-                    var hex = Convert.ToHexString(raw.Raw);
-                    if (_seenRaw.Add(hex)) Log($"Counter message (unknown): {hex} [char {Tracker.SelfName}]");
-                    return;
-                }
-                switch (e)
-                {
-                    case NpcSeenEvent ns when PetBook.ByNpc.ContainsKey(ns.NpcCode):
-                        lock (_petMobs) _petMobs[ns.ActorId] = (ns.NpcCode, Environment.TickCount64);
-                        break;
-                    case DeathEvent de:
-                        lock (_petMobs) _petMobs.Remove(de.ActorId);
-                        break;
-                    case ZoneChangedEvent { IsTeleport: false }:
-                        lock (_petMobs) _petMobs.Clear();
-                        break;
-                    case PetListEvent pl:
-                        if (Environment.TickCount64 - _selfSeenAt < 20_000 && Tracker.SelfServerId > 0)
-                        {
-                            Pets.SetList(Tracker.SelfServerId, pl.Levels, pl.Points);
-                            Log($"Pets: list of {pl.Levels.Count} levels / {pl.Points.Count} counts for server {Tracker.SelfServerId}");
-                        }
-                        else _petList = (pl, Environment.TickCount64);
-                        return;
-                    case PetSoulEvent ps:
-                        foreach (var (pet, amount) in ps.Souls) Pets.AddSouls(Tracker.SelfServerId, pet, amount);
-                        LastSouls = (ps.Souls, Environment.TickCount64);
-                        return;
-                    case PetLevelEvent lv:
-                        Pets.SetLevel(Tracker.SelfServerId, lv.Pet, lv.Level);
-                        return;
-                }
-                if (e is not OdyleEnergyEvent o) return;
-                Log($"Odyle from game: pool {o.Regen}, bonus {o.Bonus}, change {o.Change:+0;-0;0} ({Convert.ToHexString(o.Raw)})");
-                try { File.AppendAllText(Path.Combine(Settings.Dir, "energy-events.txt"), $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {Tracker.SelfName}  pool {o.Regen}  bonus {o.Bonus}  change {(o.Change == OdyleEnergyEvent.ElsewhereChange ? $"in {o.Opcode:X4}" : o.Change.ToString())}  {Convert.ToHexString(o.Raw.AsSpan(0, Math.Min(o.Raw.Length, 64)))}{Environment.NewLine}"); } catch { }
-                // Found in another message: only logged. The same bytes turn up in records that are not the logged-in
-                // character's energy (a player saw "590 (+1)" and endless "energy full" toasts from v1.29.1 on).
-                if (o.Change == OdyleEnergyEvent.ElsewhereChange) return;
-                Interlocked.Exchange(ref _liveEnergyAt, Environment.TickCount64);
-                EnergyConfirmed = true;
-                // The value is always the logged-in character's: show it right away.
-                System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.SetFromGame(o.Regen, o.Bonus));
-                // Which character that is: at a login (Change 0) the name record can come before or after the energy,
-                // and the previous character's name record also repeats now and then. So a login's energy always
-                // waits for the next name record (it repeats every few minutes) instead of going to the previous one.
-                if (o.Change == 0)
-                {
-                    lock (_loginGate) _loginEnergy = (o.Regen, o.Bonus, Environment.TickCount64);
-                    return;
-                }
-                if (Tracker.SelfName is { } self) Characters.Odyle(self, Tracker.SelfServerId, o.Regen, o.Bonus);
-            };
+            _capture.EventDecoded += OnGameEvent;
             _capture.StatusChanged += st =>
             {
                 if (!_skewLogged && (_capture as LiveCapture)?.ClockSkewMs is { } skew)
@@ -774,7 +781,7 @@ public sealed class Meter : IDisposable
     {
         _demo?.Dispose();
         Tracker.Reset();
-        _demo = new DemoFightSource(Tracker.Process);
+        _demo = new DemoFightSource(e => { Tracker.Process(e); OnGameEvent(e); });
         _demo.Start(TimeSpan.FromSeconds(60));
     }
 
