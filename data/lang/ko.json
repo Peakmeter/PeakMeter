@@ -377,5 +377,14 @@
   "only from pet soul chests": "펫 영혼 상자에서만",
   "No character seen yet. Log in with PeakMeter running.": "아직 캐릭터가 감지되지 않았습니다. PeakMeter를 켠 채로 접속하세요.",
   "Progress not known yet: log in once with PeakMeter running, then PeakMeter knows all pets (per server).": "진행도를 아직 모릅니다: PeakMeter를 켠 채로 한 번 재접속하면 모든 펫을 알게 됩니다 (서버별).",
-  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} 3단계 · 영혼 {2}개 남음"
+  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} 3단계 · 영혼 {2}개 남음",
+  "The list below with only the pets that drop on this map": "아래 목록에 이 지도에서 나오는 펫만",
+  "List: this area only": "목록: 이 지역만",
+  "Here in the area": "이 지역",
+  "Here in the area: {0}": "이 지역: {0}",
+  "● {0} nearby": "● 근처 {0}",
+  "{0} spawns": "출현 {0}곳",
+  "Map not known yet: after the next teleport or map load this shows what you can farm in the area.": "지도를 아직 모릅니다: 다음 순간이동이나 지도 로딩 후 이 지역에서 파밍할 수 있는 것이 표시됩니다.",
+  "No pet souls drop on this map.": "이 지도에서는 펫 영혼이 나오지 않습니다.",
+  "All full: nothing here you still need. 🎉": "모두 완료: 여기서 더 필요한 것이 없습니다. 🎉"
 }

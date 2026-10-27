@@ -52,6 +52,12 @@ public sealed class CombatTracker
         get { lock (_gate) return GameData.IsDungeonMap(_entities.MapId); }
     }
 
+    /// <summary>The map the character is on (0 until a map load was seen).</summary>
+    public int MapId
+    {
+        get { lock (_gate) return _entities.MapId; }
+    }
+
     public string? ZoneName
     {
         get { lock (_gate) return _entities.ZoneName; }

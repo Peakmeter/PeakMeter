@@ -376,5 +376,14 @@
   "only from pet soul chests": "uniquement des coffres d'âmes",
   "No character seen yet. Log in with PeakMeter running.": "Aucun personnage détecté. Connectez-vous avec PeakMeter ouvert.",
   "Progress not known yet: log in once with PeakMeter running, then PeakMeter knows all pets (per server).": "Progression encore inconnue : reconnectez-vous une fois avec PeakMeter ouvert, il connaîtra alors tous vos familiers (par serveur).",
-  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} au niv. 3 · encore {2} âmes"
+  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} au niv. 3 · encore {2} âmes",
+  "The list below with only the pets that drop on this map": "La liste ci-dessous avec seulement les familiers de cette carte",
+  "List: this area only": "Liste : cette zone",
+  "Here in the area": "Ici dans la zone",
+  "Here in the area: {0}": "Ici dans la zone : {0}",
+  "● {0} nearby": "● {0} à proximité",
+  "{0} spawns": "{0} apparitions",
+  "Map not known yet: after the next teleport or map load this shows what you can farm in the area.": "Carte encore inconnue : après la prochaine téléportation ou le prochain chargement, vous verrez ici ce que vous pouvez farmer.",
+  "No pet souls drop on this map.": "Aucune âme de familier ne tombe sur cette carte.",
+  "All full: nothing here you still need. 🎉": "Tout est complet : rien ici ne vous manque. 🎉"
 }

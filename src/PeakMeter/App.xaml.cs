@@ -442,6 +442,20 @@ public sealed class Meter : IDisposable
     /// <summary>The last souls picked up (pet, amount), and when (Environment.TickCount64).</summary>
     public (IReadOnlyList<(int Pet, int Amount)> Souls, long At)? LastSouls { get; private set; }
     private (PetListEvent List, long At)? _petList;
+
+    // Monsters that drop pet souls, as they come into view (entity → NPC code, when seen); cleared at a map load.
+    private readonly Dictionary<uint, (int Code, long At)> _petMobs = new();
+
+    /// <summary>Pet-soul monsters seen in range in the last few minutes and not killed since: NPC code → how many.</summary>
+    public IReadOnlyDictionary<int, int> NearbyPetMonsters()
+    {
+        var now = Environment.TickCount64;
+        lock (_petMobs)
+        {
+            foreach (var gone in _petMobs.Where(kv => now - kv.Value.At > 4 * 60_000).Select(kv => kv.Key).ToList()) _petMobs.Remove(gone);
+            return _petMobs.Values.GroupBy(v => v.Code).ToDictionary(g => g.Key, g => g.Count());
+        }
+    }
     private long _selfSeenAt = long.MinValue / 2;
 
     public Meter(Settings settings, bool demo, bool saveDemo = false)
@@ -567,6 +581,15 @@ public sealed class Meter : IDisposable
                 }
                 switch (e)
                 {
+                    case NpcSeenEvent ns when PetBook.ByNpc.ContainsKey(ns.NpcCode):
+                        lock (_petMobs) _petMobs[ns.ActorId] = (ns.NpcCode, Environment.TickCount64);
+                        break;
+                    case DeathEvent de:
+                        lock (_petMobs) _petMobs.Remove(de.ActorId);
+                        break;
+                    case ZoneChangedEvent { IsTeleport: false }:
+                        lock (_petMobs) _petMobs.Clear();
+                        break;
                     case PetListEvent pl:
                         if (Environment.TickCount64 - _selfSeenAt < 20_000 && Tracker.SelfServerId > 0)
                         {

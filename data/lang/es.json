@@ -376,5 +376,14 @@
   "only from pet soul chests": "solo de cofres de almas",
   "No character seen yet. Log in with PeakMeter running.": "Aún no se ha detectado ningún personaje. Inicia sesión con PeakMeter abierto.",
   "Progress not known yet: log in once with PeakMeter running, then PeakMeter knows all pets (per server).": "Progreso aún desconocido: inicia sesión una vez con PeakMeter abierto y conocerá todas tus mascotas (por servidor).",
-  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} en nv. 3 · faltan {2} almas"
+  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} en nv. 3 · faltan {2} almas",
+  "The list below with only the pets that drop on this map": "La lista de abajo solo con las mascotas de este mapa",
+  "List: this area only": "Lista: solo esta zona",
+  "Here in the area": "Aquí en la zona",
+  "Here in the area: {0}": "Aquí en la zona: {0}",
+  "● {0} nearby": "● {0} cerca",
+  "{0} spawns": "{0} apariciones",
+  "Map not known yet: after the next teleport or map load this shows what you can farm in the area.": "Mapa aún desconocido: tras el próximo teletransporte o carga de mapa verás aquí qué puedes farmear.",
+  "No pet souls drop on this map.": "En este mapa no caen almas de mascota.",
+  "All full: nothing here you still need. 🎉": "Todo completo: aquí no te falta nada. 🎉"
 }

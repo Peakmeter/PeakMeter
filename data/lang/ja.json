@@ -377,5 +377,14 @@
   "only from pet soul chests": "ペット魂の箱からのみ",
   "No character seen yet. Log in with PeakMeter running.": "キャラクターがまだ検出されていません。PeakMeter を起動したままログインしてください。",
   "Progress not known yet: log in once with PeakMeter running, then PeakMeter knows all pets (per server).": "進捗はまだ不明です：PeakMeter を起動したまま一度ログインし直すと、全ペットが分かります（サーバーごと）。",
-  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} 段階3 · 残り {2} 個の魂"
+  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} 段階3 · 残り {2} 個の魂",
+  "The list below with only the pets that drop on this map": "下のリストをこのマップのペットだけに",
+  "List: this area only": "リスト：このエリアのみ",
+  "Here in the area": "このエリア",
+  "Here in the area: {0}": "このエリア：{0}",
+  "● {0} nearby": "● 近くに {0}",
+  "{0} spawns": "出現 {0} か所",
+  "Map not known yet: after the next teleport or map load this shows what you can farm in the area.": "マップがまだ不明です：次のテレポートかマップ読み込みの後、ここで狩れるものが表示されます。",
+  "No pet souls drop on this map.": "このマップではペットの魂は出ません。",
+  "All full: nothing here you still need. 🎉": "すべて完了：ここで必要なものはもうありません。🎉"
 }

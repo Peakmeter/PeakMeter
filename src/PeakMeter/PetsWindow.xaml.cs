@@ -10,6 +10,8 @@ public partial class PetsWindow : Window
     private readonly Meter _meter;
     private bool _hideFull = true;
     private bool _chestOnly;
+    private bool _areaOnly;
+    private readonly System.Windows.Threading.DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(3) };
 
     private static readonly Dictionary<string, Brush> GenusBrushes = new()
     {
@@ -31,11 +33,112 @@ public partial class PetsWindow : Window
         _meter = meter;
         InitializeComponent();
         _meter.Pets.Changed += OnChanged;
-        Closed += (_, _) => _meter.Pets.Changed -= OnChanged;
+        // Monsters come into view and the map changes while the window is open: the area section follows.
+        _timer.Tick += (_, _) => RefreshArea();
+        _timer.Start();
+        Closed += (_, _) =>
+        {
+            _meter.Pets.Changed -= OnChanged;
+            _timer.Stop();
+        };
         Refresh();
     }
 
     private void OnChanged() => Dispatcher.BeginInvoke(Refresh);
+
+    private int _areaKeyMap = -1;
+    private string _areaKey = "";
+
+    /// <summary>
+    /// The current map's soul monsters whose pets are not full yet: each with its pets (coloured by level), where on
+    /// the map and the nearest Kibelisk, and how many are in view right now; those in view first.
+    /// </summary>
+    private void RefreshArea()
+    {
+        var book = _meter.PetBook;
+        var server = _meter.Tracker.SelfServerId;
+        var known = _meter.Pets.Known(server);
+        var map = _meter.Tracker.MapId;
+        var near = _meter.NearbyPetMonsters();
+        var drops = book.DropsOn(map).ToList();
+
+        var codes = drops.Select(d => d.Drop.Npc).Concat(near.Keys).Distinct();
+        var rows = new List<AreaRow>();
+        foreach (var code in codes)
+        {
+            if (!book.ByNpc.TryGetValue(code, out var feeds)) continue;
+            var drop = drops.FirstOrDefault(d => d.Drop.Npc == code).Drop
+                       ?? book.Pets.Values.SelectMany(p => p.Drops).FirstOrDefault(d => d.Npc == code);
+            if (drop is null) continue;
+            var chips = new List<PetChip>();
+            var minLeft = int.MaxValue;
+            foreach (var pet in feeds)
+            {
+                var (level, points) = _meter.Pets.Get(server, pet);
+                if (known && level >= PetCollection.MaxLevel) continue;
+                minLeft = Math.Min(minLeft, PetCollection.ToMax(level, points));
+                chips.Add(new PetChip(!known ? book.Name(pet)
+                        : $"{book.Name(pet)} {L.S("St.", "Lv")} {level} · {points}/{PetCollection.Need(level)}",
+                    known ? PetCollection.ColorOf(level) : (Brush)FindResource("TextSoft")));
+            }
+            if (chips.Count == 0) continue; // every pet of this monster is full: nothing to farm here
+            var count = near.GetValueOrDefault(code);
+            var where = new List<string>();
+            if (drop.ZoneNames is { Count: > 0 } z) where.Add(PetBook.Local(z));
+            if (drop.Teleport > 0)
+                where.Add(L.S("Kibelisk", "Kibelisk") + $" #{drop.Teleport}" + (drop.TeleportNames is { Count: > 0 } t ? $" {PetBook.Local(t)}" : ""));
+            if (drop.Spawns > 0) where.Add(L.S($"{drop.Spawns} Spawns", $"{drop.Spawns} spawns"));
+            if (drop.Chance is { } c && c != "100%") where.Add(c);
+            rows.Add(new AreaRow
+            {
+                Monster = $"{PetBook.Local(drop.NpcNames)}  ({L.S("St.", "Lv")} {drop.Level})",
+                Pets = chips,
+                Where = string.Join(" · ", where),
+                Near = L.S($"● {count} in der Nähe", $"● {count} nearby"),
+                NearVisible = count > 0 ? Visibility.Visible : Visibility.Collapsed,
+                Sort = (count > 0 ? 0 : 1_000_000) + minLeft,
+            });
+        }
+
+        var mapName = drops.Select(d => PetBook.Local(d.Drop.MapNames)).FirstOrDefault(n => n.Length > 0) ?? _meter.Tracker.ZoneName;
+        AreaTitle.Text = mapName is { Length: > 0 }
+            ? L.S($"Hier im Gebiet: {mapName}", $"Here in the area: {mapName}")
+            : L.S("Hier im Gebiet", "Here in the area");
+        AreaOnlyChip.Foreground = (Brush)FindResource(_areaOnly ? "Accent" : "TextDim");
+        AreaEmpty.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        AreaEmpty.Text = map == 0 && near.Count == 0
+            ? L.S("Karte noch unbekannt: nach dem nächsten Teleport oder Laden einer Karte erscheint hier, was du in diesem Gebiet farmen kannst.",
+                  "Map not known yet: after the next teleport or map load this shows what you can farm in the area.")
+            : drops.Count == 0 && near.Count == 0
+                ? L.S("Auf dieser Karte droppen keine Pet-Seelen.", "No pet souls drop on this map.")
+                : L.S("Alles voll: Hier gibt es keine Seelen mehr, die dir fehlen. 🎉", "All full: nothing here you still need. 🎉");
+
+        // Only redraw when something changed, so the list does not flicker every 3 s.
+        var key = string.Join("|", rows.Select(r => r.Monster + r.Near + string.Join(",", r.Pets.Select(p => p.Text))));
+        if (key == _areaKey && map == _areaKeyMap) return;
+        _areaKey = key;
+        if (_areaOnly && map != _areaKeyMap) { _areaKeyMap = map; Refresh(); return; }
+        _areaKeyMap = map;
+        AreaList.ItemsSource = rows.OrderBy(r => r.Sort).ToList();
+    }
+
+    private void AreaOnly_Click(object sender, RoutedEventArgs e)
+    {
+        _areaOnly = !_areaOnly;
+        Refresh();
+    }
+
+    public sealed record PetChip(string Text, Brush Color);
+
+    private sealed class AreaRow
+    {
+        public string Monster { get; init; } = "";
+        public List<PetChip> Pets { get; init; } = new();
+        public string Where { get; init; } = "";
+        public string Near { get; init; } = "";
+        public Visibility NearVisible { get; init; }
+        public int Sort { get; init; }
+    }
 
     private void Refresh()
     {
@@ -65,6 +168,7 @@ public partial class PetsWindow : Window
             else if (!p.ChestOnly) left += toMax;
             if (_hideFull && isFull) continue;
             if (p.ChestOnly && !_chestOnly) continue;
+            if (_areaOnly && !p.Drops.Any(d => d.MapId == _meter.Tracker.MapId)) continue;
             var name = book.Name(p.Id);
             var best = p.Drops.OrderByDescending(d => d.Spawns).FirstOrDefault();
             var where = best is null ? L.S("nur aus Pet-Seelen-Truhen", "only from pet soul chests")
@@ -92,6 +196,8 @@ public partial class PetsWindow : Window
             });
         }
         List.ItemsSource = rows.OrderBy(r => r.Sort).ThenBy(r => r.Name).ToList();
+        _areaKey = "";
+        RefreshArea();
         Summary.Text = known
             ? L.S($"{full} / {all.Count} auf St. 3 · noch {left} Seelen", $"{full} / {all.Count} at Lv 3 · {left} souls to go")
             : "";

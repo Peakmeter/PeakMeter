@@ -10,7 +10,9 @@ namespace PeakMeter;
 public sealed class PetBook
 {
     public sealed record Drop(int Npc, string? Chance, int Level, string? Region, int Spawns,
-        IReadOnlyDictionary<string, string> NpcNames, IReadOnlyDictionary<string, string> MapNames);
+        IReadOnlyDictionary<string, string> NpcNames, IReadOnlyDictionary<string, string> MapNames,
+        int MapId = 0, IReadOnlyDictionary<string, string>? ZoneNames = null, int Teleport = 0,
+        IReadOnlyDictionary<string, string>? TeleportNames = null);
 
     public sealed record Pet(int Id, IReadOnlyDictionary<string, string> Names, string? Genus, IReadOnlyList<Drop> Drops)
     {
@@ -47,7 +49,8 @@ public sealed class PetBook
                         drops.Add(new Drop(d.GetProperty("npc").GetInt32(), Str(d, "chance"),
                             d.TryGetProperty("level", out var lv) && lv.ValueKind == JsonValueKind.Number ? lv.GetInt32() : 0,
                             Str(d, "region"), d.TryGetProperty("spawns", out var sp) && sp.ValueKind == JsonValueKind.Number ? sp.GetInt32() : 0,
-                            Texts(d, "name"), Texts(d, "map")));
+                            Texts(d, "name"), Texts(d, "map"),
+                            Int(d, "mapId"), Texts(d, "zone"), Int(d, "teleport"), Texts(d, "teleportName")));
                 pets[id] = new Pet(id, Texts(p.Value, "names"), Str(p.Value, "genus"), drops);
             }
             foreach (var n in root.GetProperty("npcs").EnumerateObject())
@@ -59,6 +62,13 @@ public sealed class PetBook
         catch (Exception ex) when (ex is IOException or JsonException or KeyNotFoundException or InvalidOperationException) { }
         return book;
     }
+
+    private static int Int(JsonElement e, string name) =>
+        e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetInt32() : 0;
+
+    /// <summary>Every soul drop on a map: (monster drop, pet).</summary>
+    public IEnumerable<(Drop Drop, Pet Pet)> DropsOn(int mapId) =>
+        mapId == 0 ? [] : Pets.Values.SelectMany(p => p.Drops.Where(d => d.MapId == mapId).Select(d => (d, p)));
 
     private static string? Str(JsonElement e, string name) =>
         e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;

@@ -377,5 +377,14 @@
   "only from pet soul chests": "只來自寵物靈魂寶箱",
   "No character seen yet. Log in with PeakMeter running.": "尚未偵測到角色。請在 PeakMeter 執行時登入。",
   "Progress not known yet: log in once with PeakMeter running, then PeakMeter knows all pets (per server).": "進度尚未知：在 PeakMeter 執行時重新登入一次，即可得知所有寵物（依伺服器）。",
-  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} 達 3 級 · 還差 {2} 個靈魂"
+  "{0} / {1} at Lv 3 · {2} souls to go": "{0} / {1} 達 3 級 · 還差 {2} 個靈魂",
+  "The list below with only the pets that drop on this map": "下方列表只顯示此地圖掉落的寵物",
+  "List: this area only": "列表：僅此區域",
+  "Here in the area": "此區域",
+  "Here in the area: {0}": "此區域：{0}",
+  "● {0} nearby": "● 附近 {0}",
+  "{0} spawns": "{0} 個出現點",
+  "Map not known yet: after the next teleport or map load this shows what you can farm in the area.": "地圖尚未知：下次傳送或載入地圖後，這裡會顯示此區域可以刷的東西。",
+  "No pet souls drop on this map.": "此地圖不會掉落寵物靈魂。",
+  "All full: nothing here you still need. 🎉": "全部已滿：這裡沒有你還需要的。🎉"
 }

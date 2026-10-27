@@ -46,6 +46,33 @@
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
+        <!-- a monster on this map whose souls you still need -->
+        <DataTemplate x:Key="AreaTemplate">
+            <Grid Margin="0,0,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="{Binding Monster}" Foreground="{StaticResource Text}" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <ItemsControl ItemsSource="{Binding Pets}" Margin="0,2,0,0">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Text}" Foreground="{Binding Color}" FontSize="11" FontWeight="SemiBold" Margin="0,0,12,0" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="{Binding Where}" Foreground="{StaticResource TextDim}" FontSize="10.5" Margin="0,1,0,0" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <Border Grid.Column="1" CornerRadius="6" Background="#2240C080" Padding="7,2" VerticalAlignment="Top" Margin="8,0,0,0"
+                        Visibility="{Binding NearVisible}">
+                    <TextBlock Text="{Binding Near}" Foreground="#5CD08A" FontSize="10.5" FontWeight="SemiBold" />
+                </Border>
+            </Grid>
+        </DataTemplate>
     </Window.Resources>
 
     <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Edge}" BorderThickness="1" CornerRadius="12" Padding="16,12,16,14">
@@ -81,6 +108,26 @@
                             Content="{local:T De='Nur-Truhen-Pets', En='Chest-only pets'}" />
                 </StackPanel>
             </Grid>
+
+            <!-- Here in the area: the monsters of this map that drop souls you still need, those in view first -->
+            <Border x:Name="AreaPanel" DockPanel.Dock="Top" CornerRadius="10" Background="#0E7FD8F2" BorderBrush="#287FD8F2" BorderThickness="1"
+                    Padding="12,8,12,4" Margin="0,0,0,10">
+                <StackPanel>
+                    <Grid Margin="0,0,0,6">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="&#xE707;" FontFamily="{StaticResource IconFont}" Foreground="{StaticResource Accent}" Margin="0,1,6,0" VerticalAlignment="Center" />
+                            <TextBlock x:Name="AreaTitle" Foreground="{StaticResource Text}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <Button x:Name="AreaOnlyChip" Style="{StaticResource Chip}" Height="24" HorizontalAlignment="Right" Click="AreaOnly_Click"
+                                ToolTip="{local:T De='Die Liste unten nur mit Pets, die auf dieser Karte droppen', En='The list below with only the pets that drop on this map'}"
+                                Content="{local:T De='Liste: nur dieses Gebiet', En='List: this area only'}" />
+                    </Grid>
+                    <TextBlock x:Name="AreaEmpty" Foreground="{StaticResource TextDim}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,6" Visibility="Collapsed" />
+                    <ScrollViewer MaxHeight="190" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="AreaList" ItemTemplate="{StaticResource AreaTemplate}" />
+                    </ScrollViewer>
+                </StackPanel>
+            </Border>
 
             <TextBlock x:Name="Note" DockPanel.Dock="Top" Foreground="#E8B04B" FontSize="11" TextWrapping="Wrap" Margin="2,0,2,8" Visibility="Collapsed" />
 
