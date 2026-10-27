@@ -139,6 +139,7 @@ public partial class LogsWindow : Window
                 Dps = Format.Compact(c.Dps),
                 Share = Format.Share(c.Share),
                 Power = c.CombatPower > 0 ? "  " + Format.Power(c.CombatPower) : "",
+                Deaths = Overlay.DeathsText(c.Deaths),
                 BarWidth = Math.Round(width * c.Damage / top),
                 IsSelf = c.IsSelf,
                 IsSelected = c.ActorId == _selected,

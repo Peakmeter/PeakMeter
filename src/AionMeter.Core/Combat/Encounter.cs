@@ -87,6 +87,8 @@ public sealed class Combatant
     public long DamageTaken { get; set; }
     public int HitsTaken { get; set; }
     public long Healing { get; set; }
+    /// <summary>How often this player died during the fight.</summary>
+    public int Deaths { get; set; }
 
     public long FirstHitMs { get; set; }
     public long LastHitMs { get; set; }

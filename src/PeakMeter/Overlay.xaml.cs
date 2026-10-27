@@ -413,6 +413,7 @@ public partial class Overlay : Window
             };
             r.Share = Format.Share(shares[c.ActorId]);
             r.Power = PowerOf(c);
+            r.Deaths = DeathsText(c.Deaths);
             r.BarWidth = Math.Round(width * Metric(c) / top);
             r.SetClass(c.Class);
             r.IsSelf = c.IsSelf;
@@ -542,6 +543,8 @@ public partial class Overlay : Window
     }
 
     /// <summary>Own class emblem in a ring of the class colour next to the title, and a matching glow on top.</summary>
+    internal static string DeathsText(int deaths) => deaths > 0 ? $"  \u2620 {deaths}" : "";
+
     private void UpdateSelf()
     {
         var c = _meter.Tracker.SelfClass;
@@ -964,6 +967,9 @@ public sealed class RowVm : Vm
     private string _power = "";
     /// <summary>"  129.7K" after the name (combat power), empty when unknown.</summary>
     public string Power { get => _power; set => Set(ref _power, value); }
+    private string _deaths = "";
+    /// <summary>"  ☠ 2" when the player died in this fight, else empty.</summary>
+    public string Deaths { get => _deaths; set => Set(ref _deaths, value); }
     public double BarWidth { get => _bar; set => Set(ref _bar, value); }
     public double RowHeight { get => _height; set => Set(ref _height, value); }
     public bool IsSelf { get => _self; set => Set(ref _self, value); }

@@ -32,7 +32,8 @@ public sealed record CombatantSnapshot(
     int GearScore = 0,
     long CombatPower = 0,
     long Healing = 0,
-    long ActiveMs = 0)
+    long ActiveMs = 0,
+    int Deaths = 0)
 {
     /// <summary>aDPS: damage per second of the player's own active time (first to last hit), not the whole fight.</summary>
     [System.Text.Json.Serialization.JsonIgnore]

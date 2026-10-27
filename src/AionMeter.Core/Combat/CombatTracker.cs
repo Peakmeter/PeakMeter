@@ -10,6 +10,8 @@ namespace AionMeter.Core.Combat;
 public sealed class CombatTracker
 {
     private readonly object _gate = new();
+    /// <summary>Players seen at 0 HP and not seen alive since: a death is counted once.</summary>
+    private readonly HashSet<uint> _downPlayers = new();
     private readonly GameData _data;
     private readonly EntityRegistry _entities;
     private readonly List<Encounter> _finished = new(); // newest first
@@ -236,6 +238,7 @@ public sealed class CombatTracker
 
         var targetIsPlayer = IsLikelyPlayer(target);
         var sourceIsPlayer = IsLikelyPlayer(source);
+        if (sourceIsPlayer) _downPlayers.Remove(source); // fighting again: revived
 
         if (targetIsPlayer)
         {
@@ -304,6 +307,11 @@ public sealed class CombatTracker
 
     private void OnNpcHp(NpcHpEvent e)
     {
+        if (IsPlayerInFight(e.ActorId))
+        {
+            NotePlayerHp(e.ActorId, e.CurrentHp);
+            return;
+        }
         if (_entities.IsPlayerLike(e.ActorId)) return;
         // HP/MP updates are sent for players too: only trust them for entities already known to be NPCs.
         if (!e.IsNpc && !_entities.IsKnownNpc(e.ActorId)) return;
@@ -344,6 +352,11 @@ public sealed class CombatTracker
 
     private void OnDeath(DeathEvent e)
     {
+        if (!e.AlreadyDead && IsPlayerInFight(e.ActorId))
+        {
+            NotePlayerHp(e.ActorId, 0);
+            return;
+        }
         EndBossLimit(e.ActorId);
         if (!_entities.TryGetNpc(e.ActorId, out var npc)) return;
         if (npc.Hp != 0)
@@ -606,6 +619,22 @@ public sealed class CombatTracker
         if (string.IsNullOrEmpty(c.Name)) c.Name = $"#{c.ActorId}";
     }
 
+    private bool IsPlayerInFight(uint id) =>
+        _current is { IsActive: true } enc && id != Combatant.UnknownSummonsId && enc.Combatants.ContainsKey(id)
+        && (_entities.IsPlayerLike(id) || id == _entities.SelfId);
+
+    /// <summary>A player's HP during a fight: dropping to 0 is a death (as the game shows it), counted once until revived.</summary>
+    private void NotePlayerHp(uint id, long hp)
+    {
+        if (hp > 0)
+        {
+            _downPlayers.Remove(id);
+            return;
+        }
+        if (!_downPlayers.Add(id)) return;
+        if (_current is { IsActive: true } enc && enc.Combatants.TryGetValue(id, out var c)) c.Deaths++;
+    }
+
     private void CheckIdle(long nowMs)
     {
         if (_current is not { IsActive: true } enc) return;
@@ -779,7 +808,7 @@ public sealed class CombatTracker
                 t.Damage, t.Damage / seconds, (double)t.Damage / total,
                 t.Hits, t.Hits > 0 ? (double)t.Crits / t.Hits : 0,
                 t.Max, c.DamageTaken, c.ServerId, c.GearScore, c.CombatPower, c.Healing,
-                c.LastHitMs > c.FirstHitMs ? c.LastHitMs - c.FirstHitMs : 0));
+                c.LastHitMs > c.FirstHitMs ? c.LastHitMs - c.FirstHitMs : 0, c.Deaths));
         }
         rows.Sort((a, b) => b.Damage.CompareTo(a.Damage));
         // Pets without a known owner are not a player: list them last so they never take a place in the ranking.
