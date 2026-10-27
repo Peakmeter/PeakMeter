@@ -150,6 +150,13 @@ public partial class LogsWindow : Window
             return vm;
         }).ToList();
 
+        GroupButton.Foreground = (Brush)FindResource(_selected == GroupId ? "Accent" : "Text");
+        if (_selected == GroupId)
+        {
+            ShowGroupSkills(r, width);
+            return;
+        }
+        ProfileButton.Visibility = Visibility.Visible;
         var d = r.Details.FirstOrDefault(x => x.ActorId == _selected);
         if (d is null)
         {
@@ -174,6 +181,45 @@ public partial class LogsWindow : Window
             Stagger = Overlay.StaggerText(x.Stagger, d.Stagger),
             BarWidth = Math.Round(swidth * x.Damage / stop),
             BarBrush = brush,
+        }).ToList();
+    }
+
+    /// <summary>"Player" id of the group view: every player's skills in one list.</summary>
+    private const uint GroupId = 0xFFFF_FFFE;
+
+    private void Group_Click(object sender, RoutedEventArgs e)
+    {
+        _selected = _selected == GroupId ? _record?.Summary.Combatants.FirstOrDefault(c => c.IsSelf)?.ActorId : GroupId;
+        ShowRecord();
+    }
+
+    /// <summary>The fight's strongest skills over all players: which skill of whom carried the group.</summary>
+    private void ShowGroupSkills(FightRecord r, double width)
+    {
+        var s = r.Summary;
+        var total = Math.Max(1, r.Details.Where(d => d.ActorId != Combatant.UnknownSummonsId).Sum(d => d.Damage));
+        var all = r.Details
+            .Where(d => d.ActorId != Combatant.UnknownSummonsId)
+            .SelectMany(d => d.Skills.Select(x => (Player: d, Skill: x)))
+            .OrderByDescending(x => x.Skill.Damage)
+            .Take(25)
+            .ToList();
+        SkillPanel.Visibility = Visibility.Visible;
+        ProfileButton.Visibility = Visibility.Collapsed;
+        SkillTitle.Text = L.S("Gruppe – stärkste Skills", "Group – strongest skills");
+        var stagger = s.TotalStagger > 0 ? $" · Stagger {s.TotalStagger}" : "";
+        SkillStats.Text = L.S($"{Format.Compact(total)} Schaden · {Format.Compact(s.PartyDps)} DPS", $"{Format.Compact(total)} damage · {Format.Compact(s.PartyDps)} DPS") + stagger;
+        var stop = Math.Max(1, all.Count > 0 ? all[0].Skill.Damage : 1);
+        var swidth = Math.Max(0, Skills.ActualWidth > 0 ? Skills.ActualWidth : width);
+        Skills.ItemsSource = all.Select(x => new SkillVm
+        {
+            Name = $"{x.Skill.Name} · {x.Player.Name}   ×{x.Skill.Hits + x.Skill.DotTicks}",
+            Icon = SkillIcons.Get(x.Skill.SkillCode),
+            Damage = Format.Compact(x.Skill.Damage),
+            Share = Format.Share((double)x.Skill.Damage / total),
+            Stagger = Overlay.StaggerText(x.Skill.Stagger, s.TotalStagger),
+            BarWidth = Math.Round(swidth * x.Skill.Damage / stop),
+            BarBrush = ClassStyle.Bar(x.Player.Class, 0.22),
         }).ToList();
     }
 

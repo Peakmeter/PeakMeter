@@ -101,10 +101,17 @@
                             <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
                                 <StackPanel>
                                     <TextBlock x:Name="FightTitle" Foreground="{StaticResource Text}" FontSize="16" FontWeight="SemiBold"
-                                               TextTrimming="CharacterEllipsis" Margin="0,0,150,0" />
+                                               TextTrimming="CharacterEllipsis" Margin="0,0,250,0" />
                                     <TextBlock x:Name="FightMeta" Foreground="{StaticResource TextDim}" FontSize="11" Margin="0,3,0,0" />
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                                    <Button x:Name="GroupButton" Style="{StaticResource Chip}" Height="24" Click="Group_Click" Margin="0,0,4,0"
+                                            ToolTip="{local:T De='Die stärksten Skills der ganzen Gruppe', En='The strongest skills of the whole group'}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE716;" FontFamily="{StaticResource IconFont}" Margin="0,1,6,0" />
+                                            <TextBlock Text="{local:T De='Top-Skills', En='Top skills'}" />
+                                        </StackPanel>
+                                    </Button>
                                     <Button Style="{StaticResource Chip}" Height="24" Click="Copy_Click" Margin="0,0,4,0">
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock Text="&#xE8C8;" FontFamily="{StaticResource IconFont}" Margin="0,1,6,0" />
