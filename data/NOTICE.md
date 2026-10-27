@@ -30,6 +30,10 @@ ported from Seralth's Daevalog, GPL-3.0), reimplemented in C#. Buff icons are do
 [Aion 2 Timers](https://www.aion2timers.com/map/)' interactive map at the monster's spawns (the link the plugin uses);
 nothing of that site is bundled.
 
+`field_boss_slots.json` (which boss holds which place in the in-game field boss list, opcode `01 91`) comes from
+[taengu/A2Tools-DPS-Meter](https://github.com/taengu/A2Tools-DPS-Meter) `src-tauri/src/capture/field_bosses.rs`, commit
+`69f63e2` (2026-10-18), GPL-3.0, itself from the game's tables.
+
 The optional character portrait comes from NCSOFT's official character search (`api-search.plaync.com`) and profile
 image server (`profileimg.plaync.com`), the ones the AION 2 website uses, and is kept in `%AppData%\PeakMeter\portraits`.
 

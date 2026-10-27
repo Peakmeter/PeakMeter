@@ -95,6 +95,8 @@ public sealed class BossTimers
     private readonly object _gate = new();
     private readonly Dictionary<(int Server, int Code), BossTimer> _timers = new();
     private readonly Dictionary<int, MapInfo> _knownMaps = new();                               // shipped
+    private readonly Dictionary<int, int> _knownSlots = new();                                  // shipped: slot → NPC code
+    private readonly HashSet<int> _knownSlotMaps = new();                                       // maps those slots belong to
     private readonly Dictionary<(int Server, int Map), FieldBossListEvent> _lastLists = new();  // newest list (this run)
     private Learned _learned = new(new(), new(), new());
     private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
@@ -123,9 +125,47 @@ public sealed class BossTimers
         _data = data;
         Persistent = persistent;
         LoadKnownMaps(Path.Combine(dataDirectory, "field_boss_maps.json"));
+        LoadKnownSlots(Path.Combine(dataDirectory, "field_boss_slots.json"));
         LoadDefaults(Path.Combine(dataDirectory, "field_bosses.json"));
         if (persistent) Load();
-        if (DropInstanceBosses() > 0) Save();
+        var fixedSlots = ApplyKnownSlots();
+        if (fixedSlots) SaveLearned();
+        if (DropInstanceBosses() > 0 || fixedSlots) Save();
+    }
+
+    /// <summary>
+    /// The shipped slot table overrules what earlier versions guessed: wrong guesses are forgotten, timers kept under a
+    /// slot number get their boss's name, and a boss that was given another boss's slot loses that slot's game times.
+    /// True if anything changed.
+    /// </summary>
+    private bool ApplyKnownSlots()
+    {
+        if (_knownSlots.Count == 0) return false;
+        var changed = false;
+        var knownCodes = _knownSlots.Values.ToHashSet();
+        foreach (var (slot, code) in _learned.Slots.ToList())
+        {
+            if (!_knownSlots.ContainsKey(slot) && !knownCodes.Contains(code)) continue;
+            _learned.Slots.Remove(slot);
+            changed = true;
+        }
+        foreach (var (key, t) in _timers.ToList())
+        {
+            if (t.SlotId == 0 || !_knownSlots.TryGetValue(t.SlotId, out var code) || t.NpcCode == code) continue;
+            _timers.Remove(key);
+            changed = true;
+            if (t.NpcCode < 0)
+            {
+                // Listed before its boss was known: now it has a name.
+                if (!_timers.ContainsKey((key.Server, code))) _timers[(key.Server, code)] = t with { NpcCode = code };
+            }
+            else
+            {
+                // A wrong guess: this boss keeps its own kills and settings, not the other boss's times.
+                _timers[key] = t with { SlotId = 0, ListedAt = null, ListedAlive = false, ListedTime = null };
+            }
+        }
+        return changed;
     }
 
     public bool Persistent { get; }
@@ -148,7 +188,8 @@ public sealed class BossTimers
     /// A field map has an in-game boss list (shipped, or seen); its bosses respawn on world timers. Bosses elsewhere —
     /// the small solo maps of quests and sealed areas — come back with the instance, not on a clock.
     /// </summary>
-    private bool IsFieldMap(int mapId) => _knownMaps.ContainsKey(mapId) || _learned.ListedMaps.Contains(mapId);
+    private bool IsFieldMap(int mapId) =>
+        _knownMaps.ContainsKey(mapId) || _knownSlotMaps.Contains(mapId) || _learned.ListedMaps.Contains(mapId);
 
     // Kills of the last two days on any map, for naming list slots ("back at" = kill + interval), timer or not.
     private readonly List<(int Server, int Code, int Map, long Ms)> _recentKills = new();
@@ -319,6 +360,9 @@ public sealed class BossTimers
         {
             var code = CodeOf(slot.SlotId, block, list);
             var key = (server, code != 0 ? code : -slot.SlotId);
+            // Another boss that once held this slot (an old guess) no longer gets its times.
+            foreach (var (otherKey, other) in _timers.Where(kv => kv.Key.Server == server && kv.Key.Code > 0 && kv.Value.SlotId == slot.SlotId && kv.Key != key).ToList())
+                _timers[otherKey] = other with { SlotId = 0, ListedAt = null, ListedAlive = false, ListedTime = null };
             if (code != 0 && _timers.Remove((server, -slot.SlotId), out var unnamed) && !_timers.ContainsKey(key))
                 _timers[key] = unnamed with { NpcCode = code }; // listed before its boss was known: keep the bell
             var t = _timers.TryGetValue(key, out var old) ? old : New(server, key.Item2);
@@ -341,7 +385,8 @@ public sealed class BossTimers
     }
 
     private int CodeOf(int slotId, int block, FieldBossListEvent list) =>
-        _learned.Slots.TryGetValue(slotId, out var learned) ? learned
+        _knownSlots.TryGetValue(slotId, out var known) ? known
+        : _learned.Slots.TryGetValue(slotId, out var learned) ? learned
         : block != 0 ? _data.FieldBossInSlot(block, list.MapId, slotId, list.Count)
         : 0;
 
@@ -379,9 +424,11 @@ public sealed class BossTimers
     private bool LearnSlots(FieldBossListEvent list, int server)
     {
         var map = list.MapId;
+        if (list.Slots.All(s => _knownSlots.ContainsKey(s.SlotId))) return false; // the shipped table names them all
         if (BlockOf(map, list.Count) != 0) return false; // the whole list resolves from its block
-        var taken = list.Slots.Select(s => _learned.Slots.GetValueOrDefault(s.SlotId)).Where(c => c != 0).ToHashSet();
-        var unknown = list.Slots.Where(s => !_learned.Slots.ContainsKey(s.SlotId)).ToList();
+        var taken = list.Slots.Select(s => _knownSlots.GetValueOrDefault(s.SlotId, _learned.Slots.GetValueOrDefault(s.SlotId)))
+            .Where(c => c != 0).ToHashSet();
+        var unknown = list.Slots.Where(s => !_learned.Slots.ContainsKey(s.SlotId) && !_knownSlots.ContainsKey(s.SlotId)).ToList();
         var changed = false;
 
         // A living boss: the boss seen standing at the slot's position, or seen the moment the slot says it appeared.
@@ -616,6 +663,25 @@ public sealed class BossTimers
                 _knownMaps[id] = new MapInfo(block.GetInt32(),
                     m.Value.TryGetProperty("en", out var en) ? en.GetString() : null,
                     m.Value.TryGetProperty("ru", out var ru) ? ru.GetString() : null);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or JsonException or InvalidOperationException)
+        {
+        }
+    }
+
+    private void LoadKnownSlots(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return;
+            using var doc = JsonDocument.Parse(File.ReadAllText(path));
+            if (!doc.RootElement.TryGetProperty("slots", out var slots)) return;
+            foreach (var s in slots.EnumerateObject())
+            {
+                if (!int.TryParse(s.Name, out var slot) || !s.Value.TryGetInt32(out var code)) continue;
+                _knownSlots[slot] = code;
+                _knownSlotMaps.Add(slot / 100);
             }
         }
         catch (Exception ex) when (ex is IOException or JsonException or InvalidOperationException)
