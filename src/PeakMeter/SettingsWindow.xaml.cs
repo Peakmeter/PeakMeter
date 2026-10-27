@@ -365,6 +365,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.25.1 – Kämpfe endeten auf manchen PCs nach 1 Sekunde (Uhr des Netzwerktreibers falsch): behoben\n\n" +
         "v1.25.0 – Neu in den Einstellungen: dein Charakterbild (offizielles Bild von NCSoft) statt Klassen-Logo im Meter\n\n" +
         "v1.24.5 – Klick auf einen Spielernamen (Logs und Meter) zeigt wieder seine Skills und das Profil\n\n" +
         "v1.24.4 – Logs: alte Kämpfe lassen sich wieder sofort per Klick öffnen\n\n" +
@@ -395,6 +396,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.25.1 – Fights ended after 1 second on some PCs (network driver clock off): fixed\n\n" +
         "v1.25.0 – New setting: your character portrait (official NCSoft image) instead of the class emblem in the meter\n\n" +
         "v1.24.5 – Clicking a player's name (logs and meter) shows their skills and profile again\n\n" +
         "v1.24.4 – Logs: older fights open instantly on click again\n\n" +

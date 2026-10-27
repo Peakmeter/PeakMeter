@@ -27,6 +27,9 @@ public sealed class LiveCapture : IEventSource
 
     /// <summary>The game's ping to its server, measured from the captured traffic.</summary>
     public PingMeter Ping { get; } = new();
+
+    /// <summary>How far the capture driver's clock was off the PC clock when first seen off by over 2 s (else null).</summary>
+    public long? ClockSkewMs { get; private set; }
     private readonly PacketPipeline _pipeline;
     private readonly object _gate = new();
     private CancellationTokenSource? _cts;
@@ -276,7 +279,17 @@ public sealed class LiveCapture : IEventSource
             _writer?.Write(raw);
             if (SegmentReader.TryRead(raw, out var seg))
             {
-                _pipeline.OnSegment(seg.TimeMs, seg.Key, seg.Seq, seg.Syn, seg.FinOrRst, seg.Payload);
+                // Fights end by the PC clock (no damage for N seconds). On some PCs the capture driver's timestamps
+                // run seconds off that clock (ping tools, VPNs, driver timestamp modes); then every fight looked idle
+                // at once and ended after a second. Such packets are timed by the PC clock instead.
+                var timeMs = seg.TimeMs;
+                var wall = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                if (ClockSkewMs is not null || Math.Abs(wall - timeMs) > 2_000)
+                {
+                    if (ClockSkewMs is null) ClockSkewMs = timeMs - wall;
+                    timeMs = wall;
+                }
+                _pipeline.OnSegment(timeMs, seg.Key, seg.Seq, seg.Syn, seg.FinOrRst, seg.Payload);
                 if (seg.Key.DstPort == PacketPipeline.GamePort) Ping.Sent(seg.Seq, seg.Payload.Length, seg.TimeUs);
                 else if (seg.Key.SrcPort == PacketPipeline.GamePort && seg.HasAck) Ping.Acked(seg.Ack, seg.TimeUs);
             }

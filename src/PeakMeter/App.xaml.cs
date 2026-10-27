@@ -415,6 +415,7 @@ public sealed class Meter : IDisposable
     private string? _identity;
     private long _identityAt;
     private long _liveEnergyAt = long.MinValue / 2;
+    private bool _skewLogged;
 
     public Meter(Settings settings, bool demo, bool saveDemo = false)
     {
@@ -539,6 +540,11 @@ public sealed class Meter : IDisposable
             };
             _capture.StatusChanged += st =>
             {
+                if (!_skewLogged && (_capture as LiveCapture)?.ClockSkewMs is { } skew)
+                {
+                    _skewLogged = true;
+                    Log($"Capture clock is {skew / 1000.0:+0.0;-0.0} s off the PC clock: using the PC clock");
+                }
                 // The capture reports every couple of seconds; only a change of state is worth a line.
                 var key = st.State + st.Message;
                 if (key == _lastStatus) return;
