@@ -430,6 +430,12 @@ public sealed class Meter : IDisposable
     private long _liveEnergyAt = long.MinValue / 2;
     private bool _skewLogged;
 
+    /// <summary>
+    /// The game sent the energy for the character now logged in, since PeakMeter started (or since the switch to it).
+    /// Until then the value shown is a stored one counted forward, and may be off.
+    /// </summary>
+    public bool EnergyConfirmed { get; private set; }
+
     /// <summary>Pets: what drops whose souls, and the player's collection.</summary>
     public PetBook PetBook { get; private set; } = null!;
     public PetCollection Pets { get; private set; } = null!;
@@ -473,6 +479,8 @@ public sealed class Meter : IDisposable
             lock (_loginGate)
             {
                 var switched = !string.Equals(name, _identity, StringComparison.Ordinal);
+                // The new character's energy may already be waiting (it often comes before the name): then it stays confirmed.
+                if (switched && _identity is not null && _loginEnergy is null) EnergyConfirmed = false;
                 _identity = name;
                 _identityAt = now;
                 if (_loginEnergy is { } le && now - le.At < 10 * 60_000)
@@ -582,6 +590,7 @@ public sealed class Meter : IDisposable
                 // character's energy (a player saw "590 (+1)" and endless "energy full" toasts from v1.29.1 on).
                 if (o.Change == OdyleEnergyEvent.ElsewhereChange) return;
                 Interlocked.Exchange(ref _liveEnergyAt, Environment.TickCount64);
+                EnergyConfirmed = true;
                 // The value is always the logged-in character's: show it right away.
                 System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Odyle.SetFromGame(o.Regen, o.Bonus));
                 // Which character that is: at a login (Change 0) the name record can come before or after the energy,

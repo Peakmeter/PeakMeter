@@ -123,7 +123,7 @@ public partial class Overlay : Window
         }
         var live = _meter.Tracker.LiveFight() is not null || _meter.DemoRunning;
         _app.CheckBossAlerts();
-        if (_meter.Odyle.TakeFullAlert(DateTimeOffset.Now))
+        if (_meter.EnergyConfirmed && _meter.Odyle.TakeFullAlert(DateTimeOffset.Now))
             _app.Notify(L.S("Odyle-Energie voll", "Odyle energy full"), L.S($"{_meter.Odyle.Cap} erreicht – Zeit zum Raiden!", $"{_meter.Odyle.Cap} reached – time to raid!"), "energy");
         if (live) _partyAuto = false; // a fight needs the room: the party list steps aside
         if (Environment.TickCount64 - _lastIdleCheck > 60_000)
@@ -708,13 +708,16 @@ public partial class Overlay : Window
             EnergyButton.Foreground = (Brush)FindResource("TextDim");
             return;
         }
-        // like the game: "135 (+755)" = regenerating pool and bonus
-        EnergyText.Text = o.Bonus > 0 ? $"{o.Pool(now)} (+{o.Bonus})" : o.Pool(now).ToString();
+        // like the game: "135 (+755)" = regenerating pool and bonus; "~" = a stored value, not sent by the game this session
+        var sure = _meter.EnergyConfirmed;
+        EnergyText.Text = (sure ? "" : "~") + (o.Bonus > 0 ? $"{o.Pool(now)} (+{o.Bonus})" : o.Pool(now).ToString());
         EnergyButton.ToolTip = (o.Bonus > 0 ? L.S("Odyle-Energie", "Odyle energy") + $": {o.Pool(now)}/{o.Cap} + {o.Bonus} Bonus" : L.S("Odyle-Energie", "Odyle energy") + $": {o.Pool(now)}/{o.Cap}")
-                               + (o.FromGameAt is not null ? L.S(" · vom Spiel erkannt", " · read from the game") : L.S(" · von Hand", " · entered by hand"))
+                               + (!sure ? Environment.NewLine + L.S("Geschätzt: Das Spiel hat die Energie seit dem Start von PeakMeter noch nicht geschickt. Einmal neu einloggen, dann stimmt sie genau.",
+                                                                    "Estimated: the game has not sent the energy since PeakMeter started. Log in once for the exact value.")
+                                  : o.FromGameAt is not null ? L.S(" · vom Spiel erkannt", " · read from the game") : L.S(" · von Hand", " · entered by hand"))
                                + RosterEnergy(now);
         var near = o.FullAt(now) is not { } full || full - now < TimeSpan.FromHours(3);
-        EnergyButton.Foreground = (Brush)FindResource(near ? "Accent" : "TextDim");
+        EnergyButton.Foreground = (Brush)FindResource(sure && near ? "Accent" : "TextDim");
     }
 
     private void Energy_Click(object sender, RoutedEventArgs e) => _app.ShowTickets();

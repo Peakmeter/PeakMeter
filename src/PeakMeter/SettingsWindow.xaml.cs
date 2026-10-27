@@ -365,6 +365,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.30.3 – Energie: solange das Spiel sie noch nicht geschickt hat, steht „~“ davor (geschätzt) und es kommt keine „voll“-Meldung\n\n" +
         "v1.30.2 – Pets: farbig – grün = voll, orange = Stufe 2, rot = viel fehlt (Meter und Pet-Fenster)\n\n" +
         "v1.30.1 – Energie: falsche Werte (z. B. 590 (+1)) und ständige „Energie voll“-Meldungen seit v1.29.1 behoben\n\n" +
         "v1.30.0 – Pets: der Meter zeigt beim Monster, wie viele Seelen dir für sein Pet noch fehlen oder ob es schon voll ist, und nach jeder Seele den neuen Stand · neues Pet-Fenster (🐾) mit allen Pets, Stufe, Seelen und wo sie droppen\n\n" +
@@ -404,6 +405,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.30.3 – Energy: until the game has sent it, it shows with “~” (estimated) and no “full” toast comes\n\n" +
         "v1.30.2 – Pets: in colour – green = full, orange = level 2, red = many souls missing (meter and pet window)\n\n" +
         "v1.30.1 – Energy: wrong values (e.g. 590 (+1)) and endless “energy full” toasts since v1.29.1 fixed\n\n" +
         "v1.30.0 – Pets: the meter shows for a monster how many souls its pet still needs or that it is full, and the new count after each soul · new pet window (🐾) with every pet, level, souls and where they drop\n\n" +
