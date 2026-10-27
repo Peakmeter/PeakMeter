@@ -130,6 +130,16 @@ public sealed record HitNoticeEvent(long TimeMs, uint ActorId, uint TargetId, in
 /// <summary>A monster's stagger gauge after a hit took stagger off it (<c>05 E0</c>): it counts down from <paramref name="Max"/>.</summary>
 public sealed record StaggerGaugeEvent(long TimeMs, uint EntityId, uint Max, uint Rest, byte Status) : GameEvent(TimeMs);
 
+/// <summary>
+/// A buff or debuff put on (<c>2a 38</c>, <paramref name="IsAdd"/>) or renewed (<c>2b 38</c>) on an entity.
+/// <paramref name="LengthMs"/> runs from the instance's start; -1 = never ends (a passive).
+/// </summary>
+public sealed record BuffAppliedEvent(long TimeMs, uint EntityId, int Instance, uint Abnormal, long LengthMs, uint Caster,
+    uint Skill, bool Restarted, bool IsAdd) : GameEvent(TimeMs);
+
+/// <summary>Buffs taken off an entity (<c>2c 38</c>), by instance.</summary>
+public sealed record BuffRemovedEvent(long TimeMs, uint EntityId, int[] Instances) : GameEvent(TimeMs);
+
 /// <summary>The stagger gauge broke (<c>05 E0 … 00 03 02</c>).</summary>
 public sealed record StaggerBreakEvent(long TimeMs, uint EntityId) : GameEvent(TimeMs);
 

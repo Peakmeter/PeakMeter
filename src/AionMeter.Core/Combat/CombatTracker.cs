@@ -149,6 +149,12 @@ public sealed class CombatTracker
                     break;
                 case StaggerBreakEvent:
                     break;
+                case BuffAppliedEvent ba:
+                    Buffs.OnApplied(ba);
+                    break;
+                case BuffRemovedEvent br:
+                    Buffs.OnRemoved(br);
+                    break;
                 case HitNoticeEvent h:
                     OnHitNotice(h);
                     break;
@@ -179,6 +185,7 @@ public sealed class CombatTracker
                     // came back as "#id".
                     if (z.IsTeleport || z.MapId == _entities.MapId) break;
                     _timers.Clear(); // the instance's countdowns end with it
+                    Buffs.Clear(z.TimeMs); // ids start over after a map load
                     if (_current is { IsActive: true }) Finish(EncounterEndReason.ZoneChange, _current.LastDamageMs);
                     _entities.OnZoneChanged(z.MapId, z.ZoneName);
                     break;
@@ -650,6 +657,9 @@ public sealed class CombatTracker
 
     private readonly Dictionary<uint, StaggerGauge> _gauges = new();
 
+    /// <summary>Buffs and debuffs over time, for the fight's buff summary.</summary>
+    public BuffTracker Buffs { get; } = new();
+
     private StaggerGauge GaugeOf(uint entity)
     {
         if (!_gauges.TryGetValue(entity, out var g))
@@ -964,7 +974,11 @@ public sealed class CombatTracker
             .OrderByDescending(c => c.Total.Damage)
             .Select(c => BuildDetail(enc, c, 5_000))
             .ToList();
-        return new FightRecord(1, snapshot, details);
+        var target = enc.BossId ?? (enc.DamageByTarget.Count > 0 ? enc.DamageByTarget.MaxBy(kv => kv.Value).Key : null);
+        IReadOnlyList<BuffSummary> buffs;
+        try { buffs = Buffs.Summarize(enc, target, _data); }
+        catch (Exception ex) when (ex is ArgumentException or IndexOutOfRangeException or InvalidOperationException) { buffs = []; }
+        return new FightRecord(1, snapshot, details, buffs);
     }
 
     /// <summary>Null when nothing was measured, so the UI can show a dash instead of a fake zero.</summary>

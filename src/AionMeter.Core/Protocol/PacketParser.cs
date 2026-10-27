@@ -60,6 +60,13 @@ public sealed class PacketParser
             case Opcodes.StaggerGauge:
                 ParseStaggerGauge(body);
                 break;
+            case Opcodes.BuffAdded:
+            case Opcodes.BuffChanged:
+                ParseBuffApplied(body, opcode == Opcodes.BuffAdded);
+                break;
+            case Opcodes.BuffRemoved:
+                ParseBuffRemoved(body);
+                break;
             case Opcodes.Cast:
                 ParseCast(body);
                 break;
@@ -318,6 +325,47 @@ public sealed class PacketParser
         if (!Wire.TryVarint(b, ref o, out var actor) || !IsEntityId(actor) || actor == target) return;
         if (!Wire.TryU32(b, ref o, out var skill) || skill is < 10_000_000 or > 299_999_999) return;
         Emit(new StaggerMarkEvent(TimeMs, actor, target, NormalizeSkill((int)skill)));
+    }
+
+    /// <summary>
+    /// <code>entity varint, [add: 01], flags u8, instance varint, abnormal u32, length i64, end i64, caster varint,
+    /// level u8, [flags &amp; 2: skill u32], u8 (2 = applied again), x y z f32</code>
+    /// </summary>
+    private void ParseBuffApplied(ReadOnlySpan<byte> b, bool add)
+    {
+        var o = 0;
+        if (!Wire.TryVarint(b, ref o, out var entity) || !IsEntityId(entity)) return;
+        if (add && (!Wire.TryU8(b, ref o, out var one) || one != 1)) return;
+        if (!Wire.TryU8(b, ref o, out var flags)) return;
+        if (!Wire.TryVarint(b, ref o, out var instance)) return;
+        if (!Wire.TryU32(b, ref o, out var abnormal)) return;
+        if (o + 16 > b.Length) return;
+        var length = System.Buffers.Binary.BinaryPrimitives.ReadInt64LittleEndian(b[o..]);
+        o += 16; // length, end
+        if (!Wire.TryVarint(b, ref o, out var caster)) return;
+        if (!Wire.TryU8(b, ref o, out _)) return; // level
+        uint skill = 0;
+        if ((flags & 0x02) != 0 && !Wire.TryU32(b, ref o, out skill)) return;
+        if (!Wire.TryU8(b, ref o, out var again)) return;
+        if (b.Length - o != 12) return; // the caster's position: the record must end exactly here
+        Emit(new BuffAppliedEvent(TimeMs, entity, (int)instance, abnormal, length < 0 ? -1 : length, caster, skill, again == 2, add));
+    }
+
+    /// <summary><code>entity varint, n u8, n × (kind u8, instance varint, reason u8, [kind &amp; 7 == 7: by varint, skill u32, effect u32])</code></summary>
+    private void ParseBuffRemoved(ReadOnlySpan<byte> b)
+    {
+        var o = 0;
+        if (!Wire.TryVarint(b, ref o, out var entity) || !IsEntityId(entity)) return;
+        if (!Wire.TryU8(b, ref o, out var n) || n == 0) return;
+        var instances = new int[n];
+        for (var k = 0; k < n; k++)
+        {
+            if (!Wire.TryU8(b, ref o, out var kind) || !Wire.TryVarint(b, ref o, out var instance) || !Wire.TryU8(b, ref o, out _)) return;
+            if ((kind & 0x07) == 0x07 && (!Wire.TryVarint(b, ref o, out _) || !Wire.TryU32(b, ref o, out _) || !Wire.TryU32(b, ref o, out _))) return;
+            instances[k] = (int)instance;
+        }
+        if (o != b.Length) return;
+        Emit(new BuffRemovedEvent(TimeMs, entity, instances));
     }
 
     /// <summary><c>entity varint</c>, then <c>03 01 max u32 rest u32 status u8</c> (the gauge) or <c>00 03 02</c> (a break).</summary>

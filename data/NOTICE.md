@@ -18,6 +18,11 @@ them in `%AppData%\PeakMeter\icons`.
 The stagger share follows A2Tools-DPS-Meter's documented layout of the stagger gauge record (`05 E0`) and its rule
 for which hit took stagger (`src-tauri/src/combat/stagger.rs`, GPL-3.0), reimplemented in C#.
 
+`abnormals/*.json` (buff and debuff names) and `abnormal_icons.json` (their icon file names, from `abnormals.json`) come
+from [taengu/A2Tools-DPS-Meter](https://github.com/taengu/A2Tools-DPS-Meter) `src/data`, commit `5c6f02c` (2026-10-27),
+GPL-3.0; the buff record layout (`2a 38`, `2b 38`, `2c 38`) follows its `src-tauri/src/capture/abnormal.rs` (itself
+ported from Seralth's Daevalog, GPL-3.0), reimplemented in C#. Buff icons are downloaded at runtime like skill icons.
+
 The optional character portrait comes from NCSOFT's official character search (`api-search.plaync.com`) and profile
 image server (`profileimg.plaync.com`), the ones the AION 2 website uses, and is kept in `%AppData%\PeakMeter\portraits`.
 

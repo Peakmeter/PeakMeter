@@ -57,6 +57,12 @@ public static class SkillIcons
     public static ImageSource? Get(int skillCode)
     {
         if (NameOf(skillCode) is not { } name) return EventIcons.Get("battle");
+        return ByName(name);
+    }
+
+    /// <summary>Any icon of the game's image server by its file name (buff icons, for one).</summary>
+    public static ImageSource? ByName(string name)
+    {
         if (Cache.TryGetValue(name, out var img)) return img;
         var file = Path.Combine(_dir, name + ".png");
         if (File.Exists(file))

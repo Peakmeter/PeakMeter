@@ -354,5 +354,11 @@
   "Show your character portrait instead of the class emblem": "Afficher le portrait de votre personnage au lieu de l'emblème de classe",
   "Top skills": "Meilleures comp.",
   "The strongest skills of the whole group": "Les compétences les plus fortes de tout le groupe",
-  "Group – strongest skills": "Groupe – compétences les plus fortes"
+  "Group – strongest skills": "Groupe – compétences les plus fortes",
+  "Buffs & debuffs": "Buffs et débuffs",
+  "Right: uptime · middle: DPS with / without": "À droite : durée active · au milieu : DPS avec / sans",
+  "No buff data: fights are saved with buffs from v1.29.0 on.": "Pas de données de buffs : les combats sont enregistrés avec les buffs à partir de la v1.29.0.",
+  "No buffs were seen in this fight.": "Aucun buff n'a été détecté dans ce combat.",
+  "debuff on the boss": "débuff sur le boss",
+  "Buffs and debuffs: how long they were up and the DPS with and without them": "Buffs et débuffs : leur durée active et le DPS avec et sans eux"
 }

@@ -8,6 +8,7 @@ using System.Windows.Media;
 using AionMeter.Core;
 using AionMeter.Core.Combat;
 using AionMeter.Core.Storage;
+using AionMeter.Core.Events;
 
 namespace PeakMeter;
 
@@ -151,6 +152,12 @@ public partial class LogsWindow : Window
         }).ToList();
 
         GroupButton.Foreground = (Brush)FindResource(_selected == GroupId ? "Accent" : "Text");
+        BuffsButton.Foreground = (Brush)FindResource(_selected == BuffsId ? "Accent" : "Text");
+        if (_selected == BuffsId)
+        {
+            ShowBuffs(r, width);
+            return;
+        }
         if (_selected == GroupId)
         {
             ShowGroupSkills(r, width);
@@ -186,6 +193,50 @@ public partial class LogsWindow : Window
 
     /// <summary>"Player" id of the group view: every player's skills in one list.</summary>
     private const uint GroupId = 0xFFFF_FFFE;
+
+    /// <summary>"Player" id of the buff view.</summary>
+    private const uint BuffsId = 0xFFFF_FFFD;
+
+    private void Buffs_Click(object sender, RoutedEventArgs e)
+    {
+        _selected = _selected == BuffsId ? _record?.Summary.Combatants.FirstOrDefault(c => c.IsSelf)?.ActorId : BuffsId;
+        ShowRecord();
+    }
+
+    /// <summary>
+    /// The fight's buffs and debuffs: bar and right column = uptime; middle = DPS with / without, and the difference.
+    /// A buff compares the damage of the players who had it; a debuff on the boss compares the whole group's.
+    /// </summary>
+    private void ShowBuffs(FightRecord r, double width)
+    {
+        SkillPanel.Visibility = Visibility.Visible;
+        ProfileButton.Visibility = Visibility.Collapsed;
+        SkillTitle.Text = L.S("Buffs & Debuffs", "Buffs & debuffs");
+        var buffs = r.Buffs ?? [];
+        SkillStats.Text = r.Buffs is null
+            ? L.S("Keine Buff-Daten: Kämpfe werden erst ab v1.29.0 mit Buffs gespeichert.", "No buff data: fights are saved with buffs from v1.29.0 on.")
+            : buffs.Count == 0 ? L.S("In diesem Kampf wurden keine Buffs erkannt.", "No buffs were seen in this fight.")
+            : L.S("Rechts: Uptime · Mitte: DPS mit / ohne", "Right: uptime · middle: DPS with / without");
+        var swidth = Math.Max(0, Skills.ActualWidth > 0 ? Skills.ActualWidth : width);
+        var dim = ClassStyle.Bar(GameClass.Unknown, 0.22);
+        Skills.ItemsSource = buffs.Select(b =>
+        {
+            var who = b.OnTarget ? L.S("Debuff auf dem Boss", "debuff on the boss") : $"{b.Players}/{b.PlayersInFight}";
+            var by = b.CasterName is { Length: > 0 } c && !b.OnTarget ? L.S($" · von {c}", $" · by {c}") : b.OnTarget && b.CasterName is { Length: > 0 } c2 ? L.S($" · von {c2}", $" · by {c2}") : "";
+            var compare = b is { DpsWith: { } w, DpsWithout: { } wo } ? $"{Format.Compact(w)} / {Format.Compact(wo)}" : "–";
+            var gain = b is { DpsWith: { } w2, DpsWithout: { } wo2 } && wo2 > 0 ? $"{(w2 / wo2 - 1) * 100:+0;-0;0}%" : "";
+            return new SkillVm
+            {
+                Name = $"{b.Name}   {who}{by}",
+                Icon = b.Icon is { } icon ? SkillIcons.ByName(icon) : null,
+                Stagger = gain,
+                Damage = compare,
+                Share = Format.Share(b.Uptime),
+                BarWidth = Math.Round(swidth * b.Uptime),
+                BarBrush = b.OnTarget ? ClassStyle.Bar(GameClass.Unknown, 0.30) : dim,
+            };
+        }).ToList();
+    }
 
     private void Group_Click(object sender, RoutedEventArgs e)
     {

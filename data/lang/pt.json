@@ -354,5 +354,11 @@
   "Show your character portrait instead of the class emblem": "Mostrar o retrato do seu personagem em vez do emblema da classe",
   "Top skills": "Melhores habilidades",
   "The strongest skills of the whole group": "As habilidades mais fortes de todo o grupo",
-  "Group – strongest skills": "Grupo – habilidades mais fortes"
+  "Group – strongest skills": "Grupo – habilidades mais fortes",
+  "Buffs & debuffs": "Buffs e debuffs",
+  "Right: uptime · middle: DPS with / without": "Direita: tempo ativo · meio: DPS com / sem",
+  "No buff data: fights are saved with buffs from v1.29.0 on.": "Sem dados de buffs: as lutas são salvas com buffs a partir da v1.29.0.",
+  "No buffs were seen in this fight.": "Nenhum buff foi detectado nesta luta.",
+  "debuff on the boss": "debuff no chefe",
+  "Buffs and debuffs: how long they were up and the DPS with and without them": "Buffs e debuffs: quanto tempo ficaram ativos e o DPS com e sem eles"
 }

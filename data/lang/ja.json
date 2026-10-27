@@ -355,5 +355,11 @@
   "Show your character portrait instead of the class emblem": "職業エンブレムの代わりにキャラクターの肖像を表示",
   "Top skills": "トップスキル",
   "The strongest skills of the whole group": "パーティ全体で最も強いスキル",
-  "Group – strongest skills": "パーティ – 最強スキル"
+  "Group – strongest skills": "パーティ – 最強スキル",
+  "Buffs & debuffs": "バフとデバフ",
+  "Right: uptime · middle: DPS with / without": "右：稼働率 · 中央：あり / なしの DPS",
+  "No buff data: fights are saved with buffs from v1.29.0 on.": "バフデータなし：v1.29.0 以降の戦闘からバフが保存されます。",
+  "No buffs were seen in this fight.": "この戦闘ではバフが検出されませんでした。",
+  "debuff on the boss": "ボスへのデバフ",
+  "Buffs and debuffs: how long they were up and the DPS with and without them": "バフとデバフ：稼働時間と、あり / なしの DPS"
 }

@@ -101,7 +101,7 @@
                             <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
                                 <StackPanel>
                                     <TextBlock x:Name="FightTitle" Foreground="{StaticResource Text}" FontSize="16" FontWeight="SemiBold"
-                                               TextTrimming="CharacterEllipsis" Margin="0,0,250,0" />
+                                               TextTrimming="CharacterEllipsis" Margin="0,0,330,0" />
                                     <TextBlock x:Name="FightMeta" Foreground="{StaticResource TextDim}" FontSize="11" Margin="0,3,0,0" />
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
@@ -110,6 +110,13 @@
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock Text="&#xE716;" FontFamily="{StaticResource IconFont}" Margin="0,1,6,0" />
                                             <TextBlock Text="{local:T De='Top-Skills', En='Top skills'}" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button x:Name="BuffsButton" Style="{StaticResource Chip}" Height="24" Click="Buffs_Click" Margin="0,0,4,0"
+                                            ToolTip="{local:T De='Buffs und Debuffs: wie lange sie aktiv waren und die DPS mit und ohne sie', En='Buffs and debuffs: how long they were up and the DPS with and without them'}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE945;" FontFamily="{StaticResource IconFont}" Margin="0,1,6,0" />
+                                            <TextBlock Text="Buffs" />
                                         </StackPanel>
                                     </Button>
                                     <Button Style="{StaticResource Chip}" Height="24" Click="Copy_Click" Margin="0,0,4,0">

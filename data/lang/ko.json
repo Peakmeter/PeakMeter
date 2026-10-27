@@ -355,5 +355,11 @@
   "Show your character portrait instead of the class emblem": "직업 문양 대신 내 캐릭터 초상화 표시",
   "Top skills": "상위 스킬",
   "The strongest skills of the whole group": "파티 전체에서 가장 강한 스킬",
-  "Group – strongest skills": "파티 – 가장 강한 스킬"
+  "Group – strongest skills": "파티 – 가장 강한 스킬",
+  "Buffs & debuffs": "버프 및 디버프",
+  "Right: uptime · middle: DPS with / without": "오른쪽: 유지율 · 가운데: 있을 때 / 없을 때 DPS",
+  "No buff data: fights are saved with buffs from v1.29.0 on.": "버프 데이터 없음: v1.29.0부터 전투에 버프가 저장됩니다.",
+  "No buffs were seen in this fight.": "이 전투에서는 버프가 감지되지 않았습니다.",
+  "debuff on the boss": "보스 디버프",
+  "Buffs and debuffs: how long they were up and the DPS with and without them": "버프와 디버프: 유지 시간과 있을 때 / 없을 때의 DPS"
 }

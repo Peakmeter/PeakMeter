@@ -171,4 +171,5 @@ public sealed record BossNotice(int NpcCode, int MapId, string? Zone, BossNotice
     int ServerId = 0);
 
 /// <summary>A whole fight as saved to disk.</summary>
-public sealed record FightRecord(int Version, EncounterSnapshot Summary, IReadOnlyList<CombatantDetail> Details);
+public sealed record FightRecord(int Version, EncounterSnapshot Summary, IReadOnlyList<CombatantDetail> Details,
+    IReadOnlyList<BuffSummary>? Buffs = null);

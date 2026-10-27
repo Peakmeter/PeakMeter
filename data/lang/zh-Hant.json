@@ -355,5 +355,11 @@
   "Show your character portrait instead of the class emblem": "顯示角色頭像而非職業徽章",
   "Top skills": "最強技能",
   "The strongest skills of the whole group": "整個隊伍最強的技能",
-  "Group – strongest skills": "隊伍 – 最強技能"
+  "Group – strongest skills": "隊伍 – 最強技能",
+  "Buffs & debuffs": "增益與減益",
+  "Right: uptime · middle: DPS with / without": "右：持續率 · 中：有 / 無時的 DPS",
+  "No buff data: fights are saved with buffs from v1.29.0 on.": "沒有增益資料：從 v1.29.0 起戰鬥才會保存增益。",
+  "No buffs were seen in this fight.": "這場戰鬥沒有偵測到增益。",
+  "debuff on the boss": "首領身上的減益",
+  "Buffs and debuffs: how long they were up and the DPS with and without them": "增益與減益：持續多久，以及有無時的 DPS"
 }

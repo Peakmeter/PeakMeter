@@ -30,6 +30,9 @@ public static class Opcodes
     public const ushort PartyRoster = 0x0297;
     public const ushort ResourceList = 0x0B61;   // PeakMeter: every counter at login, Odyle energy included
     public const ushort OdyleEnergy = 0x0C61;    // PeakMeter: Odyle energy (regen pool + bonus pool), sent when it changes
+    public const ushort BuffAdded = 0x2A38;      // a buff/debuff put on (A2Tools-DPS-Meter / Daevalog)
+    public const ushort BuffChanged = 0x2B38;    // renewed or changed
+    public const ushort BuffRemoved = 0x2C38;    // taken off, by instance
     public const ushort StaggerGauge = 0x05E0;   // a monster's stagger gauge (A2Tools-DPS-Meter)
     public const ushort FieldBossList = 0x0191;  // a map's field bosses: alive since / back at (in-game map list)
 

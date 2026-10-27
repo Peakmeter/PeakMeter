@@ -365,6 +365,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.29.0 – Logs: Knopf „Buffs“ zeigt jeden Buff und Boss-Debuff mit Uptime und DPS mit / ohne (für die ganze Gruppe)\n\n" +
         "v1.28.0 – Logs: Knopf „Top-Skills“ zeigt die stärksten Skills der ganzen Gruppe (wer mit welchem Skill am meisten Schaden gemacht hat)\n\n" +
         "v1.27.0 – Stagger: ⚡ mit Prozent neben der DPS zeigt, wie viel Stagger jeder Spieler macht, und an den Skills, welcher Skill wie viel davon gemacht hat\n\n" +
         "v1.26.0 – Tode: ☠ mit Zahl hinter dem Namen zeigt, wie oft jemand im Kampf gestorben ist (Meter und Logs)\n\n" +
@@ -399,6 +400,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.29.0 – Logs: the “Buffs” button shows every buff and boss debuff with its uptime and the DPS with / without it (for the whole group)\n\n" +
         "v1.28.0 – Logs: the “Top skills” button shows the whole group's strongest skills (who did the most damage with which skill)\n\n" +
         "v1.27.0 – Stagger: ⚡ with a percentage next to the DPS shows each player's share of the stagger, and on the skills which skill did how much\n\n" +
         "v1.26.0 – Deaths: ☠ with a number after the name shows how often someone died in the fight (meter and logs)\n\n" +

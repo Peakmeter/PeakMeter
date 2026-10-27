@@ -14,6 +14,12 @@ public sealed class GameData
 {
     public string Language { get; private set; } = "en";
     public Dictionary<int, string> Skills { get; private set; } = new();
+    /// <summary>Buff and debuff names (SkillAbnormal ids) and their icon file names.</summary>
+    public Dictionary<uint, string> Abnormals { get; } = new();
+    public Dictionary<uint, string> AbnormalIcons { get; } = new();
+
+    public string? AbnormalName(uint id) => Abnormals.GetValueOrDefault(id);
+    public string? AbnormalIcon(uint id) => AbnormalIcons.GetValueOrDefault(id);
     public Dictionary<int, NpcDef> Npcs { get; private set; } = new();
     public HashSet<int> DotSkills { get; } = new();
     public HashSet<int> HealSkills { get; } = new();
@@ -57,7 +63,13 @@ public sealed class GameData
             LoadSkills(data, Path.Combine(directory, "skills", lang + ".json"));
             LoadNpcs(data, Path.Combine(directory, "npcs", lang + ".json"));
             LoadMaps(data, Path.Combine(directory, "dungeons", lang + ".json"));
+            foreach (var (key, value) in ReadObject(Path.Combine(directory, "abnormals", lang + ".json")))
+                if (uint.TryParse(key, out var id) && value.ValueKind == JsonValueKind.String && value.GetString() is { Length: > 0 } name)
+                    data.Abnormals[id] = name;
         }
+        foreach (var (key, value) in ReadObject(Path.Combine(directory, "abnormal_icons.json")))
+            if (uint.TryParse(key, out var id) && value.ValueKind == JsonValueKind.String && value.GetString() is { Length: > 0 } icon)
+                data.AbnormalIcons[id] = icon;
         // Single-file overrides (user-supplied corrections) win over everything.
         LoadSkills(data, Path.Combine(directory, "skills.json"));
         LoadNpcs(data, Path.Combine(directory, "npcs.json"));

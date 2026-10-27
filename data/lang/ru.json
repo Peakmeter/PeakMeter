@@ -354,5 +354,11 @@
   "Show your character portrait instead of the class emblem": "Показывать портрет персонажа вместо эмблемы класса",
   "Top skills": "Лучшие умения",
   "The strongest skills of the whole group": "Самые сильные умения всей группы",
-  "Group – strongest skills": "Группа – самые сильные умения"
+  "Group – strongest skills": "Группа – самые сильные умения",
+  "Buffs & debuffs": "Баффы и дебаффы",
+  "Right: uptime · middle: DPS with / without": "Справа: время действия · в центре: DPS с / без",
+  "No buff data: fights are saved with buffs from v1.29.0 on.": "Нет данных о баффах: бои сохраняются с баффами начиная с v1.29.0.",
+  "No buffs were seen in this fight.": "В этом бою баффы не обнаружены.",
+  "debuff on the boss": "дебафф на боссе",
+  "Buffs and debuffs: how long they were up and the DPS with and without them": "Баффы и дебаффы: сколько они действовали и DPS с ними и без них"
 }
