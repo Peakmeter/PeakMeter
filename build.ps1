@@ -14,7 +14,7 @@ dotnet publish $proj -c Release -r win-x64 --self-contained `
 if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
 
 Copy-Item (Join-Path $root 'LICENSE') $out
-Copy-Item (Join-Path $root 'LIESMICH.txt') $out
+Copy-Item (Join-Path $root 'README.txt') $out
 Copy-Item (Join-Path $root 'installer\install.ps1') $out
 Copy-Item (Join-Path $root 'installer\PeakMeter installieren.cmd') $out
 

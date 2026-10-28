@@ -369,6 +369,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.34.1 – Im Download liegt jetzt README.txt (Englisch und Deutsch) statt LIESMICH.txt\n\n" +
         "v1.34.0 – Anonyme Nutzerzahl: Solange PeakMeter mit dem Spiel verbunden ist, zählt es einen öffentlichen Zähler hoch, damit wir sehen, wie viele mit PeakMeter spielen. Kein Name, kein Charakter, keine ID. Abschaltbar unter Einstellungen → „Anonym mitzählen“\n\n" +
         "v1.33.0 – Bereit-Check: In der Gruppenliste steht in der Lobby ✓ (bereit) oder ✗ (nicht bereit) bei jedem Mitglied, oben „Bereit 2/4“. Danke an derjerm für die Aufnahme!\n\n" +
         "v1.32.0 – Stirbst du am Boss und wirst am Kibelisk wiederbelebt, läuft der Kampf weiter (3 Min. Zeit zum Zurücklaufen) · Fremde an Trainingspuppen starten keinen Kampf mehr; in einer Gruppe startet nur noch deine Gruppe einen Kampf · Gruppenliste: neue Mitglieder erscheinen auch ohne offenes Gruppenfenster, fremde Gruppen aus der Gruppensuche werden ignoriert, Verlassen der Gruppe wird erkannt\n\n" +
@@ -419,6 +420,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.34.1 – The download now has README.txt (English and German) instead of LIESMICH.txt\n\n" +
         "v1.34.0 – Anonymous player count: while connected to the game, PeakMeter raises a public counter so we can see how many play with it. No name, no character, no id. Turn it off under Settings → “Count me anonymously”\n\n" +
         "v1.33.0 – Ready check: in the lobby the party list shows ✓ (ready) or ✗ (not ready) for every member, and “Ready 2/4” on top. Thanks to derjerm for the recording!\n\n" +
         "v1.32.0 – Die on a boss and revive at a Kibelisk: the fight goes on (3 min to run back) · Strangers on training dummies no longer start a fight; in a party only your party starts one · Party list: new members show without the party window open, other parties from the party finder are ignored, leaving the party is noticed\n\n" +

@@ -25,10 +25,12 @@ New-Item -ItemType Directory -Force $dst | Out-Null
 $copied = $false
 for ($try = 1; $try -le 20 -and -not $copied; $try++) {
     try {
-        foreach ($item in 'PeakMeter.exe', 'data', 'LICENSE', 'LIESMICH.txt') {
+        foreach ($item in 'PeakMeter.exe', 'data', 'LICENSE', 'README.txt') {
             $from = Join-Path $src $item
             if (Test-Path $from) { Copy-Item $from $dst -Recurse -Force -ErrorAction Stop }
         }
+        # The German-only readme of older versions: README.txt (English and German) replaces it.
+        Remove-Item (Join-Path $dst 'LIESMICH.txt') -Force -ErrorAction SilentlyContinue
         $copied = $true
     }
     catch { Start-Sleep -Milliseconds 750 }
