@@ -912,6 +912,8 @@ public sealed class Meter : IDisposable
         if (s.Boss is null && s.CombatMs < _settings.LogMinSeconds * 1000L) return;
         if (_disposing) Save();
         else ThreadPool.QueueUserWorkItem(_ => Save());
+        if (_settings.RankingOptIn && !_demoOnly && !DemoRunning && !_disposing)
+            Ranking.Submit(record, Data, _settings.Region, Log);
 
         void Save()
         {

@@ -37,6 +37,7 @@ public partial class SettingsWindow : Window
         ShowPortrait.IsChecked = _s.ShowPortrait;
         ShowPets.IsChecked = _s.ShowPets;
         CountMe.IsChecked = _s.CountMe;
+        RankingOptIn.IsChecked = _s.RankingOptIn;
         Compact.IsChecked = _s.Compact;
         FocusMode.IsChecked = _s.FocusMode;
         FadeIdle.IsChecked = _s.FadeIdle;
@@ -150,6 +151,7 @@ public partial class SettingsWindow : Window
         _s.ShowPortrait = ShowPortrait.IsChecked == true;
         _s.ShowPets = ShowPets.IsChecked == true;
         _s.CountMe = CountMe.IsChecked == true;
+        _s.RankingOptIn = RankingOptIn.IsChecked == true;
         _s.Compact = Compact.IsChecked == true;
         _s.FocusMode = FocusMode.IsChecked == true;
         _s.FadeIdle = FadeIdle.IsChecked == true;
@@ -351,6 +353,7 @@ public partial class SettingsWindow : Window
         CopyLinkText.Text = L.S("Link kopiert ✓ – einfach im Chat einfügen.", "Link copied ✓ – just paste it in chat.");
     }
     private void OpenFolder_Click(object sender, RoutedEventArgs e) => Open(Settings.Dir);
+    private void Ranking_Click(object sender, RoutedEventArgs e) => Open(Ranking.PageUrl(_s.Region));
     private void OpenLog_Click(object sender, RoutedEventArgs e) => Open(Path.Combine(Settings.Dir, "peakmeter.log"));
     private void Demo_Click(object sender, RoutedEventArgs e) { _app.SetVisible(true); _app.Meter.StartDemo(); }
     private void Energy_Click(object sender, RoutedEventArgs e) => _app.ShowEnergy();
@@ -369,6 +372,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.35.0 – Ranking: Wer unter Einstellungen → „Am Ranking teilnehmen“ einschaltet, erscheint nach Dungeon-Boss-Kills in einer öffentlichen Rangliste für DPS, Heilung und Stagger – pro Boss dein bester Kill. Gesendet werden nur deine eigenen Werte. Knopf „Rangliste öffnen“ in den Einstellungen\n\n" +
         "v1.34.1 – Im Download liegt jetzt README.txt (Englisch und Deutsch) statt LIESMICH.txt\n\n" +
         "v1.34.0 – Anonyme Nutzerzahl: Solange PeakMeter mit dem Spiel verbunden ist, zählt es einen öffentlichen Zähler hoch, damit wir sehen, wie viele mit PeakMeter spielen. Kein Name, kein Charakter, keine ID. Abschaltbar unter Einstellungen → „Anonym mitzählen“\n\n" +
         "v1.33.0 – Bereit-Check: In der Gruppenliste steht in der Lobby ✓ (bereit) oder ✗ (nicht bereit) bei jedem Mitglied, oben „Bereit 2/4“. Danke an derjerm für die Aufnahme!\n\n" +
@@ -420,6 +424,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.35.0 – Ranking: turn on Settings → “Join the ranking” and your dungeon boss kills appear in a public list for DPS, healing and stagger – your best kill per boss. Only your own values are sent. Button “Open ranking” in the settings\n\n" +
         "v1.34.1 – The download now has README.txt (English and German) instead of LIESMICH.txt\n\n" +
         "v1.34.0 – Anonymous player count: while connected to the game, PeakMeter raises a public counter so we can see how many play with it. No name, no character, no id. Turn it off under Settings → “Count me anonymously”\n\n" +
         "v1.33.0 – Ready check: in the lobby the party list shows ✓ (ready) or ✗ (not ready) for every member, and “Ready 2/4” on top. Thanks to derjerm for the recording!\n\n" +

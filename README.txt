@@ -20,6 +20,7 @@ WHAT IT DOES
 - Ready check: ✓ / ✗ for every party member in the lobby.
 - Pets: at a monster you see how many souls its pet still needs (green = full, orange = level 2, red = far off).
   Pet window (paw button): "Here in this area", all pets, and a "Map" button that shows the spawns.
+- Ranking (opt-in): the best DPS, healing and stagger per dungeon boss.
 - Logs: every fight saved, with the party's "Top skills" and "Buffs" (uptime, DPS with / without).
 - Event timers with a soft chime: Shugo festival, air raid, rift, siege, Nahma … and every world boss.
   Tip: open Map -> Exploration -> Field monsters once in the game, and PeakMeter takes the real respawn times.
@@ -45,6 +46,8 @@ Still, third-party tools may be against the terms of service – use at your own
 Anonymous player count: while connected to the game, PeakMeter raises a public counter
 (abacus.jasoncameron.dev) by one every 10 minutes and once a day – no name, character, server or id.
 Turn it off in Settings: "Count me anonymously".
+Ranking (off unless you turn it on, Settings -> "Join the ranking"): after a dungeon boss kill PeakMeter sends only
+YOUR name, server, class, combat power, DPS, healing and stagger to the PeakMeter ranking server. Never other players.
 Not an official product, not affiliated with NCSOFT.
 Uninstall: delete the folder %LocalAppData%\Programs\PeakMeter and the desktop shortcut.
 
@@ -74,6 +77,7 @@ WAS ES KANN
 - Bereit-Check: ✓ / ✗ bei jedem Gruppenmitglied in der Lobby.
 - Pets: Beim Monster siehst du, wie viele Seelen dem Pet noch fehlen (grün = voll, orange = Stufe 2, rot = viel fehlt).
   Pet-Fenster (Pfote unten): „Hier im Gebiet“, alle Pets, Knopf „Karte“ zeigt die Spawns.
+- Ranking (freiwillig): die besten DPS, Heilung und Stagger pro Dungeon-Boss.
 - Logs: jeder Kampf gespeichert, mit „Top-Skills“ der Gruppe und „Buffs“ (Uptime, DPS mit / ohne).
 - Event-Timer mit sanftem Ton: Shugo-Festival, Luftangriff, Riss, Belagerung, Nahma … und alle Weltbosse.
   Tipp: Im Spiel einmal Karte -> Erkundung -> Feldmonster öffnen, dann übernimmt PeakMeter die echten Respawn-Zeiten.
@@ -99,6 +103,9 @@ Trotzdem können Tools von Drittanbietern gegen die Nutzungsbedingungen verstoß
 Anonyme Nutzerzahl: Solange PeakMeter mit dem Spiel verbunden ist, zählt es alle 10 Minuten und einmal am Tag einen
 öffentlichen Zähler (abacus.jasoncameron.dev) um eins hoch – ohne Name, Charakter, Server oder ID. Abschaltbar in den
 Einstellungen: „Anonym mitzählen“.
+Ranking (aus, bis du es einschaltest: Einstellungen -> „Am Ranking teilnehmen“): Nach einem Dungeon-Boss-Kill sendet
+PeakMeter nur DEINEN Namen, Server, Klasse, Kampfkraft, DPS, Heilung und Stagger an den PeakMeter-Ranking-Server.
+Nie andere Spieler.
 Kein offizielles Produkt, nicht mit NCSOFT verbunden.
 Deinstallieren: Ordner %LocalAppData%\Programs\PeakMeter und die Desktop-Verknüpfung löschen.
 

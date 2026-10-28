@@ -150,6 +150,12 @@
 
                         <!-- COMBAT -->
                         <StackPanel x:Name="PageCombat" Visibility="Collapsed">
+                            <TextBlock Style="{StaticResource Section}" Text="RANKING" />
+                            <CheckBox x:Name="RankingOptIn" Style="{StaticResource Switch}" Click="Toggle_Click" Content="{local:T De='Am Ranking teilnehmen', En='Join the ranking'}" />
+                            <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,2,0,6" Text="{local:T De='Nach einem Dungeon-Boss-Kill werden nur DEINE Werte gesendet: Name, Server, Klasse, Kampfkraft, DPS, Heilung, Stagger. Andere Spieler nie. Pro Boss zählt dein bester Kill.', En='After a dungeon boss kill only YOUR values are sent: name, server, class, combat power, DPS, healing, stagger. Never other players. Your best kill per boss counts.'}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                <Button Style="{StaticResource Chip}" Height="26" Click="Ranking_Click" Content="{local:T De='Rangliste öffnen', En='Open ranking'}" />
+                            </StackPanel>
                             <TextBlock Style="{StaticResource Section}" Text="{local:T De=KÄMPFE, En=FIGHTS}" />
                             <Grid Style="{StaticResource Row}">
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="220" /><ColumnDefinition Width="44" /></Grid.ColumnDefinitions>

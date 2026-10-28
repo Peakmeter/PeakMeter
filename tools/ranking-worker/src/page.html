@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PeakMeter Ranking</title>
+<style>
+  :root { --bg:#0f1217; --card:#171c24; --edge:#252c38; --text:#e8ecf2; --dim:#8a94a6; --accent:#f2c26b; --gold:#f2c26b; --silver:#c9d1dc; --bronze:#d39a6a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.4 "Segoe UI", system-ui, sans-serif; padding:24px 16px; }
+  .wrap { max-width:980px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  .sub { color:var(--dim); font-size:13px; margin-bottom:18px; }
+  .bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:14px; }
+  select, button { background:var(--card); color:var(--text); border:1px solid var(--edge); border-radius:8px; padding:7px 12px; font:inherit; font-size:14px; cursor:pointer; }
+  button.on { border-color:var(--accent); color:var(--accent); }
+  .layout { display:grid; grid-template-columns:260px 1fr; gap:14px; }
+  @media (max-width:720px) { .layout { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--edge); border-radius:12px; padding:12px; min-width:0; }
+  .zone { color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.4px; margin:10px 6px 4px; }
+  .zone:first-child { margin-top:0; }
+  .boss { display:flex; justify-content:space-between; gap:8px; padding:7px 8px; border-radius:7px; cursor:pointer; }
+  .boss:hover { background:#1e2530; }
+  .boss.on { background:#232b37; color:var(--accent); }
+  .boss small { color:var(--dim); }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th { text-align:left; color:var(--dim); font-weight:600; font-size:12px; padding:6px 8px; border-bottom:1px solid var(--edge); }
+  td { padding:7px 8px; border-bottom:1px solid #1d232d; white-space:nowrap; }
+  td.num, th.num { text-align:right; }
+  td.rank { width:36px; color:var(--dim); font-weight:700; }
+  tr:nth-child(2) td.rank { color:var(--gold); } tr:nth-child(3) td.rank { color:var(--silver); } tr:nth-child(4) td.rank { color:var(--bronze); }
+  .val { font-weight:700; color:var(--accent); }
+  .scroll { overflow-x:auto; }
+  .empty { color:var(--dim); padding:24px 8px; text-align:center; }
+  .foot { color:var(--dim); font-size:12px; margin-top:16px; }
+  .srv { color:var(--dim); font-size:12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PeakMeter Ranking</h1>
+  <div class="sub" id="sub"></div>
+  <div class="bar">
+    <select id="region">
+      <option value="eu">Europe</option><option value="nae">NA East</option><option value="naw">NA West</option>
+      <option value="kr">Korea</option><option value="tw">Taiwan</option>
+    </select>
+    <button data-m="dps" class="on">DPS</button>
+    <button data-m="hps" id="b-hps"></button>
+    <button data-m="stagger">Stagger</button>
+  </div>
+  <div class="layout">
+    <div class="card" id="bosses"></div>
+    <div class="card scroll" id="table"></div>
+  </div>
+  <div class="foot" id="foot"></div>
+</div>
+<script>
+const de = (navigator.language || "").toLowerCase().startsWith("de");
+const T = de ? {
+  sub: "Die besten Werte pro Dungeon-Boss. Nur Spieler, die in PeakMeter „Am Ranking teilnehmen“ eingeschaltet haben. Gezählt werden nur Kills, die der Meter von Anfang an gesehen hat.",
+  heal: "Heilung", noBoss: "Noch keine Einträge in dieser Region.", pick: "Boss links auswählen.", none: "Noch keine Einträge für diesen Wert.",
+  player: "Spieler", cls: "Klasse", time: "Kampfzeit", party: "Gruppe", date: "Datum", err: "Server gerade nicht erreichbar.",
+  foot: "Pro Spieler zählt sein bester Kill. Werte pro Sekunde über die ganze Kampfzeit."
+} : {
+  sub: "The best values per dungeon boss. Only players who turned on “Join the ranking” in PeakMeter. Only kills the meter saw from the start count.",
+  heal: "Healing", noBoss: "No entries in this region yet.", pick: "Pick a boss on the left.", none: "No entries for this value yet.",
+  player: "Player", cls: "Class", time: "Fight time", party: "Party", date: "Date", err: "Server not reachable right now.",
+  foot: "Each player's best kill counts. Values per second over the whole fight."
+};
+const CLS_DE = { Gladiator: "Gladiator", Templar: "Templer", Ranger: "Jäger", Assassin: "Assassine", Sorcerer: "Zauberer", Elementalist: "Beschwörer", Cleric: "Kleriker", Chanter: "Kantor", Brawler: "Schläger" };
+document.getElementById("sub").textContent = T.sub;
+document.getElementById("b-hps").textContent = T.heal;
+document.getElementById("foot").textContent = T.foot;
+
+const q = new URLSearchParams(location.search);
+const state = { region: q.get("region") || "eu", boss: Number(q.get("boss")) || 0, metric: q.get("metric") || "dps" };
+const regionSel = document.getElementById("region");
+regionSel.value = state.region;
+regionSel.onchange = () => { state.region = regionSel.value; state.boss = 0; loadBosses(); };
+document.querySelectorAll("button[data-m]").forEach(b => b.onclick = () => { state.metric = b.dataset.m; loadTop(); });
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = v => v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e4 ? (v / 1e3).toFixed(1) + "k" : Math.round(v).toLocaleString();
+const dur = ms => Math.floor(ms / 60000) + ":" + String(Math.floor(ms / 1000) % 60).padStart(2, "0");
+const api = p => fetch(p, { cache: "no-store" }).then(r => { if (!r.ok) throw 0; return r.json(); });
+function syncUrl() {
+  const p = new URLSearchParams({ region: state.region, metric: state.metric });
+  if (state.boss) p.set("boss", state.boss);
+  history.replaceState(null, "", "?" + p);
+}
+
+async function loadBosses() {
+  const el = document.getElementById("bosses");
+  let list;
+  try { list = await api("/api/bosses?region=" + state.region); } catch { el.innerHTML = '<div class="empty">' + T.err + "</div>"; return; }
+  if (!list.length) { el.innerHTML = '<div class="empty">' + T.noBoss + "</div>"; document.getElementById("table").innerHTML = ""; syncUrl(); return; }
+  if (!list.some(b => b.boss === state.boss)) state.boss = list[0].boss;
+  let html = "", zone = null;
+  for (const b of list) {
+    if (b.zone !== zone) { zone = b.zone; html += '<div class="zone">' + esc(zone || "Dungeon") + "</div>"; }
+    html += '<div class="boss' + (b.boss === state.boss ? " on" : "") + '" data-b="' + b.boss + '"><span>' + esc(b.name) + "</span><small>" + b.players + "</small></div>";
+  }
+  el.innerHTML = html;
+  el.querySelectorAll(".boss").forEach(d => d.onclick = () => {
+    state.boss = Number(d.dataset.b);
+    el.querySelectorAll(".boss").forEach(x => x.classList.toggle("on", x === d));
+    loadTop();
+  });
+  loadTop();
+}
+
+async function loadTop() {
+  document.querySelectorAll("button[data-m]").forEach(b => b.classList.toggle("on", b.dataset.m === state.metric));
+  syncUrl();
+  const el = document.getElementById("table");
+  if (!state.boss) { el.innerHTML = '<div class="empty">' + T.pick + "</div>"; return; }
+  let rows;
+  try { rows = await api("/api/top?region=" + state.region + "&boss=" + state.boss + "&metric=" + state.metric + "&limit=100"); }
+  catch { el.innerHTML = '<div class="empty">' + T.err + "</div>"; return; }
+  if (!rows.length) { el.innerHTML = '<div class="empty">' + T.none + "</div>"; return; }
+  const head = state.metric === "dps" ? "DPS" : state.metric === "hps" ? T.heal + "/s" : "Stagger/s";
+  let html = "<table><tr><th>#</th><th>" + T.player + "</th><th>" + T.cls + '</th><th class="num">CP</th><th class="num">' + head +
+    '</th><th class="num">' + T.time + '</th><th class="num">' + T.party + '</th><th class="num">' + T.date + "</th></tr>";
+  rows.forEach((r, i) => {
+    const cls = r.cls ? (de ? CLS_DE[r.cls] || r.cls : r.cls) : "";
+    html += '<tr><td class="rank">' + (i + 1) + "</td><td>" + esc(r.name) + (r.server ? ' <span class="srv">' + esc(r.server) + "</span>" : "") +
+      "</td><td>" + esc(cls) + '</td><td class="num">' + (r.cp ? r.cp.toLocaleString() : "") + '</td><td class="num val">' + fmt(r.value) +
+      '</td><td class="num">' + (r.durMs ? dur(r.durMs) : "") + '</td><td class="num">' + (r.party || "") +
+      '</td><td class="num">' + new Date(r.at).toLocaleDateString(de ? "de-DE" : undefined) + "</td></tr>";
+  });
+  el.innerHTML = html + "</table>";
+}
+loadBosses();
+</script>
+</body>
+</html>
