@@ -34,6 +34,10 @@ nothing of that site is bundled.
 [taengu/A2Tools-DPS-Meter](https://github.com/taengu/A2Tools-DPS-Meter) `src-tauri/src/capture/field_bosses.rs`, commit
 `69f63e2` (2026-10-18), GPL-3.0, itself from the game's tables.
 
+The party handling (rosters `02 97` read wherever they appear, other parties' rosters from the party finder told
+apart by party key, partial rosters merged, `13 92` / `1D 97` as leaving the party) follows A2Tools-DPS-Meter
+(`src-tauri/src/capture/stream_processor.rs`, `combat/data_storage.rs`, GPL-3.0), reimplemented in C#.
+
 The optional character portrait comes from NCSOFT's official character search (`api-search.plaync.com`) and profile
 image server (`profileimg.plaync.com`), the ones the AION 2 website uses, and is kept in `%AppData%\PeakMeter\portraits`.
 

@@ -81,7 +81,13 @@ public sealed record OdyleEnergyEvent(long TimeMs, int Regen, int Bonus, int Cha
 /// <summary>A counter message (<c>0C 61</c>) that is not Odyle energy: kept raw until its layout is known (PeakMeter).</summary>
 public sealed record ResourceRawEvent(long TimeMs, byte[] Raw) : GameEvent(TimeMs);
 
-public sealed record PartyRosterEvent(long TimeMs, IReadOnlyList<PartyMemberInfo> Members) : GameEvent(TimeMs);
+/// <param name="PartyKey">The party's id: the party finder also sends other parties' rosters.</param>
+/// <param name="Complete">Every member the record declares was read (a partial one only updates those it read).</param>
+public sealed record PartyRosterEvent(long TimeMs, IReadOnlyList<PartyMemberInfo> Members, uint PartyKey = 0, bool Complete = true) : GameEvent(TimeMs);
+
+/// <summary>You are no longer in a party (<c>13 92 00 00</c> open world, <c>1D 97 00 00</c> dungeon / raid; layout as
+/// documented by A2Tools-DPS-Meter, GPL-3.0).</summary>
+public sealed record PartyLeftEvent(long TimeMs) : GameEvent(TimeMs);
 
 /// <summary>A player's server, known by name only (summon / loot owner records).</summary>
 public sealed record PlayerServerEvent(long TimeMs, string Name, int ServerId) : GameEvent(TimeMs);

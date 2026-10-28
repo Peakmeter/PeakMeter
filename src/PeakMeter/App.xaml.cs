@@ -412,6 +412,55 @@ public sealed class Meter : IDisposable
 
     /// <summary>Raised (on any thread) when the party's members change.</summary>
     public event Action? RosterChanged;
+
+    private readonly object _rosterGate = new();
+    private uint _ownPartyKey;   // your party's id, once a roster with you in it gave it
+    private bool _selfInRoster;
+
+    /// <summary>
+    /// What a roster means for your party (as A2Tools-DPS-Meter handles it, GPL-3.0): the party finder also sends
+    /// other parties' rosters (a whole roster without you, of another party: ignored); a partial one only updates
+    /// the members it read; a whole one without you, or with you alone, means the party is over.
+    /// </summary>
+    private PartyRosterEvent? TakeRoster(PartyRosterEvent r)
+    {
+        var self = Tracker.SelfName;
+        var hasSelf = self is not null && r.Members.Any(m => string.Equals(m.Name, self, StringComparison.OrdinalIgnoreCase));
+        if (r.Complete && !hasSelf && _ownPartyKey != 0 && r.PartyKey != _ownPartyKey) return Roster;
+        if (hasSelf)
+        {
+            _selfInRoster = true;
+            if (r.PartyKey != 0) _ownPartyKey = r.PartyKey;
+        }
+        if (r.Complete && Roster is { Members.Count: >= 2 } && (r.Members.Count <= 1 || (_selfInRoster && self is not null && !hasSelf)))
+        {
+            _ownPartyKey = 0;
+            _selfInRoster = false;
+            return null;
+        }
+        if (r.Complete || Roster is null) return r.Members.Count > 0 ? r : null;
+        // Partial: keep the members it did not read.
+        var merged = Roster.Members.Where(m => !r.Members.Any(n => string.Equals(n.Name, m.Name, StringComparison.OrdinalIgnoreCase)))
+            .Concat(r.Members).ToList();
+        return r with { Members = merged };
+    }
+
+    private void SetRoster(PartyRosterEvent? roster)
+    {
+        var before = Roster;
+        Roster = roster;
+        Tracker.PartyNames = roster is null
+            ? new HashSet<string>()
+            : roster.Members.Select(m => m.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        // The server repeats the roster every few seconds: only a real change counts.
+        static string Key(PartyRosterEvent? x) => x is null ? "" :
+            string.Join("|", x.Members.OrderBy(m => m.Name).Select(m => $"{m.Name}:{m.GearScore}:{m.CombatPower}:{m.Level}"));
+        if (Key(before) != Key(Roster))
+        {
+            Log(roster is null ? "Party: left" : $"Party: {roster.Members.Count} members");
+            RosterChanged?.Invoke();
+        }
+    }
     /// <summary>Raised on a worker thread after a fight was written to the logs.</summary>
     public event Action? FightSaved;
     private readonly bool _demoOnly;
@@ -532,12 +581,7 @@ public sealed class Meter : IDisposable
             Odyle.Set(settings.OdyleValue);
         Tracker.RosterReceived += r =>
         {
-            var before = Roster;
-            Roster = r.Members.Count > 0 ? r : null;
-            // The server repeats the roster every few seconds: only a real change counts.
-            static string Key(PartyRosterEvent? x) => x is null ? "" :
-                string.Join("|", x.Members.Select(m => $"{m.Name}:{m.GearScore}:{m.CombatPower}:{m.Level}"));
-            if (Key(before) != Key(Roster)) RosterChanged?.Invoke();
+            lock (_rosterGate) SetRoster(TakeRoster(r));
         };
 
         // World boss respawns: kills seen nearby and the in-game field boss list (map → exploration → field monsters).
@@ -579,6 +623,14 @@ public sealed class Meter : IDisposable
         }
         switch (e)
         {
+            case PartyLeftEvent:
+                lock (_rosterGate)
+                {
+                    _ownPartyKey = 0;
+                    _selfInRoster = false;
+                    if (Roster is not null) SetRoster(null);
+                }
+                return;
             case NpcSeenEvent ns when PetBook.ByNpc.ContainsKey(ns.NpcCode):
                 lock (_petMobs) _petMobs[ns.ActorId] = (ns.NpcCode, Environment.TickCount64);
                 break;

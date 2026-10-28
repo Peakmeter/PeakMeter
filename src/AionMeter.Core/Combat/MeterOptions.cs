@@ -17,6 +17,9 @@ public sealed class MeterOptions
     /// <summary>Longer timeout while a boss is still alive — covers invulnerable phases and cut-scenes.</summary>
     public int BossIdleTimeoutMs { get; set; } = 30_000;
 
+    /// <summary>After you die on a boss that is still alive: time to revive and run back before the fight ends.</summary>
+    public int ReviveGraceMs { get; set; } = 180_000;
+
     /// <summary>Single hits above this are treated as parse errors and dropped.</summary>
     public long MaxSingleHit { get; set; } = 50_000_000;
 

@@ -54,6 +54,15 @@ public sealed class PacketParser
         if (opcode is not (Opcodes.ResourceList or Opcodes.OdyleEnergy or Opcodes.Heartbeat) && body.Length is >= 7 and <= 8192)
             FindOdyle(opcode, body);
 
+        // Leaving a party: the record is only the opcode and two zero bytes.
+        if (opcode is 0x1392 or 0x1D97 && body.Length == 2 && body[0] == 0 && body[1] == 0)
+            Emit(new PartyLeftEvent(TimeMs));
+
+        // The party roster rides inside any other message too (someone joining while the party window is closed):
+        // look for it in every message, not only in the ones no parser claims.
+        if (opcode != Opcodes.PartyRoster && body.Length >= 42)
+            ScanForRoster(body);
+
         switch (opcode)
         {
             case Opcodes.Heartbeat:
@@ -141,7 +150,6 @@ public sealed class PacketParser
                 if (body.Length >= 16)
                 {
                     ScanForIdentities(body);
-                    ScanForRoster(body);
                     ScanForOwners(body);
                     ScanEmbeddedBundles(body);
                 }
@@ -746,6 +754,7 @@ public sealed class PacketParser
         if (!Wire.TryVarint(b, ref o, out var count) || count is < 1 or > 12) return false;
 
         var members = new List<PartyMemberInfo>();
+        var complete = false;
         for (var i = 0; i < count && o + 11 <= b.Length; i++)
         {
             var mask = b[o];
@@ -756,7 +765,11 @@ public sealed class PacketParser
             {
                 // A vacant slot. Others can follow (slots 1 and 5 filled, 2-4 empty): look past it.
                 var later = FindLaterMember(b, o + 11, slot, (int)count);
-                if (later < 0) break;
+                if (later < 0)
+                {
+                    complete = true; // the rest are vacant
+                    break;
+                }
                 o = later;
                 continue;
             }
@@ -793,14 +806,18 @@ public sealed class PacketParser
             o = anchor + 5 + 8;
             members.Add(new PartyMemberInfo(name, server, (int)level, gear is >= 1 and <= 50_000 ? (int)gear : 0, (long)power, cls));
 
-            if (slot >= count) break;
+            if (slot >= count)
+            {
+                complete = true;
+                break;
+            }
             var nextMember = FindRosterMember(b, o, (byte)(slot + 1));
             if (nextMember < 0) nextMember = FindVacantSlot(b, o, (byte)(slot + 1));
             if (nextMember < 0) break;
             o = nextMember;
         }
         if (members.Count == 0) return false;
-        Emit(new PartyRosterEvent(TimeMs, members));
+        Emit(new PartyRosterEvent(TimeMs, members, Wire.U32(b, 0), complete));
         return true;
     }
 
@@ -852,8 +869,9 @@ public sealed class PacketParser
 
     private void ScanForRoster(ReadOnlySpan<byte> b)
     {
+        // Every roster: the party finder sends other parties' rosters next to yours (the app tells them apart).
         for (var i = 0; i + 40 < b.Length; i++)
-            if (b[i] == 0x02 && b[i + 1] == 0x97 && ParsePartyRoster(b[(i + 2)..])) return;
+            if (b[i] == 0x02 && b[i + 1] == 0x97 && ParsePartyRoster(b[(i + 2)..])) i += 40;
     }
 
     /// <summary>The start of the roster record for <paramref name="slot"/>, by its header shape, within 32 bytes.</summary>

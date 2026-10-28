@@ -18,6 +18,11 @@ public sealed class CombatTracker
     private readonly List<Encounter> _justFinished = new();
     private Encounter? _current;
     private bool _viewCleared;
+    /// <summary>When the local character last went down: a boss fight then waits for the run back.</summary>
+    private long _selfDownMs;
+
+    /// <summary>Names of your party (set by the app from the roster); empty when solo or unknown.</summary>
+    public IReadOnlySet<string> PartyNames { get; set; } = new HashSet<string>();
 
     public CombatTracker(GameData data, MeterOptions options)
     {
@@ -289,6 +294,11 @@ public sealed class CombatTracker
             _lastHitAt = Environment.TickCount64;
         }
         if (npc.Hp == 0) return; // trailing DoT ticks on a corpse must not open a new segment after the kill
+
+        // Strangers training on a dummy are not your fight; in a party, strangers fighting nearby start nothing either.
+        var ours = IsOurs(source);
+        if (!ours && npc.NpcCode != 0 && _data.Npcs.TryGetValue(npc.NpcCode, out var def) && def.IsDummy) return;
+        if (!ours && _current is not { IsActive: true } && PartyNames.Count >= 2) return;
 
         if (Options.TargetMode == TargetMode.BossOnly)
         {
@@ -626,6 +636,14 @@ public sealed class CombatTracker
         enc.BossMaxHpKnown = npc.MaxHpKnown;
     }
 
+    /// <summary>You, or a member of your party (anyone, while who you are is not known yet).</summary>
+    private bool IsOurs(uint source)
+    {
+        if (_entities.SelfId is not { } self || source == self) return true;
+        var names = PartyNames;
+        return names.Count > 0 && _entities.TryGetPlayer(source, out var p) && p.Name is { Length: > 0 } n && names.Contains(n);
+    }
+
     private void StartEncounter(long timeMs)
     {
         _current = new Encounter { StartMs = timeMs, LastDamageMs = timeMs, Zone = _entities.ZoneName };
@@ -750,6 +768,7 @@ public sealed class CombatTracker
             return;
         }
         if (!_downPlayers.Add(id)) return;
+        if (id == _entities.SelfId) _selfDownMs = LastEventMs;
         if (_current is { IsActive: true } enc && enc.Combatants.TryGetValue(id, out var c)) c.Deaths++;
     }
 
@@ -758,6 +777,8 @@ public sealed class CombatTracker
         if (_current is not { IsActive: true } enc) return;
         var bossAlive = enc.BossId is { } b && IsAlive(b);
         var timeout = bossAlive ? Options.BossIdleTimeoutMs : Options.IdleTimeoutMs;
+        // You died on the boss: reviving at a Kibelisk takes you out of range, so no hits arrive until you are back.
+        if (bossAlive && _selfDownMs >= enc.StartMs) timeout = Math.Max(timeout, Options.ReviveGraceMs);
         if (nowMs - enc.LastDamageMs > timeout) Finish(EncounterEndReason.Idle, enc.LastDamageMs);
     }
 
