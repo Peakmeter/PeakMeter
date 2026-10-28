@@ -167,8 +167,11 @@
                                                    RenderOptions.BitmapScalingMode="HighQuality" />
                                             <TextBlock x:Name="N" Grid.Column="1" Text="{Binding Name}" Foreground="{StaticResource TextSoft}" FontSize="11.5"
                                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                                            <TextBlock Grid.Column="2" Text="{Binding Level}" Foreground="{StaticResource TextDim}" FontSize="10"
-                                                       VerticalAlignment="Center" Margin="6,0,0,0" />
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,0,0">
+                                                <TextBlock x:Name="R" Text="{Binding ReadyMark}" Foreground="#6FD48A" FontSize="11.5" FontWeight="Bold"
+                                                           VerticalAlignment="Center" Margin="0,0,5,0" />
+                                                <TextBlock Text="{Binding Level}" Foreground="{StaticResource TextDim}" FontSize="10" VerticalAlignment="Center" />
+                                            </StackPanel>
                                             <TextBlock Grid.Column="3" Text="{Binding Gear}" Foreground="{StaticResource Text}" FontSize="11.5" FontWeight="SemiBold"
                                                        HorizontalAlignment="Right" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" />
                                             <TextBlock Grid.Column="4" Text="{Binding Power}" Foreground="{StaticResource TextSoft}" FontSize="11.5"
@@ -176,6 +179,9 @@
                                         </Grid>
                                     </Grid>
                                     <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding NotReady}" Value="True">
+                                            <Setter TargetName="R" Property="Foreground" Value="#E5736B" />
+                                        </DataTrigger>
                                         <DataTrigger Binding="{Binding IsSelf}" Value="True">
                                             <Setter TargetName="N" Property="Foreground" Value="White" />
                                             <Setter TargetName="N" Property="FontWeight" Value="SemiBold" />

@@ -414,6 +414,31 @@ public sealed class Meter : IDisposable
     public event Action? RosterChanged;
 
     private readonly object _rosterGate = new();
+
+    // Ready check answers: party members by character id, yourself apart. Cleared on a map load and with the party.
+    private readonly Dictionary<ulong, bool> _ready = new();
+    private bool? _selfReady;
+
+    /// <summary>A member's ready check answer: true / false, or null when none was seen.</summary>
+    public bool? ReadyOf(PartyMemberInfo m)
+    {
+        lock (_rosterGate)
+        {
+            if (Tracker.SelfName is { } self && string.Equals(m.Name, self, StringComparison.OrdinalIgnoreCase)) return _selfReady;
+            return m.DbId != 0 && _ready.TryGetValue(m.DbId, out var r) ? r : null;
+        }
+    }
+
+    private void ClearReady()
+    {
+        lock (_rosterGate)
+        {
+            if (_ready.Count == 0 && _selfReady is null) return;
+            _ready.Clear();
+            _selfReady = null;
+        }
+        RosterChanged?.Invoke();
+    }
     private uint _ownPartyKey;   // your party's id, once a roster with you in it gave it
     private bool _selfInRoster;
 
@@ -630,6 +655,16 @@ public sealed class Meter : IDisposable
                     _selfInRoster = false;
                     if (Roster is not null) SetRoster(null);
                 }
+                ClearReady();
+                return;
+            case ReadyCheckEvent rc:
+                lock (_rosterGate)
+                {
+                    if (rc.IsSelf) _selfReady = rc.Ready;
+                    else _ready[rc.DbId] = rc.Ready;
+                }
+                Log($"Ready check: {(rc.IsSelf ? "you" : "a member")} {(rc.Ready ? "ready" : "not ready")}");
+                RosterChanged?.Invoke();
                 return;
             case NpcSeenEvent ns when PetBook.ByNpc.ContainsKey(ns.NpcCode):
                 lock (_petMobs) _petMobs[ns.ActorId] = (ns.NpcCode, Environment.TickCount64);
@@ -639,6 +674,7 @@ public sealed class Meter : IDisposable
                 break;
             case ZoneChangedEvent { IsTeleport: false }:
                 lock (_petMobs) _petMobs.Clear();
+                ClearReady(); // into the dungeon (or anywhere else): the check is over
                 break;
             case PetListEvent pl:
                 if (Environment.TickCount64 - _selfSeenAt < 20_000 && Tracker.SelfServerId > 0)

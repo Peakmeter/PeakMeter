@@ -58,6 +58,12 @@ public sealed class PacketParser
         if (opcode is 0x1392 or 0x1D97 && body.Length == 2 && body[0] == 0 && body[1] == 0)
             Emit(new PartyLeftEvent(TimeMs));
 
+        // Ready check: your own answer, and each party member's by their character id.
+        if (opcode == 0x1597 && body.Length == 3 && body[2] <= 1)
+            Emit(new ReadyCheckEvent(TimeMs, 0, body[2] == 1, IsSelf: true));
+        else if (opcode == 0x1697 && body.Length == 9 && body[8] <= 1)
+            Emit(new ReadyCheckEvent(TimeMs, BinaryPrimitives.ReadUInt64LittleEndian(body), body[8] == 1, IsSelf: false));
+
         // The party roster rides inside any other message too (someone joining while the party window is closed):
         // look for it in every message, not only in the ones no parser claims.
         if (opcode != Opcodes.PartyRoster && body.Length >= 42)
@@ -759,6 +765,7 @@ public sealed class PacketParser
         {
             var mask = b[o];
             var slot = b[o + 1];
+            var dbId = o + 10 <= b.Length ? BinaryPrimitives.ReadUInt64LittleEndian(b[(o + 2)..]) : 0;
             var server = Wire.U16(b, o + 8);
             int nameLength = b[o + 10];
             if (nameLength == 0)
@@ -804,7 +811,7 @@ public sealed class PacketParser
             var power = BinaryPrimitives.ReadUInt64LittleEndian(b[(anchor + 5)..]);
             if (power > MaxCombatPower) break;
             o = anchor + 5 + 8;
-            members.Add(new PartyMemberInfo(name, server, (int)level, gear is >= 1 and <= 50_000 ? (int)gear : 0, (long)power, cls));
+            members.Add(new PartyMemberInfo(name, server, (int)level, gear is >= 1 and <= 50_000 ? (int)gear : 0, (long)power, cls, dbId));
 
             if (slot >= count)
             {

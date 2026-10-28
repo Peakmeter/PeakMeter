@@ -692,8 +692,12 @@ public partial class Overlay : Window
             vm.Power = m.CombatPower > 0 ? Format.Power(m.CombatPower) : "–";
             vm.IsSelf = self is not null && string.Equals(m.Name, self, StringComparison.Ordinal);
             vm.SetClass(m.Class);
+            vm.SetReady(_meter.ReadyOf(m));
         }
         PartyTitle.Text = L.S("Gruppe", "Party") + $" · {members.Count}";
+        var answers = members.Select(_meter.ReadyOf).ToList();
+        if (answers.Any(a => a is not null))
+            PartyTitle.Text += L.S($" · Bereit {answers.Count(a => a == true)}/{members.Count}", $" · Ready {answers.Count(a => a == true)}/{members.Count}");
         var gs = members.Where(m => m.GearScore > 0).Select(m => (double)m.GearScore).DefaultIfEmpty().Average();
         var cp = members.Where(m => m.CombatPower > 0).Select(m => (double)m.CombatPower).DefaultIfEmpty().Average();
         PartySummary.TextWrapping = TextWrapping.NoWrap;
@@ -1073,6 +1077,19 @@ public sealed class PartyVm : Vm
     public string Gear { get => _gear; set => Set(ref _gear, value); }
     public string Power { get => _power; set => Set(ref _power, value); }
     public bool IsSelf { get => _self; set => Set(ref _self, value); }
+
+    /// <summary>Ready check: "✓" ready, "✗" not ready, "" no answer seen.</summary>
+    public string ReadyMark { get => _readyMark; private set => Set(ref _readyMark, value); }
+    public bool NotReady { get => _notReady; private set => Set(ref _notReady, value); }
+    private string _readyMark = "";
+    private bool _notReady;
+
+    public void SetReady(bool? ready)
+    {
+        ReadyMark = ready switch { true => "✓", false => "✗", null => "" };
+        NotReady = ready == false;
+    }
+
     public Brush? ClassBrush { get => _brush; private set => Set(ref _brush, value); }
     public ImageSource? Icon { get => _icon; private set => Set(ref _icon, value); }
 

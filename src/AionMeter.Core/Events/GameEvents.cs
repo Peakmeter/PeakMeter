@@ -61,7 +61,8 @@ public sealed record SelfIdentifiedEvent(long TimeMs, uint ActorId, string Name,
 /// <summary>One member of the party roster: the only place the server gives other players' gear score and combat power.</summary>
 /// <param name="GearScore">Equipment item level ("GS"); 0 when it did not read.</param>
 /// <param name="CombatPower">Combat power ("CP"), as on the character sheet.</param>
-public sealed record PartyMemberInfo(string Name, int ServerId, int Level, int GearScore, long CombatPower, GameClass Class);
+/// <param name="DbId">The character's account-wide id (its top 16 bits are its server): what the ready check names.</param>
+public sealed record PartyMemberInfo(string Name, int ServerId, int Level, int GearScore, long CombatPower, GameClass Class, ulong DbId = 0);
 
 /// <summary>
 /// The party roster (<c>02 97</c>), sent whenever the party changes. Members are named, not identified by entity id:
@@ -88,6 +89,10 @@ public sealed record PartyRosterEvent(long TimeMs, IReadOnlyList<PartyMemberInfo
 /// <summary>You are no longer in a party (<c>13 92 00 00</c> open world, <c>1D 97 00 00</c> dungeon / raid; layout as
 /// documented by A2Tools-DPS-Meter, GPL-3.0).</summary>
 public sealed record PartyLeftEvent(long TimeMs) : GameEvent(TimeMs);
+
+/// <summary>A ready check answer in the party lobby: <c>15 97 00 00 &lt;ready&gt;</c> is your own,
+/// <c>16 97 &lt;dbid u64&gt; &lt;ready&gt;</c> a party member's (found by PeakMeter, 2026-10-28).</summary>
+public sealed record ReadyCheckEvent(long TimeMs, ulong DbId, bool Ready, bool IsSelf) : GameEvent(TimeMs);
 
 /// <summary>A player's server, known by name only (summon / loot owner records).</summary>
 public sealed record PlayerServerEvent(long TimeMs, string Name, int ServerId) : GameEvent(TimeMs);
