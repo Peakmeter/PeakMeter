@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PeakMeter Live</title>
+<style>
+  :root { --bg:#0f1217; --card:#171c24; --edge:#252c38; --text:#e8ecf2; --dim:#8a94a6; --accent:#f2c26b; --green:#6fd48a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.4 "Segoe UI", system-ui, sans-serif; padding:24px 16px; }
+  .wrap { max-width:720px; margin:0 auto; }
+  h1 { font-size:20px; margin:0 0 4px; letter-spacing:.2px; }
+  .sub { color:var(--dim); font-size:13px; margin-bottom:20px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:16px; }
+  .card { background:var(--card); border:1px solid var(--edge); border-radius:12px; padding:16px; }
+  .big { font-size:40px; font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums; }
+  .live .big { color:var(--green); }
+  .label { color:var(--dim); font-size:12.5px; margin-top:4px; }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--green); margin-right:6px; animation:p 1.6s infinite; }
+  @keyframes p { 50% { opacity:.3; } }
+  h2 { font-size:14px; color:var(--dim); font-weight:600; margin:0 0 10px; }
+  .bars { display:flex; align-items:flex-end; gap:6px; height:120px; }
+  .bar { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+  .bar i { display:block; width:100%; background:var(--accent); border-radius:4px 4px 0 0; min-height:2px; }
+  .bar b { font-size:11.5px; font-weight:600; margin-bottom:3px; font-variant-numeric:tabular-nums; }
+  .bar span { font-size:10.5px; color:var(--dim); margin-top:4px; white-space:nowrap; }
+  .foot { color:var(--dim); font-size:12px; margin-top:16px; }
+  .err { color:#e5736b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PeakMeter Live</h1>
+  <div class="sub">Anonyme Zählung: wie viele PeakMeter im Spiel verbunden sind. Aktualisiert sich jede Minute.</div>
+
+  <div class="grid">
+    <div class="card live"><div class="big" id="now">–</div><div class="label"><span class="dot"></span>gerade im Spiel (letzte 10 Min.)</div></div>
+    <div class="card"><div class="big" id="today">–</div><div class="label">heute verschiedene Spieler</div></div>
+    <div class="card"><div class="big" id="installs">–</div><div class="label">Installationen gesamt (seit Zählstart)</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:12px"><h2>Letzte 2 Stunden (je 10 Minuten)</h2><div class="bars" id="slots"></div></div>
+  <div class="card"><h2>Letzte 7 Tage (verschiedene Spieler pro Tag)</h2><div class="bars" id="days"></div></div>
+
+  <div class="foot" id="foot">Lädt …</div>
+</div>
+<script>
+const BASE = "https://abacus.jasoncameron.dev/get/peakmeter-live/";
+const pad = n => String(n).padStart(2, "0");
+const ymd = d => `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}`;
+const slotKey = d => `o-${ymd(d)}-${pad(d.getUTCHours())}${Math.floor(d.getUTCMinutes() / 10)}0`;
+const dayKey = d => `d-${ymd(d)}`;
+
+async function get(key) {
+  try {
+    const r = await fetch(BASE + key, { cache: "no-store" });
+    if (!r.ok) return 0;
+    const j = await r.json();
+    return Math.max(0, j.value || 0);
+  } catch { return null; }
+}
+
+function bars(el, items) {
+  const max = Math.max(1, ...items.map(i => i.v || 0));
+  el.innerHTML = items.map(i =>
+    `<div class="bar"><b>${i.v ?? "?"}</b><i style="height:${Math.round(((i.v || 0) / max) * 85)}%"></i><span>${i.label}</span></div>`).join("");
+}
+
+let first = true;
+async function load() {
+  const now = new Date();
+  const slots = [];
+  for (let k = 11; k >= 0; k--) slots.push(new Date(now.getTime() - k * 600000));
+  const slotVals = await Promise.all(slots.map(d => get(slotKey(d))));
+  // The running slot fills over its 10 minutes: "now" is the larger of it and the slot before.
+  const cur = slotVals[11], prev = slotVals[10];
+  document.getElementById("now").textContent = (cur == null && prev == null) ? "?" : Math.max(cur || 0, prev || 0);
+  bars(document.getElementById("slots"), slots.map((d, i) => ({ v: slotVals[i], label: `${pad(d.getHours())}:${pad(Math.floor(d.getMinutes() / 10) * 10)}` })));
+
+  if (first || now.getMinutes() % 5 === 0) {
+    const days = [];
+    for (let k = 6; k >= 0; k--) days.push(new Date(now.getTime() - k * 86400000));
+    const dayVals = await Promise.all(days.map(d => get(dayKey(d))));
+    document.getElementById("today").textContent = dayVals[6] ?? "?";
+    bars(document.getElementById("days"), days.map((d, i) => ({ v: dayVals[i], label: d.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit" }) })));
+    const inst = await get("installs");
+    document.getElementById("installs").textContent = inst ?? "?";
+    first = false;
+  }
+  const failed = slotVals.every(v => v == null);
+  const foot = document.getElementById("foot");
+  foot.className = failed ? "foot err" : "foot";
+  foot.textContent = failed ? "Zähldienst gerade nicht erreichbar, neuer Versuch in einer Minute."
+    : `Stand ${now.toLocaleTimeString("de-DE")} · Nur Meter, die mit dem Spiel verbunden sind und „Anonym mitzählen“ an haben (Standard). Tage in UTC.`;
+}
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>

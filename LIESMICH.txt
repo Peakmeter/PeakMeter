@@ -40,6 +40,9 @@ GUT ZU WISSEN
 -------------
 PeakMeter liest nur den Netzwerkverkehr deines eigenen Spiels: kein Speicherzugriff, nichts wird ans Spiel gesendet.
 Trotzdem können Tools von Drittanbietern gegen die Nutzungsbedingungen verstoßen – Nutzung auf eigenes Risiko.
+Anonyme Nutzerzahl: Solange PeakMeter mit dem Spiel verbunden ist, zählt es alle 10 Minuten und einmal am Tag einen
+öffentlichen Zähler (abacus.jasoncameron.dev) um eins hoch – ohne Name, Charakter, Server oder ID. Abschaltbar in den
+Einstellungen: „Anonym mitzählen“.
 Kein offizielles Produkt, nicht mit NCSOFT verbunden.
 Deinstallieren: Ordner %LocalAppData%\Programs\PeakMeter und die Desktop-Verknüpfung löschen.
 

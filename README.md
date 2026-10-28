@@ -93,7 +93,7 @@ Language, region, hotkeys and more: ⚙ in the overlay footer or right-click the
 
 PeakMeter only **reads your own game's network traffic** (like Wireshark) and only shows what already happened or what the game tells you anyway – no radar, no hidden information, no automation. It never touches game memory, never injects anything and never sends anything to the game. Still, any third-party tool may be against the game's terms of service – use it at your own risk. PeakMeter is a community project and not affiliated with NCSOFT.
 
-PeakMeter itself only contacts `api.github.com` (update check), NCSOFT's image server for skill, buff and character pictures, and NCSOFT's character search for the optional portrait.
+PeakMeter itself only contacts `api.github.com` (update check), NCSOFT's image server for skill, buff and character pictures, and NCSOFT's character search for the optional portrait. While connected to the game it also raises an anonymous public counter on `abacus.jasoncameron.dev` once per 10 minutes and once per day, so we know how many people play with PeakMeter: no name, character, server or id is sent, only the number goes up. Turn it off under Settings → "Count me anonymously".
 
 ## Support
 

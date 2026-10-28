@@ -535,6 +535,8 @@ public sealed class Meter : IDisposable
     }
     private long _selfSeenAt = long.MinValue / 2;
 
+    private readonly OnlineCounter? _online;
+
     public Meter(Settings settings, bool demo, bool saveDemo = false)
     {
         _saveDemo = saveDemo;
@@ -545,6 +547,7 @@ public sealed class Meter : IDisposable
         if (!demo && _names.Load() is { } cached) Tracker.ImportCache(cached);
         Tracker.EncounterFinished += OnFightFinished;
         Odyle = new Odyle(settings);
+        if (!demo) _online = new OnlineCounter(settings, () => Status.State == CaptureState.Capturing);
         PetBook = PetBook.Load(Path.Combine(AppContext.BaseDirectory, "data"));
         Pets = new PetCollection(persistent: !demo);
         // The pet list at login is the server's whose character the game names next (or just named).

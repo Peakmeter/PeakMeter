@@ -73,6 +73,11 @@ public sealed class Settings
     public bool ShowPortrait { get; set; }
     /// <summary>The pet line and the pet button in the meter (off once every pet is done).</summary>
     public bool ShowPets { get; set; } = true;
+    /// <summary>Count this meter, anonymously, in the public "how many play with PeakMeter" number (OnlineCounter).</summary>
+    public bool CountMe { get; set; } = true;
+    /// <summary>The day (d-yyyyMMdd, UTC) this meter was last counted for, so a day counts once.</summary>
+    public string? LastCountDay { get; set; }
+    public bool CountedInstall { get; set; }
     public double UiScale { get; set; } = 1.0;
     /// <summary>Update interval in a fight, milliseconds.</summary>
     public int RefreshMs { get; set; } = 250;
@@ -131,13 +136,18 @@ public sealed class Settings
         return new Settings();
     }
 
+    private static readonly object SaveGate = new();
+
     public void Save()
     {
         try
         {
-            SettingsVersion = 3;
-            Directory.CreateDirectory(Dir);
-            File.WriteAllText(FilePath, JsonSerializer.Serialize(this, Json));
+            lock (SaveGate)
+            {
+                SettingsVersion = 3;
+                Directory.CreateDirectory(Dir);
+                File.WriteAllText(FilePath, JsonSerializer.Serialize(this, Json));
+            }
         }
         catch (Exception) { }
     }
