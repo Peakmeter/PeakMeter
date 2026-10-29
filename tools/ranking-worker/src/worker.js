@@ -9,6 +9,7 @@
 // GET  /api/updates      every version with its note (from the meter's own changelog) and release date
 // GET  /api/char/search  NCSOFT's official character search, trimmed
 // GET  /api/char         one character: official profile, gear, skills (NCSOFT) + PeakMeter bests
+// GET  /api/char/board   one Daevanion board of a character: every node with its place, grade, effect and state
 import page from "./page.html";
 import landing from "./landing.html";
 import player from "./player.html";
@@ -50,6 +51,7 @@ export default {
       if (url.pathname === "/compare" || url.pathname === "/compare/") return html(isBot(req) ? await duelCard(url, env, ctx, compare) : compare);
       if (url.pathname === "/api/char/search") return await charSearch(url);
       if (url.pathname === "/api/char") return await charProfile(url, env, ctx);
+      if (url.pathname === "/api/char/board") return await charBoard(url, ctx);
       if (url.pathname === "/api/updates") return await updates(url, ctx);
       if (url.pathname === "/api/submit" && req.method === "POST") return await submit(req, env);
       if (url.pathname === "/api/bosses") return await bosses(url, env);
@@ -254,6 +256,52 @@ async function charSearch(url) {
   return json(list, 200, { "cache-control": "public, max-age=300" });
 }
 
+// The official character for a name on a server (by name or id); null when the search has none or is down.
+async function findChar(region, server, name) {
+  const sid = /^\d+$/.test(server) ? Number(server) : null;
+  const su = ncSearchUrl(region, name, sid);
+  if (!su) return null;
+  try {
+    const d = await ncJson(su);
+    return (d.list || []).find((c) => strip(c.name).toLowerCase() === name.toLowerCase() &&
+      (sid ? c.serverId === sid : String(c.serverName || "").toLowerCase() === server.toLowerCase())) || null;
+  } catch {
+    return null;
+  }
+}
+
+const charQuery = (region, lang, found) =>
+  (region === "kr" ? `?lang=ko-KR` : `?region=${region}&lang=${lang}`) +
+  `&characterId=${encodeURIComponent(decodeURIComponent(found.characterId))}&serverId=${found.serverId}`;
+
+async function charBoard(url, ctx) {
+  const region = (url.searchParams.get("region") || "eu").toLowerCase();
+  const name = cleanText(url.searchParams.get("name"), 24);
+  const server = cleanText(url.searchParams.get("server"), 30);
+  const board = Number(url.searchParams.get("board"));
+  const lang = url.searchParams.get("lang") === "de" ? "de-DE" : "en-US";
+  if (!REGIONS.has(region) || !name || !server || !Number.isInteger(board) || board <= 0 || board > 999) return json({ error: "invalid" }, 400);
+  const key = new Request(`https://cache.peakmeter/board/v1/${region}/${encodeURIComponent(server.toLowerCase())}/${encodeURIComponent(name.toLowerCase())}/${board}/${lang}`);
+  const cached = await caches.default.match(key);
+  if (cached) return cached;
+  const found = await findChar(region, server, name);
+  if (!found) return json({ error: "not found" }, 404, { "cache-control": "public, max-age=60" });
+  let d;
+  try { d = await ncJson(NC_CHAR + "daevanion/detail" + charQuery(region, lang, found) + `&boardId=${board}`); }
+  catch { return json({ error: "official page not reachable" }, 502); }
+  const body = {
+    board,
+    nodes: (d.nodeList || []).filter((n) => n.type !== "None").map((n) => ({
+      r: n.row, c: n.col, t: n.type, g: n.grade, o: n.open ? 1 : 0, n: n.name, e: (n.effectList || []).map((x) => x.desc),
+    })),
+    stats: (d.openStatEffectList || []).map((x) => x.desc),
+    skills: (d.openSkillEffectList || []).map((x) => x.desc),
+  };
+  const res = json(body, 200, { "cache-control": "public, max-age=600" });
+  ctx.waitUntil(caches.default.put(key, res.clone()));
+  return res;
+}
+
 async function charProfile(url, env, ctx) {
   const region = (url.searchParams.get("region") || "eu").toLowerCase();
   const name = cleanText(url.searchParams.get("name"), 24);
@@ -261,25 +309,16 @@ async function charProfile(url, env, ctx) {
   const lang = url.searchParams.get("lang") === "de" ? "de-DE" : "en-US";
   if (!REGIONS.has(region) || !name || !server) return json({ error: "invalid" }, 400);
 
-  const key = new Request(`https://cache.peakmeter/char/v2/${region}/${encodeURIComponent(server.toLowerCase())}/${encodeURIComponent(name.toLowerCase())}/${lang}`);
+  const key = new Request(`https://cache.peakmeter/char/v3/${region}/${encodeURIComponent(server.toLowerCase())}/${encodeURIComponent(name.toLowerCase())}/${lang}`);
   const cached = await caches.default.match(key);
   if (cached) return cached;
 
   const sid = /^\d+$/.test(server) ? Number(server) : null;
-  let found = null;
-  const su = ncSearchUrl(region, name, sid);
-  if (su) {
-    try {
-      const d = await ncJson(su);
-      found = (d.list || []).find((c) => strip(c.name).toLowerCase() === name.toLowerCase() &&
-        (sid ? c.serverId === sid : String(c.serverName || "").toLowerCase() === server.toLowerCase())) || null;
-    } catch { /* official search down: PeakMeter data only */ }
-  }
+  const found = await findChar(region, server, name);
 
   let info = null, equip = null;
   if (found) {
-    const id = encodeURIComponent(decodeURIComponent(found.characterId));
-    const q = (region === "kr" ? `?lang=ko-KR` : `?region=${region}&lang=${lang}`) + `&characterId=${id}&serverId=${found.serverId}`;
+    const q = charQuery(region, lang, found);
     [info, equip] = await Promise.all([ncJson(NC_CHAR + "info" + q).catch(() => null), ncJson(NC_CHAR + "equipment" + q).catch(() => null)]);
   }
 
@@ -314,7 +353,11 @@ async function charProfile(url, env, ctx) {
     } : found ? { level: found.level, cls: classOf(found.pcId), img: found.profileImageUrl ? NC_IMG + found.profileImageUrl : null } : null,
     stats: (info?.stat?.statList || []).map((x) => ({ type: x.type, name: x.name, value: x.value, more: x.statSecondList || [] })),
     titles: info?.title ? { owned: info.title.ownedCount, total: info.title.totalCount } : null,
-    daevanion: (info?.daevanion?.boardList || []).map((x) => ({ name: x.name, icon: x.icon, open: x.openNodeCount, total: x.totalNodeCount, pct: x.openPercent })),
+    titleList: (info?.title?.titleList || []).map((x) => ({
+      cat: x.equipCategory, name: x.name, grade: x.grade, owned: x.ownedCount, total: x.totalCount,
+      equip: (x.equipStatList || []).map((e) => e.desc), collect: (x.statList || []).map((e) => e.desc),
+    })),
+    daevanion: (info?.daevanion?.boardList || []).map((x) => ({ id: x.id, name: x.name, icon: x.icon, open: x.openNodeCount, total: x.totalNodeCount, pct: x.openPercent })),
     gear: (equip?.equipment?.equipmentList || []).map((x) => ({ slot: x.slotPosName, name: x.name, icon: x.icon, grade: x.grade, plus: x.enchantLevel, exceed: x.exceedLevel })),
     pet: equip?.petwing?.pet ? { name: equip.petwing.pet.name, icon: equip.petwing.pet.icon, level: equip.petwing.pet.level } : null,
     wing: equip?.petwing?.wing ? { name: equip.petwing.wing.name, icon: equip.petwing.wing.icon, grade: equip.petwing.wing.grade, plus: equip.petwing.wing.enchantLevel } : null,

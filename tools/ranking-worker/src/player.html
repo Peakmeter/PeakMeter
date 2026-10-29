@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/site.css?v=7">
-<script src="/site.js?v=7"></script>
+<link rel="stylesheet" href="/site.css?v=8">
+<script src="/site.js?v=8"></script>
 <style>
   /* A character's page as an in-game character window: portrait and combat power up top, then PeakMeter's bests,
      gear slots with rarity frames, Daevanion, stats and skills – all in the site's dark glass windows. */
@@ -129,6 +129,48 @@
   .bd b { font-size: 14px; font-weight: 600; }
   .bd span { font: 600 13px/1 var(--hud); color: var(--dim); white-space: nowrap; }
   .bd .bar i { background: var(--r-epic); }
+  .bd { cursor: pointer; border-radius: 6px; margin: 0 -8px; padding: 9px 8px; }
+  .bd:hover, .bd.on { background: rgba(255,255,255,.035); }
+  .bd.on b { color: var(--fb); }
+
+  /* board viewer */
+  .dvwrap { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 26px; padding: 22px; align-items: start; }
+  @media (max-width: 860px) { .dvwrap { grid-template-columns: minmax(0, 1fr); } }
+  .dvboard { position: relative; max-width: 560px; width: 100%; margin: 0 auto; }
+  .dvboard svg { width: 100%; height: auto; display: block; touch-action: manipulation; }
+  .dvboard .nd { cursor: pointer; }
+  .dvboard .nd:hover rect, .dvboard .nd.sel rect { stroke: #fff; stroke-width: .9; }
+  .dvtip { margin-top: 14px; min-height: 76px; padding: 12px 14px; border-radius: 8px; background: rgba(0,0,0,.35); border: 1px solid var(--line-2); }
+  .dvtip b { display: block; font-size: 15px; font-weight: 600; }
+  .dvtip .st { font: 600 11px/1 var(--hud); letter-spacing: .1em; text-transform: uppercase; margin-left: 8px; }
+  .dvtip p { color: var(--dim); font-size: 13.5px; margin-top: 4px; }
+  .dvsum h3 { font-size: 20px; }
+  .dvsum .cnt { display: flex; justify-content: space-between; align-items: baseline; margin: 10px 0 8px; font: 600 13px/1 var(--hud); color: var(--dim); }
+  .dvsum .cnt b { font-size: 22px; color: var(--text); }
+  .dvsum .bar i { background: var(--r-epic); }
+  .dvsum .lbl { font: 600 11.5px/1 var(--hud); letter-spacing: .12em; text-transform: uppercase; color: var(--mute); margin: 20px 0 8px; }
+  .dvsum ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+  .dvsum li { font-size: 13.5px; padding: 5px 0; border-bottom: 1px dotted rgba(255,255,255,.08); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { font-size: 12.5px; padding: 5px 8px; border-radius: 4px; background: rgba(176,124,255,.1); border: 1px solid rgba(176,124,255,.3); color: #d9c6ff; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font: 600 11.5px/1 var(--hud); color: var(--dim); letter-spacing: .04em; }
+  .legend i { display: inline-block; width: 9px; height: 9px; transform: rotate(45deg); margin-right: 6px; vertical-align: 0; }
+
+  /* equipped titles */
+  .titles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 860px) { .titles { grid-template-columns: minmax(0, 1fr); } }
+  .ttl { padding: 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .ttl .cat { font: 600 11.5px/1 var(--hud); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); display: flex; align-items: center; gap: 8px; }
+  .ttl .cat svg { width: 16px; height: 16px; color: var(--g); }
+  .ttl h3 { font-size: 22px; color: var(--g); line-height: 1.15; }
+  .ttl .gr { font: 600 11.5px/1 var(--hud); color: var(--g); letter-spacing: .06em; }
+  .ttl ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+  .ttl li { font-size: 13.5px; }
+  .ttl li::before { content: "◆"; color: var(--g); font-size: 8px; margin-right: 8px; vertical-align: 2px; }
+  .ttl .sub { font: 600 11px/1 var(--hud); letter-spacing: .1em; text-transform: uppercase; color: var(--mute); margin-top: 4px; }
+  .ttl .own { display: flex; justify-content: space-between; font: 600 12.5px/1 var(--hud); color: var(--dim); margin-top: auto; padding-top: 6px; }
+  .ttl .bar i { background: var(--g); }
+
   .sk { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line-2); }
   .sk:last-child { border-bottom: 0; }
   .sk img { width: 32px; height: 32px; border-radius: 6px; box-shadow: 0 0 0 1px var(--line); }
@@ -209,11 +251,26 @@
             <div id="skillAll" hidden><div class="tabs" id="skillTabs"></div><div class="all" id="skills"></div></div>
           </div>
           <div class="box win">
-            <div class="ph"><h2>Daevanion</h2><a class="more" id="dvnLink" target="_blank" rel="noopener" data-i="dvnOpen">Open boards →</a></div>
+            <div class="ph"><h2>Daevanion</h2><button class="more" type="button" id="dvnLink" data-i="dvnOpen">Open boards →</button></div>
             <div id="boards"></div>
           </div>
         </div>
       </div>
+    </section>
+    <section class="s" id="dvnS" hidden>
+      <div class="s-head"><h2 id="dvnTitle">Daevanion</h2><span class="rule"></span><div class="tabs" id="dvnTabs"></div></div>
+      <div class="box win dvwrap">
+        <div>
+          <div class="dvboard" id="dvBoard"></div>
+          <div class="legend" id="dvLegend"></div>
+          <div class="dvtip" id="dvTip"></div>
+        </div>
+        <div class="dvsum" id="dvSum"></div>
+      </div>
+    </section>
+    <section class="s" id="titleS" hidden>
+      <div class="s-head"><h2 data-i="titleH">Equipped titles</h2><span class="rule"></span><p class="hud" id="titleCount"></p></div>
+      <div class="titles" id="titles"></div>
     </section>
     <section class="s" id="gearS">
       <div class="s-head"><h2 data-i="gearH">Equipment</h2><span class="rule"></span><p id="petLine" class="hud"></p></div>
@@ -230,7 +287,7 @@ const DE = {
   go: "Suchen", hint: "Tipp: Im PeakMeter auf einen Spieler klicken und dann „Profil“.",
   copy: "Link kopieren", official: "Offizielle Seite", duel: "Vergleichen",
   bestH: "Beste Kills mit PeakMeter", bestP: "Pro Boss der beste Wert und sein Platz in der Rangliste.",
-  gearH: "Ausrüstung", attrH: "Attribute", divH: "Göttliche Werte", allSkills: "Alle Skills →", dvnOpen: "Bretter öffnen →",
+  gearH: "Ausrüstung", attrH: "Attribute", divH: "Göttliche Werte", allSkills: "Alle Skills →", dvnOpen: "Bretter ansehen →", titleH: "Angelegte Titel",
 };
 const T = de ? {
   ph: "Charaktername", lvl: "Stufe", cp: "Kampfkraft", il: "Gegenstandsstufe", none: "Keine Charaktere gefunden.", err: "Die offizielle Suche antwortet gerade nicht. Bitte gleich nochmal.",
@@ -240,6 +297,9 @@ const T = de ? {
   dl: "PeakMeter laden", dps: "DPS", hps: "Heilung/s", stagger: "Stagger/s", of: "von", place: "Platz", fight: "Kampf", party: "Gruppe",
   weapons: "Waffen", armor: "Rüstung", acc: "Schmuck", pet: "Pet", wing: "Flügel", active: "Aktiv", passive: "Passiv", dp: "DP", equipped: "ausgerüstet",
   copied: "Kopiert ✓", titles: (a, b) => `${a} von ${b} Titeln`, all: "Alle Skills →", less: "Weniger ←", lv: "Stufe",
+  dv: { pick: "Fahre über einen Knoten oder tippe ihn an.", open: "Freigeschaltet", closed: "Gesperrt", start: "Startpunkt", nodes: "Knoten freigeschaltet", stats: "Freigeschaltete Werte",
+    skills: "Fähigkeiten-Stufen", none: "Noch nichts freigeschaltet.", err: "Das Brett ist gerade nicht erreichbar.", loading: "Brett wird geladen …", close: "Schließen" },
+  cats: { Attack: "Angriff", Defense: "Verteidigung", Etc: "Sonstiges" }, equipT: "Wirkung angelegt", collectT: "Sammelbonus", ownedT: "gesammelt",
   noOfficial: "Die offizielle Charakterseite war gerade nicht erreichbar – hier nur die PeakMeter-Daten.",
   src: (t) => `Ausrüstung, Werte und Skills: offizielle AION-2-Charakterseite (NCSOFT), Stand ${t}. Bestwerte: PeakMeter-Rangliste, nur von Spielern, die teilnehmen.`,
 } : {
@@ -250,6 +310,9 @@ const T = de ? {
   dl: "Get PeakMeter", dps: "DPS", hps: "Healing/s", stagger: "Stagger/s", of: "of", place: "Place", fight: "Fight", party: "Party",
   weapons: "Weapons", armor: "Armor", acc: "Accessories", pet: "Pet", wing: "Wings", active: "Active", passive: "Passive", dp: "DP", equipped: "equipped",
   copied: "Copied ✓", titles: (a, b) => `${a} of ${b} titles`, all: "All skills →", less: "Less ←", lv: "Lv",
+  dv: { pick: "Hover over a node or tap it.", open: "Unlocked", closed: "Locked", start: "Starting point", nodes: "nodes unlocked", stats: "Unlocked stats",
+    skills: "Skill levels", none: "Nothing unlocked yet.", err: "The board is not reachable right now.", loading: "Loading the board …", close: "Close" },
+  cats: { Attack: "Attack", Defense: "Defense", Etc: "Other" }, equipT: "Equipped effect", collectT: "Collection bonus", ownedT: "collected",
   noOfficial: "The official character page was not reachable just now – showing PeakMeter data only.",
   src: (t) => `Gear, stats and skills: official AION 2 character page (NCSOFT), as of ${t}. Bests: PeakMeter ranking, only from players who joined.`,
 };
@@ -406,7 +469,6 @@ function renderGear(d) {
   if (d.wing) extra.push(item({ ...d.wing }).replace("</b><span>", "</b><span>" + T.wing + " · "));
   if (extra.length) html += '<p class="gear-h">' + T.pet + " & " + T.wing + '</p><div class="gear">' + extra.join("") + "</div>";
   $("gear").innerHTML = html || '<p class="empty">–</p>';
-  if (d.titles) $("petLine").textContent = T.titles(d.titles.owned, d.titles.total);
 }
 
 // Line icons for the six base attributes; the divine ones share a rune.
@@ -440,7 +502,102 @@ function renderBoards(d) {
   $("boards").innerHTML = d.daevanion.map(b =>
     '<div class="bd"><div class="top"><b>' + esc(b.name) + "</b><span>" + b.open + " / " + b.total + " · " + b.pct + '%</span></div><div class="bar"><i style="width:' +
     b.pct + '%"></i></div></div>').join("") || "–";
-  if (d.officialUrl) $("dvnLink").href = d.officialUrl; else $("dvnLink").hidden = true;
+  document.querySelectorAll("#boards .bd").forEach((el, i) => el.onclick = () => openBoard(d, i));
+  if (d.daevanion.length && d.daevanion[0].id) $("dvnLink").onclick = () => openBoard(d, 0); else $("dvnLink").hidden = true;
+  renderTitles(d);
+}
+
+// ---------------- Daevanion boards: the real grid, unlocked nodes lit in their grade
+const boardCache = {};
+const GRADE_COLOR = { Common: "var(--r-common)", Rare: "var(--r-rare)", Legend: "var(--r-legend)", Unique: "var(--r-unique)", Epic: "var(--r-epic)", Mythic: "var(--r-mythic)" };
+let boardChar = null;
+function openBoard(d, i) {
+  boardChar = d;
+  $("dvnS").hidden = false;
+  $("dvnTabs").innerHTML = d.daevanion.map((b, k) => '<button type="button" data-k="' + k + '" class="' + (k === i ? "on" : "") + '">' + esc(b.name) + "</button>").join("");
+  $("dvnTabs").querySelectorAll("button").forEach(b => b.onclick = () => openBoard(d, +b.dataset.k));
+  document.querySelectorAll("#boards .bd").forEach((el, k) => el.classList.toggle("on", k === i));
+  if ($("dvnS").dataset.shown !== "1") { $("dvnS").dataset.shown = "1"; $("dvnS").scrollIntoView({ behavior: PM.still ? "auto" : "smooth", block: "start" }); }
+  loadBoard(d, d.daevanion[i]);
+}
+async function loadBoard(d, b) {
+  $("dvnTitle").textContent = "Daevanion · " + b.name;
+  $("dvBoard").innerHTML = '<div class="skel" style="aspect-ratio:1;height:auto"></div>';
+  $("dvSum").innerHTML = ""; $("dvTip").textContent = T.dv.loading; $("dvLegend").innerHTML = "";
+  const key = b.id;
+  try {
+    if (!boardCache[key]) {
+      const r = await fetch("/api/char/board?region=" + d.region + "&server=" + encodeURIComponent(d.server) + "&name=" + encodeURIComponent(d.name) + "&board=" + b.id + "&lang=" + (de ? "de" : "en"));
+      if (!r.ok) throw 0;
+      boardCache[key] = await r.json();
+    }
+  } catch { $("dvBoard").innerHTML = ""; $("dvTip").textContent = T.dv.err; return; }
+  if (boardChar !== d) return;
+  drawBoard(boardCache[key], b);
+}
+function drawBoard(bd, b) {
+  const nodes = bd.nodes;
+  const minR = Math.min(...nodes.map(n => n.r)), maxR = Math.max(...nodes.map(n => n.r));
+  const minC = Math.min(...nodes.map(n => n.c)), maxC = Math.max(...nodes.map(n => n.c));
+  const W = (maxC - minC + 1) * 10, H = (maxR - minR + 1) * 10;
+  const at = new Map(nodes.map(n => [n.r + ":" + n.c, n]));
+  const cx = n => (n.c - minC) * 10 + 5, cy = n => (n.r - minR) * 10 + 5;
+  let lines = "";
+  for (const n of nodes) for (const [dr, dc] of [[0, 1], [1, 0]]) {
+    const m = at.get((n.r + dr) + ":" + (n.c + dc));
+    if (!m) continue;
+    const lit = n.o && m.o || (n.t === "Start" && m.o) || (m.t === "Start" && n.o);
+    lines += '<line x1="' + cx(n) + '" y1="' + cy(n) + '" x2="' + cx(m) + '" y2="' + cy(m) + '" stroke="' + (lit ? "var(--fb)" : "#2a2c38") + '" stroke-width="' + (lit ? 1.1 : .8) + '" stroke-opacity="' + (lit ? .7 : 1) + '"/>';
+  }
+  const shapes = nodes.map((n, k) => {
+    const x = cx(n), y = cy(n);
+    if (n.t === "Start") return '<g class="nd" data-k="' + k + '"><circle cx="' + x + '" cy="' + y + '" r="4.2" fill="var(--fb)" filter="url(#glow)"/><circle cx="' + x + '" cy="' + y + '" r="1.6" fill="#0b0c12"/></g>';
+    const col = GRADE_COLOR[n.g] || "var(--r-common)";
+    const s = n.t === "SkillLevel" ? 6.4 : 5.2;
+    const mark = n.t === "SkillLevel" ? '<path d="M' + x + " " + (y - 1.6) + "l.5 1.1 1.1.5-1.1.5-.5 1.1-.5-1.1-1.1-.5 1.1-.5z" + '" fill="' + (n.o ? "#0b0c12" : col) + '" opacity="' + (n.o ? .85 : .6) + '"/>' : "";
+    return '<g class="nd" data-k="' + k + '"><rect x="' + (x - s / 2) + '" y="' + (y - s / 2) + '" width="' + s + '" height="' + s + '" rx=".8" transform="rotate(45 ' + x + " " + y + ')" ' +
+      (n.o ? 'fill="' + col + '" filter="url(#glow)"' : 'fill="#14151d" stroke="' + col + '" stroke-opacity=".45" stroke-width=".6"') + "/>" + mark + "</g>";
+  }).join("");
+  $("dvBoard").innerHTML = '<svg viewBox="-2 -2 ' + (W + 4) + " " + (H + 4) + '" role="img" aria-label="' + esc(b.name) + '"><defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation=".9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' + lines + shapes + "</svg>";
+  const tip = n => {
+    const state = n.t === "Start" ? T.dv.start : n.o ? T.dv.open : T.dv.closed;
+    $("dvTip").innerHTML = "<b>" + esc(n.n || T.dv.start) + '<span class="st" style="color:' + (n.o || n.t === "Start" ? "var(--up)" : "var(--mute)") + '">' + state + "</span></b>" +
+      (n.e.length ? "<p>" + n.e.map(esc).join(" · ") + "</p>" : "");
+  };
+  $("dvBoard").querySelectorAll(".nd").forEach(g => {
+    const n = nodes[+g.dataset.k];
+    const pick = () => { $("dvBoard").querySelectorAll(".nd.sel").forEach(x => x.classList.remove("sel")); g.classList.add("sel"); tip(n); };
+    g.addEventListener("pointerenter", pick);
+    g.addEventListener("click", pick);
+  });
+  $("dvTip").innerHTML = '<p style="margin:0">' + T.dv.pick + "</p>";
+  const grades = [...new Set(nodes.filter(n => n.g && n.g !== "None").map(n => n.g))].sort((a, c) => ["Common", "Rare", "Legend", "Unique", "Epic", "Mythic"].indexOf(a) - ["Common", "Rare", "Legend", "Unique", "Epic", "Mythic"].indexOf(c));
+  $("dvLegend").innerHTML = grades.map(g => '<span><i style="background:' + (GRADE_COLOR[g] || "var(--r-common)") + '"></i>' + esc(gradeName(g)) + "</span>").join("");
+  const real = nodes.filter(n => n.t !== "Start"), open = real.filter(n => n.o).length;
+  $("dvSum").innerHTML = "<h3>" + esc(b.name) + '</h3><div class="cnt"><span><b>' + open + "</b> / " + real.length + " " + T.dv.nodes + "</span><span>" + Math.round(open / Math.max(1, real.length) * 100) + '%</span></div><div class="bar"><i style="width:' +
+    (open / Math.max(1, real.length) * 100) + '%"></i></div>' +
+    '<p class="lbl">' + T.dv.stats + "</p>" + (bd.stats.length ? "<ul>" + bd.stats.map(x => "<li>" + esc(effect(x)) + "</li>").join("") + "</ul>" : '<p class="muted">' + T.dv.none + "</p>") +
+    (bd.skills.length ? '<p class="lbl">' + T.dv.skills + '</p><div class="chips">' + bd.skills.map(x => "<span>" + esc(x) + "</span>").join("") + "</div>" : "");
+}
+
+// ---------------- equipped titles
+const TITLE_ICON = {
+  Attack: '<path d="M14.5 3.5h6v6L9 21l-6-6z M13 8l3 3"/>',
+  Defense: '<path d="M12 2.5l8 3v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z"/>',
+  Etc: '<path d="M12 2.8l2.4 6.8 6.8 2.4-6.8 2.4L12 21.2l-2.4-6.8L2.8 12l6.8-2.4z"/>',
+};
+function renderTitles(d) {
+  if (!d.titleList || !d.titleList.length) return;
+  $("titleS").hidden = false;
+  if (d.titles) $("titleCount").textContent = T.titles(d.titles.owned, d.titles.total);
+  const order = ["Attack", "Defense", "Etc"];
+  $("titles").innerHTML = d.titleList.slice().sort((a, b) => order.indexOf(a.cat) - order.indexOf(b.cat)).map(t =>
+    '<article class="ttl win" style="--g:' + grade(t.grade) + '"><p class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">' +
+    (TITLE_ICON[t.cat] || TITLE_ICON.Etc) + "</svg>" + esc(T.cats[t.cat] || t.cat) + "</p><h3>" + esc(t.name) + '</h3><p class="gr">' + esc(gradeName(t.grade)) + "</p>" +
+    (t.equip.length ? '<p class="sub">' + T.equipT + "</p><ul>" + t.equip.map(x => "<li>" + esc(effect(x)) + "</li>").join("") + "</ul>" : "") +
+    (t.collect.length ? '<p class="sub">' + T.collectT + "</p><ul>" + t.collect.map(x => "<li>" + esc(effect(x)) + "</li>").join("") + "</ul>" : "") +
+    '<div class="own"><span>' + t.owned + " / " + t.total + " " + T.ownedT + "</span><span>" + Math.round(t.owned / Math.max(1, t.total) * 100) + '%</span></div><div class="bar"><i style="width:' +
+    (t.owned / Math.max(1, t.total) * 100) + '%"></i></div></article>').join("");
 }
 
 function renderSkills(d) {
