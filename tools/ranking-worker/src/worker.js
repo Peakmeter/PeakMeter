@@ -212,6 +212,9 @@ const NC_SEARCH = "https://api-search.plaync.com/";
 const NC_CHAR = "https://aion2.plaync.com/api/character/";
 const NC_IMG = "https://profileimg.plaync.com";
 const strip = (s) => String(s ?? "").replace(/<[^>]+>/g, "");
+// The official pcId: four in a row per class (gender and race), starting at 5.
+const PC_CLASSES = ["gladiator", "templar", "ranger", "assassin", "elementalist", "sorcerer", "cleric", "chanter"];
+const classOf = (pcId) => (Number.isInteger(pcId) && pcId >= 5 ? PC_CLASSES[Math.floor((pcId - 5) / 4)] || null : null);
 
 // Taiwan has no public character search.
 function ncSearchUrl(region, q, serverId) {
@@ -240,7 +243,7 @@ async function charSearch(url) {
   let d;
   try { d = await ncJson(u); } catch { return json({ error: "official search not reachable" }, 502); }
   const list = (d.list || []).map((c) => ({
-    name: strip(c.name), server: c.serverName || "", serverId: c.serverId, level: c.level, race: c.race,
+    name: strip(c.name), server: c.serverName || "", serverId: c.serverId, level: c.level, race: c.race, cls: classOf(c.pcId),
     img: c.profileImageUrl ? NC_IMG + c.profileImageUrl : null,
   }));
   return json(list, 200, { "cache-control": "public, max-age=300" });
@@ -253,7 +256,7 @@ async function charProfile(url, env, ctx) {
   const lang = url.searchParams.get("lang") === "de" ? "de-DE" : "en-US";
   if (!REGIONS.has(region) || !name || !server) return json({ error: "invalid" }, 400);
 
-  const key = new Request(`https://cache.peakmeter/char/${region}/${encodeURIComponent(server.toLowerCase())}/${encodeURIComponent(name.toLowerCase())}/${lang}`);
+  const key = new Request(`https://cache.peakmeter/char/v2/${region}/${encodeURIComponent(server.toLowerCase())}/${encodeURIComponent(name.toLowerCase())}/${lang}`);
   const cached = await caches.default.match(key);
   if (cached) return cached;
 
@@ -300,10 +303,10 @@ async function charProfile(url, env, ctx) {
       ? `https://aion2.plaync.com/${lang === "de-DE" ? "de-de" : "en-us"}/characters/${found.serverId}/${found.characterId}?region=${region}`
       : null,
     profile: pr ? {
-      level: pr.characterLevel, className: pr.className, race: pr.raceName, gender: pr.genderName, cp: pr.combatPower,
+      level: pr.characterLevel, className: pr.className, cls: classOf(pr.pcId ?? found?.pcId), race: pr.raceName, gender: pr.genderName, cp: pr.combatPower,
       img: pr.profileImage || (found?.profileImageUrl ? NC_IMG + found.profileImageUrl : null),
       title: pr.titleName ? { name: pr.titleName, grade: pr.titleGrade } : null,
-    } : found ? { level: found.level, img: found.profileImageUrl ? NC_IMG + found.profileImageUrl : null } : null,
+    } : found ? { level: found.level, cls: classOf(found.pcId), img: found.profileImageUrl ? NC_IMG + found.profileImageUrl : null } : null,
     stats: (info?.stat?.statList || []).map((x) => ({ type: x.type, name: x.name, value: x.value, more: x.statSecondList || [] })),
     titles: info?.title ? { owned: info.title.ownedCount, total: info.title.totalCount } : null,
     daevanion: (info?.daevanion?.boardList || []).map((x) => ({ name: x.name, icon: x.icon, open: x.openNodeCount, total: x.totalNodeCount, pct: x.openPercent })),

@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/site.css?v=2">
-<script src="/site.js?v=2"></script>
+<link rel="stylesheet" href="/site.css?v=3">
+<script src="/site.js?v=3"></script>
 <style>
   /* The hall of fame: bosses on the left like a dungeon list, the leaderboard as a game window on the right. */
   :root { --edge: var(--line-2); --accent: var(--fb); --silver: #d4dae4; --bronze: #d9a070; }
@@ -44,6 +44,7 @@
   tr:nth-child(2) td.rank { color: #ffd76a; text-shadow: 0 0 10px rgba(255,215,106,.5); } tr:nth-child(3) td.rank { color: var(--silver); } tr:nth-child(4) td.rank { color: var(--bronze); }
   tr:nth-child(2) td { background: linear-gradient(90deg, rgba(255,215,106,.08), transparent 60%); }
   .val { font-weight: 700; color: var(--gold); font-size: 15px; }
+  td.cl .emb { width: 24px; height: 24px; margin-right: 6px; }
   .scroll { overflow-x: auto; }
   .empty { color: var(--dim); padding: 30px 8px; text-align: center; }
   .foot { color: var(--mute); font-size: 12.5px; margin-top: 16px; text-align: center; }
@@ -162,9 +163,11 @@ async function loadTop() {
     '</th><th class="num">' + T.time + '</th><th class="num">' + T.party + '</th><th class="num">' + T.date + "</th></tr>";
   rows.forEach((r, i) => {
     const cls = r.cls ? (de ? CLS_DE[r.cls] || r.cls : r.cls) : "";
+    const icon = PM.classIcon(r.cls);
+    const emb = icon ? '<span class="emb" style="--cc:' + PM.classColor(r.cls) + '"><img src="' + icon + '" alt=""></span> ' : "";
     const prof = r.server ? "/player/" + state.region + "/" + encodeURIComponent(r.server) + "/" + encodeURIComponent(r.name) : null;
     html += '<tr><td class="rank">' + (i + 1) + "</td><td>" + (prof ? '<a class="pl" href="' + prof + '">' + esc(r.name) + "</a>" : esc(r.name)) + (r.server ? ' <span class="srv">' + esc(r.server) + "</span>" : "") +
-      "</td><td>" + esc(cls) + '</td><td class="num">' + (r.cp ? r.cp.toLocaleString() : "") + '</td><td class="num val">' + fmt(r.value) +
+      '</td><td class="cl">' + emb + esc(cls) + '</td><td class="num">' + (r.cp ? r.cp.toLocaleString() : "") + '</td><td class="num val">' + fmt(r.value) +
       '</td><td class="num">' + (r.durMs ? dur(r.durMs) : "") + '</td><td class="num">' + (r.party || "") +
       '</td><td class="num">' + new Date(r.at).toLocaleDateString(de ? "de-DE" : undefined) + "</td></tr>";
   });

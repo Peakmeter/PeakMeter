@@ -12,6 +12,19 @@
   if (PM.de) root.lang = "de";
   PM.still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // Class emblems (the meter's own icons). Takes "Gladiator", "gladiator" or the official "Spiritmaster".
+  var EMBLEMS = ["gladiator", "templar", "ranger", "assassin", "sorcerer", "elementalist", "cleric", "chanter", "brawler"];
+  PM.classIcon = function (cls) {
+    var k = String(cls || "").toLowerCase();
+    if (k === "spiritmaster") k = "elementalist";
+    return EMBLEMS.indexOf(k) >= 0 ? "https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/src/PeakMeter/Assets/Classes/" + k + ".png" : null;
+  };
+  // Class colours, as in the meter.
+  PM.classColor = function (cls) {
+    return ({ gladiator: "#e8a84c", templar: "#5e9bf0", ranger: "#6fcf7c", assassin: "#b07cf0", sorcerer: "#47c8f5", elementalist: "#f26ca7",
+      spiritmaster: "#f26ca7", cleric: "#f5e06e", chanter: "#3fd1b5", brawler: "#ff744d" })[String(cls || "").toLowerCase()] || "var(--line)";
+  };
+
   // Swap texts marked data-i for the German ones of a page's dictionary.
   PM.translate = function (dict) {
     if (!PM.de) return;

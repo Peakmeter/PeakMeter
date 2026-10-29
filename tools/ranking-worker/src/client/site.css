@@ -97,6 +97,11 @@ nav.top .links a.on { color: var(--fb); }
 .orn::before, .orn::after { content: ""; height: 1px; flex: 1; background: linear-gradient(90deg, transparent, var(--line), transparent); }
 .orn i { width: 8px; height: 8px; transform: rotate(45deg); border: 1px solid currentColor; box-shadow: 0 0 10px var(--glow); }
 
+/* class emblem in a small round frame of the class colour */
+.emb { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; flex: none; vertical-align: middle;
+  background: radial-gradient(circle at 50% 35%, #232532, #0b0c12); box-shadow: inset 0 0 0 1.5px var(--cc, var(--line)), 0 0 10px -2px var(--cc, transparent); }
+.emb img { width: 70%; height: 70%; object-fit: contain; }
+
 .metal { background: linear-gradient(180deg, #fff6dc 0%, #f1d28b 38%, #b98a3d 62%, #f4dc9f 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
 footer.foot { border-top: 1px solid var(--line); padding-block: 30px 44px; color: var(--mute); font-size: 12.5px; margin-top: 80px; background: rgba(5,6,10,.6); }

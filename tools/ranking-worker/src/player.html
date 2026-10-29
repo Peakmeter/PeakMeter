@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/site.css?v=2">
-<script src="/site.js?v=2"></script>
+<link rel="stylesheet" href="/site.css?v=3">
+<script src="/site.js?v=3"></script>
 <style>
   /* A character's page as an in-game character window: portrait and combat power up top, then PeakMeter's bests,
      gear slots with rarity frames, Daevanion, stats and skills – all in the site's dark glass windows. */
@@ -31,7 +31,9 @@
   .card { display: flex; gap: 12px; align-items: center; padding: 12px; text-decoration: none; min-width: 0; border-radius: 8px;
     background: var(--panel); border: 1px solid var(--line-2); transition: border-color .2s, transform .2s; }
   .card:hover { border-color: var(--fb); transform: translateY(-2px); }
-  .card img, .card .noimg { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; background: #15171f; flex: none; box-shadow: 0 0 0 1px var(--line); }
+  .card .pp { position: relative; flex: none; }
+  .card .pp .emb { position: absolute; right: -6px; bottom: -6px; width: 24px; height: 24px; }
+  .card img.port, .card .noimg { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; background: #15171f; flex: none; box-shadow: 0 0 0 1px var(--line); }
   .card b { display: block; font: 400 18px/1.2 var(--display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .card span { color: var(--dim); font-size: 12.5px; font-family: var(--hud); letter-spacing: .04em; }
   .empty { text-align: center; color: var(--dim); padding-block: 40px; }
@@ -40,11 +42,13 @@
   .prof { padding-block: 56px 20px; }
   .prof .wrap { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 34px; align-items: center; }
   .frame { position: relative; padding: 6px; border-radius: 14px; background: linear-gradient(160deg, var(--fb), transparent 40%, transparent 60%, var(--fa)); }
+  .frame .emb { position: absolute; right: -14px; bottom: -14px; width: 56px; height: 56px; }
+  .prof .facts .emb { width: 22px; height: 22px; margin: -4px 6px -4px -4px; }
   .portrait { width: 176px; height: 176px; border-radius: 10px; object-fit: cover; background: #12131b; display: block; }
   .prof .title { font: 600 13px/1.2 var(--hud); letter-spacing: .1em; text-transform: uppercase; }
   .prof h1 { font-size: clamp(42px, 6vw, 72px); line-height: 1; margin-top: 8px; overflow-wrap: anywhere; }
   .prof .facts { margin-top: 12px; color: var(--dim); font-size: 15px; display: flex; flex-wrap: wrap; gap: 6px 10px; }
-  .prof .facts span { padding: 5px 10px; border: 1px solid var(--line-2); border-radius: 4px; background: rgba(0,0,0,.3); font-family: var(--hud); letter-spacing: .04em; font-size: 13px; }
+  .prof .facts > span { display: inline-flex; align-items: center; padding: 5px 10px; border: 1px solid var(--line-2); border-radius: 4px; background: rgba(0,0,0,.3); font-family: var(--hud); letter-spacing: .04em; font-size: 13px; }
   .prof .facts b { color: var(--fb); font-weight: 600; }
   .prof .acts { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 10px; }
   .cp { text-align: right; }
@@ -225,6 +229,7 @@ const clock = ms => Math.floor(ms / 60000) + ":" + String(Math.floor(ms / 1000) 
 const grade = g => "var(--r-" + String(g || "common").toLowerCase() + ", var(--r-common))";
 const GRADE_DE = { Common: "Gewöhnlich", Rare: "Selten", Legend: "Legendär", Unique: "Einzigartig", Epic: "Episch", Mythic: "Mythisch" };
 const gradeName = g => (de && GRADE_DE[g]) || g || "";
+const emblem = cls => { const u = PM.classIcon(cls); return u ? '<span class="emb" style="--cc:' + PM.classColor(cls) + '"><img src="' + u + '" alt=""></span>' : ""; };
 const profileUrl = (r, server, name) => "/player/" + r + "/" + encodeURIComponent(server) + "/" + encodeURIComponent(name);
 const remember = r => { try { localStorage.setItem("pm-region", r); } catch {} };
 const recall = () => { try { return localStorage.getItem("pm-region"); } catch { return null; } };
@@ -254,7 +259,7 @@ async function run() {
     if (!r.ok) throw 0;
     const list = await r.json();
     out.innerHTML = list.length ? list.map(c =>
-      '<a class="card" href="' + profileUrl(region, c.server, c.name) + '">' + (c.img ? '<img src="' + esc(c.img) + '" alt="">' : '<span class="noimg"></span>') +
+      '<a class="card" href="' + profileUrl(region, c.server, c.name) + '"><span class="pp">' + (c.img ? '<img class="port" src="' + esc(c.img) + '" alt="">' : '<span class="noimg"></span>') + emblem(c.cls) + "</span>" +
       '<div style="min-width:0"><b>' + esc(c.name) + "</b><span>" + esc(c.server) + " · " + T.lvl + " " + c.level + " · " + (T.races[c.race] || "") + "</span></div></a>").join("")
       : '<p class="empty" style="grid-column:1/-1">' + T.none + "</p>";
   } catch { out.innerHTML = '<p class="empty" style="grid-column:1/-1">' + T.err + "</p>"; }
@@ -289,7 +294,8 @@ async function showProfile(region, server, name) {
   if (p.title) { $("pTitle").textContent = p.title.name; $("pTitle").style.color = grade(p.title.grade); }
   const facts = [];
   if (p.level) facts.push("<b>" + T.lvl + " " + p.level + "</b>");
-  if (p.className) facts.push("<span>" + esc(p.className) + "</span>");
+  if (p.className) facts.push("<span>" + emblem(p.cls) + esc(p.className) + "</span>");
+  if (p.cls && PM.classIcon(p.cls)) { $("pImg").insertAdjacentHTML("afterend", emblem(p.cls)); $("pImg").parentElement.style.setProperty("--fb", PM.classColor(p.cls)); }
   if (p.race) facts.push("<span>" + esc(p.race) + "</span>");
   facts.push("<span>" + esc(d.server) + " · " + region.toUpperCase() + "</span>");
   $("pFacts").innerHTML = facts.join("");
