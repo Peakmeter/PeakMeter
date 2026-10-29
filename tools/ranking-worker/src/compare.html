@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PeakMeter Duel</title>
+<meta name="description" content="Compare two AION 2 players side by side: combat power, stats, gear, Daevanion and their best kills measured with PeakMeter.">
+<meta name="theme-color" content="#05060a">
+<link rel="icon" href="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/site.css?v=5">
+<script src="/site.js?v=5"></script>
+<style>
+  /* A duel: two fighters facing each other across a VS seal, then every value mirrored around a centre line,
+     the stronger side lit in the up colour. */
+  .duel-head { text-align: center; padding-block: 52px 26px; }
+  .duel-head .orn { max-width: 240px; margin: 0 auto 16px; }
+  .duel-head h1 { font-size: clamp(42px, 6.4vw, 76px); line-height: 1; }
+  .duel-head p { color: var(--dim); margin-top: 12px; }
+  .region { display: inline-flex; gap: 4px; margin-top: 18px; }
+  .region button { background: rgba(0,0,0,.35); color: var(--dim); border: 1px solid var(--line-2); border-radius: 4px; padding: 8px 12px; cursor: pointer;
+    font: 600 12px/1 var(--hud); letter-spacing: .08em; }
+  .region button.on { color: var(--fb); border-color: var(--fb); }
+
+  /* fighters */
+  .arena { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 18px; align-items: stretch; }
+  .vs { align-self: center; width: 78px; height: 78px; display: grid; place-items: center; transform: rotate(45deg); border: 1.5px solid var(--fb);
+    background: radial-gradient(circle, color-mix(in srgb, var(--fb) 22%, transparent), rgba(0,0,0,.6)); box-shadow: 0 0 30px -6px var(--glow); }
+  .vs span { transform: rotate(-45deg); font: 400 30px/1 var(--display); color: var(--fb); }
+  .fighter { padding: 22px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; min-width: 0; }
+  .fighter.b { --side: var(--fa); }
+  .fighter .ph { position: relative; padding: 5px; border-radius: 12px; background: linear-gradient(160deg, var(--cc, var(--fb)), transparent 45%, transparent 60%, var(--cc, var(--fa))); }
+  .fighter .ph img.port { width: 132px; height: 132px; border-radius: 8px; object-fit: cover; background: #12131b; display: block; }
+  .fighter .ph .emb { position: absolute; right: -12px; bottom: -12px; width: 46px; height: 46px; }
+  .fighter h2 { font-size: clamp(26px, 3.2vw, 36px); line-height: 1.05; overflow-wrap: anywhere; margin-top: 6px; }
+  .fighter .sub { color: var(--dim); font: 600 12.5px/1.4 var(--hud); letter-spacing: .06em; }
+  .fighter .cp { font: 700 clamp(34px, 4vw, 46px)/1 var(--hud); margin-top: 4px; }
+  .fighter .cp small { display: block; font-size: 11px; letter-spacing: .12em; color: var(--dim); margin-top: 6px; text-transform: uppercase; }
+  .fighter .acts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+  .fighter .win-tag { font: 700 11px/1 var(--hud); letter-spacing: .12em; text-transform: uppercase; color: #0b0c12; background: var(--up); padding: 5px 8px; border-radius: 3px; }
+
+  /* picker (an empty corner) */
+  .pick { padding: 22px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .pick h3 { font-size: 22px; text-align: center; }
+  .pick form { display: flex; gap: 8px; }
+  .pick input { flex: 1; min-width: 0; background: rgba(0,0,0,.4); border: 1px solid var(--line); color: var(--text); border-radius: 6px; padding: 11px 12px; font: 400 15px/1 var(--body); outline: none; }
+  .pick input:focus { border-color: var(--fb); }
+  .hits { display: grid; gap: 6px; max-height: 320px; overflow-y: auto; }
+  .hit { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 6px; border: 1px solid var(--line-2); background: rgba(0,0,0,.25); cursor: pointer; text-align: left; color: var(--text); font: inherit; }
+  .hit:hover { border-color: var(--fb); }
+  .hit .pp { position: relative; flex: none; }
+  .hit img.port { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #15171f; }
+  .hit .pp .emb { position: absolute; right: -6px; bottom: -6px; width: 20px; height: 20px; }
+  .hit b { display: block; font-weight: 600; }
+  .hit span { font: 12px/1.3 var(--hud); color: var(--dim); }
+  .muted { color: var(--dim); text-align: center; font-size: 14px; }
+
+  @media (max-width: 760px) {
+    .arena { grid-template-columns: minmax(0, 1fr); }
+    .vs { justify-self: center; width: 58px; height: 58px; margin: -6px 0; }
+    .vs span { font-size: 22px; }
+  }
+
+  /* tug of war: combat power share */
+  .tug { margin-top: 22px; }
+  .tug .bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: #1a1c25; box-shadow: 0 0 0 1px var(--line-2); }
+  .tug .bar i { display: block; height: 100%; transition: width .8s cubic-bezier(.2,.8,.2,1); }
+  .tug .bar .l { background: linear-gradient(90deg, var(--fb), color-mix(in srgb, var(--fb) 60%, #000)); }
+  .tug .bar .r { background: linear-gradient(90deg, color-mix(in srgb, var(--fa) 60%, #000), var(--fa)); }
+  .tug .lbl { display: flex; justify-content: space-between; margin-top: 8px; font: 600 12.5px/1 var(--hud); letter-spacing: .06em; color: var(--dim); }
+
+  /* mirrored rows */
+  section.s { padding-block: 44px 0; }
+  .s-head { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+  .s-head h2 { font-size: clamp(24px, 3vw, 32px); }
+  .s-head .rule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+  .box { padding: 10px 18px; }
+  .mrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(90px, 170px) minmax(0, 1fr); gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line-2); }
+  .mrow:last-child { border-bottom: 0; }
+  .mrow .k { text-align: center; color: var(--dim); font-size: 13px; line-height: 1.25; }
+  .mrow .side { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .mrow .side.l { flex-direction: row-reverse; }
+  .mrow .v { font: 700 16px/1 var(--hud); white-space: nowrap; min-width: 54px; }
+  .mrow .side.l .v { text-align: right; }
+  .mrow .v.better { color: var(--up); text-shadow: 0 0 10px rgba(79,224,154,.35); }
+  .mrow .v.worse { color: var(--dim); }
+  .mrow .track { flex: 1; height: 6px; border-radius: 3px; background: #1a1c25; overflow: hidden; display: flex; }
+  .mrow .side.l .track { justify-content: flex-end; }
+  .mrow .track i { display: block; height: 100%; border-radius: 3px; }
+  .mrow .side.l .track i { background: linear-gradient(270deg, var(--fb), color-mix(in srgb, var(--fb) 40%, transparent)); }
+  .mrow .side.r .track i { background: linear-gradient(90deg, var(--fa), color-mix(in srgb, var(--fa) 40%, transparent)); }
+  .mrow .d { font: 600 11.5px/1 var(--hud); color: var(--up); display: block; margin-top: 4px; letter-spacing: .04em; }
+
+  /* gear: item | slot | item */
+  .grow { display: grid; grid-template-columns: minmax(0, 1fr) 96px minmax(0, 1fr); gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line-2); }
+  .grow:last-child { border-bottom: 0; }
+  .grow .slot { text-align: center; font: 600 11px/1.2 var(--hud); letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+  .it { display: flex; gap: 10px; align-items: center; min-width: 0; }
+  .it.l { flex-direction: row-reverse; text-align: right; }
+  .ico { position: relative; width: 42px; height: 42px; flex: none; border-radius: 6px; display: grid; place-items: center;
+    background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--g, var(--r-common)) 30%, #15161f), #0b0c12);
+    box-shadow: inset 0 0 0 1.5px var(--g, var(--r-common)); }
+  .ico img { width: 34px; height: 34px; }
+  .ico em { position: absolute; bottom: -6px; font: 700 10.5px/1 var(--hud); font-style: normal; color: #0b0c12; background: var(--g, var(--r-common)); border-radius: 3px; padding: 2px 4px; }
+  .it.r .ico em { right: -6px; } .it.l .ico em { left: -6px; }
+  .it b { display: block; font-size: 13px; font-weight: 600; color: var(--g, var(--text)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .it span { font: 11.5px/1.2 var(--hud); color: var(--dim); }
+  .it .up { color: var(--up); font-weight: 700; }
+  .it.none { color: var(--mute); font-size: 13px; }
+  .it.none.l { justify-content: flex-end; }
+  @media (max-width: 640px) {
+    .grow { grid-template-columns: minmax(0, 1fr) 54px minmax(0, 1fr); }
+    .it b { white-space: normal; font-size: 12px; }
+    .ico { width: 36px; height: 36px; } .ico img { width: 28px; height: 28px; }
+    .mrow { grid-template-columns: minmax(0, 1fr) 84px minmax(0, 1fr); gap: 8px; }
+    .mrow .track { display: none; }
+    .mrow .side.l { justify-content: flex-start; } .mrow .side.r { justify-content: flex-end; }
+  }
+  .empty-s { color: var(--dim); text-align: center; padding: 16px; font-size: 14px; }
+  .skel { background: linear-gradient(90deg, rgba(255,255,255,.03), rgba(255,255,255,.07), rgba(255,255,255,.03)); background-size: 200% 100%; animation: sk 1.2s infinite; border-radius: 10px; min-height: 260px; }
+  @keyframes sk { to { background-position: -200% 0; } }
+  @media (prefers-reduced-motion: reduce) { .skel { animation: none; } }
+</style>
+</head>
+<body>
+<nav class="top" data-page="compare" aria-label="Main"></nav>
+
+<main class="wrap">
+  <header class="duel-head">
+    <div class="orn"><i></i></div>
+    <h1 class="metal" data-i="h1">The Duel</h1>
+    <p data-i="lead">Two players, side by side: combat power, stats, gear, Daevanion and their best kills.</p>
+    <div class="region" id="region"></div>
+  </header>
+
+  <div class="arena">
+    <div id="slotA"></div>
+    <div class="vs" aria-hidden="true"><span>VS</span></div>
+    <div id="slotB"></div>
+  </div>
+  <div class="tug" id="tug" hidden><div class="bar"><i class="l" id="tugL"></i><i class="r" id="tugR"></i></div><div class="lbl"><span id="tugLl"></span><span id="tugRl"></span></div></div>
+
+  <div id="rows" hidden>
+    <section class="s"><div class="s-head"><h2 data-i="keyH">Overview</h2><span class="rule"></span></div><div class="box win" id="key"></div></section>
+    <section class="s"><div class="s-head"><h2 data-i="pmH">Best kills with PeakMeter</h2><span class="rule"></span></div><div class="box win" id="pm"></div></section>
+    <section class="s"><div class="s-head"><h2 data-i="gearH">Equipment</h2><span class="rule"></span></div><div class="box win" id="gear"></div></section>
+    <section class="s"><div class="s-head"><h2 data-i="statH">Stats</h2><span class="rule"></span></div><div class="box win" id="stats"></div></section>
+    <section class="s"><div class="s-head"><h2>Daevanion</h2><span class="rule"></span></div><div class="box win" id="boards"></div></section>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="fl"><a href="/ranking" data-i="fRank">Ranking</a><a href="/player" data-i="fPl">Players</a><a href="https://github.com/Peakmeter/PeakMeter">GitHub</a><a href="https://ko-fi.com/peakmeter">Ko-fi</a></div>
+    <p data-i="fSrc">Gear, stats and Daevanion: official AION 2 character pages (NCSOFT). Best kills: PeakMeter ranking, only from players who joined. Not affiliated with NCSOFT.</p>
+  </div>
+</footer>
+
+<script>
+PM.translate({
+  h1: "Das Duell", lead: "Zwei Spieler nebeneinander: Kampfkraft, Werte, Ausrüstung, Daevanion und ihre besten Kills.",
+  keyH: "Überblick", pmH: "Beste Kills mit PeakMeter", gearH: "Ausrüstung", statH: "Werte",
+  fRank: "Rangliste", fPl: "Spieler",
+  fSrc: "Ausrüstung, Werte und Daevanion: offizielle AION-2-Charakterseiten (NCSOFT). Bestwerte: PeakMeter-Rangliste, nur von Spielern, die teilnehmen. Nicht mit NCSOFT verbunden.",
+});
+const de = PM.de, $ = id => document.getElementById(id);
+const T = de ? {
+  pickA: "Herausforderer wählen", pickB: "Gegner wählen", ph: "Charaktername", go: "Suchen", lvl: "Stufe", none: "Keine Charaktere gefunden.",
+  err: "Die offizielle Suche antwortet gerade nicht.", notFound: "Charakter nicht gefunden.", change: "Wechseln", profile: "Profil", cp: "Kampfkraft",
+  il: "Gegenstandsstufe", level: "Stufe", titles: "Titel", dvn: "Daevanion-Knoten", skills: "Skill-Stufen gesamt", stronger: "stärker",
+  noPm: "Keiner der beiden hat Ranking-Kills. Im PeakMeter „Am Ranking teilnehmen“ einschalten.", onlyOne: "nur", dps: "DPS", hps: "Heilung/s", stagger: "Stagger/s",
+  noOfficial: "Offizielle Daten gerade nicht erreichbar.", races: { 1: "Elyos", 2: "Asmodier" }, searching: "Suche …", tw: "Für Taiwan gibt es keine öffentliche Suche.",
+  slots: { MainHand: "Waffe", SubHand: "Nebenhand", Helmet: "Kopf", Shoulder: "Schulter", Torso: "Brust", Pants: "Beine", Gloves: "Hände", Boots: "Füße",
+    Cape: "Umhang", Belt: "Gürtel", Necklace: "Kette", Earring1: "Ohrring", Earring2: "Ohrring", Ring1: "Ring", Ring2: "Ring", Bracelet1: "Armband", Bracelet2: "Armband", Amulet: "Amulett" },
+} : {
+  pickA: "Choose a challenger", pickB: "Choose an opponent", ph: "Character name", go: "Search", lvl: "Lv", none: "No characters found.",
+  err: "The official search is not answering right now.", notFound: "Character not found.", change: "Change", profile: "Profile", cp: "Combat power",
+  il: "Item level", level: "Level", titles: "Titles", dvn: "Daevanion nodes", skills: "Total skill levels", stronger: "stronger",
+  noPm: "Neither has ranked kills yet. In PeakMeter, turn on “Join the ranking”.", onlyOne: "only", dps: "DPS", hps: "Healing/s", stagger: "Stagger/s",
+  noOfficial: "Official data not reachable right now.", races: { 1: "Elyos", 2: "Asmodian" }, searching: "Searching …", tw: "Taiwan has no public character search.",
+  slots: { MainHand: "Weapon", SubHand: "Off-hand", Helmet: "Head", Shoulder: "Shoulder", Torso: "Chest", Pants: "Legs", Gloves: "Hands", Boots: "Feet",
+    Cape: "Cape", Belt: "Belt", Necklace: "Necklace", Earring1: "Earring", Earring2: "Earring", Ring1: "Ring", Ring2: "Ring", Bracelet1: "Bracelet", Bracelet2: "Bracelet", Amulet: "Amulet" },
+};
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const num = v => Number(v || 0).toLocaleString(de ? "de-DE" : "en-US");
+const fmt = v => v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e4 ? (v / 1e3).toFixed(1) + "K" : Math.round(v).toLocaleString();
+const grade = g => "var(--r-" + String(g || "common").toLowerCase() + ", var(--r-common))";
+const GRADE_DE = { Common: "Gewöhnlich", Rare: "Selten", Legend: "Legendär", Unique: "Einzigartig", Epic: "Episch", Mythic: "Mythisch" };
+// Item quality from low to high (a Unique +10 sits far above a Legend +6 in item level).
+const GRADE_RANK = { Common: 0, Rare: 1, Legend: 2, Unique: 3, Epic: 4, Mythic: 5 };
+const gradeName = g => (de && GRADE_DE[g]) || g || "";
+const emblem = cls => { const u = PM.classIcon(cls); return u ? '<span class="emb" style="--cc:' + PM.classColor(cls) + '"><img src="' + u + '" alt=""></span>' : ""; };
+
+// state lives in the address: /compare?r=eu&p1=Server/Name&p2=Server/Name
+const qs = new URLSearchParams(location.search);
+let region = (qs.get("r") || (() => { try { return localStorage.getItem("pm-region"); } catch { return null; } })() || "eu").toLowerCase();
+const parse = v => { if (!v) return null; const i = v.indexOf("/"); return i > 0 ? { server: v.slice(0, i), name: v.slice(i + 1) } : null; };
+const who = [parse(qs.get("p1")), parse(qs.get("p2"))];
+const data = [null, null];
+function syncUrl() {
+  const p = new URLSearchParams({ r: region });
+  who.forEach((w, i) => { if (w) p.set("p" + (i + 1), w.server + "/" + w.name); });
+  history.replaceState(null, "", "/compare?" + p.toString().replace(/%2F/g, "/"));
+}
+
+// region switch
+$("region").innerHTML = ["eu", "nae", "naw", "kr"].map(r => '<button type="button" data-r="' + r + '">' + r.toUpperCase().replace("NAE", "NA-E").replace("NAW", "NA-W") + "</button>").join("");
+function drawRegion() { $("region").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.r === region)); }
+$("region").querySelectorAll("button").forEach(b => b.onclick = () => { region = b.dataset.r; who[0] = who[1] = null; data[0] = data[1] = null; syncUrl(); drawRegion(); renderAll(); });
+drawRegion();
+
+// ---------------------------------------------------------------- slots
+function slotEl(i) { return $(i ? "slotB" : "slotA"); }
+function drawPicker(i) {
+  slotEl(i).innerHTML = '<div class="pick win"><h3>' + (i ? T.pickB : T.pickA) + '</h3><form><input type="search" id="q' + i + '" placeholder="' + T.ph +
+    '" minlength="2" maxlength="24" required autocomplete="off" spellcheck="false" aria-label="' + T.ph + '"><button class="btn sm" type="submit">' + T.go +
+    '</button></form><div class="hits" id="hits' + i + '"></div></div>';
+  const form = slotEl(i).querySelector("form");
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const q = $("q" + i).value.trim(), out = $("hits" + i);
+    out.innerHTML = '<p class="muted">' + T.searching + "</p>";
+    try {
+      const r = await fetch("/api/char/search?region=" + region + "&q=" + encodeURIComponent(q));
+      if (r.status === 400) { out.innerHTML = '<p class="muted">' + T.none + "</p>"; return; }
+      if (!r.ok) throw 0;
+      const list = await r.json();
+      out.innerHTML = list.length ? list.map((c, k) => '<button type="button" class="hit" data-k="' + k + '"><span class="pp">' +
+        (c.img ? '<img class="port" src="' + esc(c.img) + '" alt="">' : "") + emblem(c.cls) + '</span><div><b>' + esc(c.name) + "</b><span>" + esc(c.server) + " · " +
+        T.lvl + " " + c.level + " · " + (T.races[c.race] || "") + "</span></div></button>").join("") : '<p class="muted">' + T.none + "</p>";
+      out.querySelectorAll(".hit").forEach(b => b.onclick = () => { const c = list[+b.dataset.k]; who[i] = { server: c.server, name: c.name }; syncUrl(); load(i); });
+    } catch { out.innerHTML = '<p class="muted">' + T.err + "</p>"; }
+  };
+}
+async function load(i) {
+  const w = who[i];
+  if (!w) { data[i] = null; drawPicker(i); renderRows(); return; }
+  slotEl(i).innerHTML = '<div class="skel"></div>';
+  try {
+    const r = await fetch("/api/char?region=" + region + "&server=" + encodeURIComponent(w.server) + "&name=" + encodeURIComponent(w.name) + "&lang=" + (de ? "de" : "en"));
+    if (!r.ok) throw r.status;
+    data[i] = await r.json();
+  } catch (s) {
+    data[i] = null;
+    drawPicker(i);
+    slotEl(i).querySelector(".pick").insertAdjacentHTML("afterbegin", '<p class="muted">' + (s === 404 ? T.notFound : T.err) + "</p>");
+    renderRows();
+    return;
+  }
+  drawFighter(i);
+  renderRows();
+}
+function drawFighter(i) {
+  const d = data[i], p = d.profile || {};
+  const cc = PM.classColor(p.cls);
+  slotEl(i).innerHTML = '<div class="fighter win' + (i ? " b" : "") + '" id="f' + i + '"><div class="ph" style="--cc:' + cc + '">' +
+    (p.img ? '<img class="port" src="' + esc(p.img) + '" alt="">' : '<img class="port" alt="">') + emblem(p.cls) + "</div>" +
+    '<h2 class="metal">' + esc(d.name) + '</h2><p class="sub">' + [p.level ? T.lvl + " " + p.level : "", p.className, d.server].filter(Boolean).map(esc).join(" · ") + "</p>" +
+    '<div class="cp num">' + (p.cp ? num(p.cp) : "–") + "<small>" + T.cp + '</small></div><span class="win-tag" hidden>' + T.stronger + "</span>" +
+    '<div class="acts"><a class="btn sm ghost" href="/player/' + d.region + "/" + encodeURIComponent(d.server) + "/" + encodeURIComponent(d.name) + '">' + T.profile +
+    '</a><button class="btn sm ghost" type="button">' + T.change + "</button></div></div>";
+  slotEl(i).querySelector("button").onclick = () => { who[i] = null; data[i] = null; syncUrl(); drawPicker(i); renderRows(); };
+}
+
+// ---------------------------------------------------------------- comparison
+// One mirrored row: left value, label, right value; bars scaled to the larger; the higher (or lower, when lowWins) lit.
+function mrow(label, a, b, show = fmt, lowWins = false) {
+  const has = v => typeof v === "number" && !isNaN(v);
+  const max = Math.max(has(a) ? a : 0, has(b) ? b : 0) || 1;
+  const better = has(a) && has(b) && a !== b ? ((a > b) !== lowWins ? 0 : 1) : -1;
+  const side = (v, k) => '<div class="side ' + (k ? "r" : "l") + '"><span class="v ' + (better === k ? "better" : better >= 0 ? "worse" : "") + '">' +
+    (has(v) ? show(v) : "–") + '</span><span class="track"><i style="width:' + (has(v) ? v / max * 100 : 0) + '%"></i></span></div>';
+  const diff = better >= 0 ? '<span class="d">' + (better ? "▶" : "◀") + " " + (Math.abs(a - b) >= 1e4 ? fmt(Math.abs(a - b)) : num(Math.abs(a - b))) + "</span>" : "";
+  return '<div class="mrow">' + side(a, 0) + '<div class="k">' + esc(label) + diff + "</div>" + side(b, 1) + "</div>";
+}
+const SLOTS = ["MainHand", "SubHand", "Helmet", "Shoulder", "Torso", "Pants", "Gloves", "Boots", "Cape", "Belt", "Necklace", "Earring1", "Earring2", "Ring1", "Ring2", "Bracelet1", "Bracelet2", "Amulet"];
+
+function renderRows() {
+  const [A, B] = data;
+  const both = A && B;
+  $("rows").hidden = !both;
+  $("tug").hidden = !both;
+  document.querySelectorAll(".win-tag").forEach(t => t.hidden = true);
+  if (!both) return;
+  document.title = A.name + " vs " + B.name + " · PeakMeter";
+  const pa = A.profile || {}, pb = B.profile || {};
+
+  // tug of war on combat power
+  const ca = pa.cp || 0, cb = pb.cp || 0, tot = ca + cb || 1;
+  $("tugL").style.width = (ca / tot * 100) + "%"; $("tugR").style.width = (cb / tot * 100) + "%";
+  $("tugLl").textContent = A.name + " " + Math.round(ca / tot * 100) + "%"; $("tugRl").textContent = Math.round(cb / tot * 100) + "% " + B.name;
+  if (ca !== cb) document.querySelector("#f" + (ca > cb ? 0 : 1) + " .win-tag").hidden = false;
+
+  const stat = (d, type) => (d.stats || []).find(s => s.type === type)?.value;
+  const nodes = d => (d.daevanion || []).reduce((s, b) => s + (b.open || 0), 0);
+  const skillSum = d => (d.skills || []).reduce((s, k) => s + (k.level || 0), 0);
+  $("key").innerHTML = [
+    mrow(T.cp, pa.cp, pb.cp, num),
+    mrow(T.il, stat(A, "ItemLevel"), stat(B, "ItemLevel"), num),
+    mrow(T.level, pa.level, pb.level, num),
+    mrow(T.dvn, A.official ? nodes(A) : NaN, B.official ? nodes(B) : NaN, num),
+    mrow(T.skills, A.official ? skillSum(A) : NaN, B.official ? skillSum(B) : NaN, num),
+  ].join("");
+
+  // PeakMeter bests: bosses both have first, then the rest
+  const key = b => b.boss + "|" + b.metric;
+  const ma = new Map(A.bests.map(b => [key(b), b])), mb = new Map(B.bests.map(b => [key(b), b]));
+  const keys = [...new Set([...ma.keys(), ...mb.keys()])].sort((x, y) => (ma.has(y) && mb.has(y)) - (ma.has(x) && mb.has(x)));
+  $("pm").innerHTML = keys.length ? keys.map(k => {
+    const a = ma.get(k), b = mb.get(k), any = a || b;
+    return mrow(any.bossName + " · " + T[any.metric], a?.value, b?.value, fmt);
+  }).join("") : '<p class="empty-s">' + T.noPm + "</p>";
+
+  // gear slot by slot
+  if (!A.official || !B.official) { $("gear").innerHTML = $("stats").innerHTML = $("boards").innerHTML = '<p class="empty-s">' + T.noOfficial + "</p>"; return; }
+  const item = (x, side, other) => {
+    if (!x) return '<div class="it none ' + side + '">–</div>';
+    const upG = other && (GRADE_RANK[x.grade] ?? 0) > (GRADE_RANK[other.grade] ?? 0);
+    const upP = other && !upG && (GRADE_RANK[x.grade] ?? 0) === (GRADE_RANK[other.grade] ?? 0) && (x.plus || 0) > (other.plus || 0);
+    return '<div class="it ' + side + '"><span class="ico" style="--g:' + grade(x.grade) + '"><img src="' + esc(x.icon) + '" alt="" loading="lazy">' +
+      (x.plus ? "<em>+" + x.plus + "</em>" : "") + '</span><div style="min-width:0"><b style="--g:' + grade(x.grade) + '">' + esc(x.name) + "</b><span" +
+      (upG ? ' class="up"' : "") + ">" + esc(gradeName(x.grade)) + "</span>" + (x.plus ? " <span" + (upP ? ' class="up"' : "") + ">+" + x.plus + "</span>" : "") + "</div></div>";
+  };
+  $("gear").innerHTML = SLOTS.map(s => {
+    const a = A.gear.find(g => g.slot === s), b = B.gear.find(g => g.slot === s);
+    if (!a && !b) return "";
+    return '<div class="grow">' + item(a, "l", b) + '<div class="slot">' + esc(T.slots[s] || s) + "</div>" + item(b, "r", a) + "</div>";
+  }).join("");
+
+  // stats: union by type, in the order of the first player
+  const types = [...new Set([...(A.stats || []), ...(B.stats || [])].map(s => s.type))].filter(t => t !== "ItemLevel");
+  $("stats").innerHTML = types.map(t => {
+    const sa = (A.stats || []).find(s => s.type === t), sb = (B.stats || []).find(s => s.type === t);
+    return mrow((sa || sb).name, sa?.value ?? 0, sb?.value ?? 0, num);
+  }).join("");
+
+  const boards = [...new Set([...(A.daevanion || []), ...(B.daevanion || [])].map(b => b.name))];
+  $("boards").innerHTML = boards.map(n => {
+    const ba = A.daevanion.find(b => b.name === n), bb = B.daevanion.find(b => b.name === n);
+    return mrow(n, ba?.open ?? 0, bb?.open ?? 0, num);
+  }).join("");
+  PM.reveal("section.s");
+}
+
+function renderAll() { load(0); load(1); }
+syncUrl();
+renderAll();
+</script>
+</body>
+</html>

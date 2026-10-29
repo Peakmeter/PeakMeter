@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/site.css?v=3">
-<script src="/site.js?v=3"></script>
+<link rel="stylesheet" href="/site.css?v=5">
+<script src="/site.js?v=5"></script>
 <style>
   /* A character's page as an in-game character window: portrait and combat power up top, then PeakMeter's bests,
      gear slots with rarity frames, Daevanion, stats and skills – all in the site's dark glass windows. */
@@ -159,6 +159,7 @@
         <div class="facts" id="pFacts"></div>
         <div class="acts">
           <button class="btn sm" id="copy" type="button" data-i="copy">Copy link</button>
+          <a class="btn sm ghost" id="pDuel" data-i="duel">Compare</a>
           <a class="btn sm ghost" id="pOfficial" target="_blank" rel="noopener" data-i="official">Official page</a>
           <a class="btn sm ghost" id="pIndex" target="_blank" rel="noopener">aion2index</a>
         </div>
@@ -195,7 +196,7 @@ const de = PM.de;
 const DE = {
   findH: "Finde jeden Spieler.", findP: "Ausrüstung, Werte, Daevanion und Skills von den offiziellen Charakterseiten. Und die besten Kills, gemessen mit PeakMeter.",
   go: "Suchen", hint: "Tipp: Im PeakMeter auf einen Spieler klicken und dann „Profil“.",
-  copy: "Link kopieren", official: "Offizielle Seite",
+  copy: "Link kopieren", official: "Offizielle Seite", duel: "Vergleichen",
   bestH: "Beste Kills mit PeakMeter", bestP: "Pro Boss der beste Wert und sein Platz in der Rangliste.",
   gearH: "Ausrüstung", statH: "Werte", skillH: "Skills",
 };
@@ -302,6 +303,7 @@ async function showProfile(region, server, name) {
   const il = (d.stats || []).find(s => s.type === "ItemLevel");
   $("pCp").innerHTML = (p.cp ? '<b class="metal">' + num(p.cp) + "</b><span>" + T.cp + "</span>" : "") +
     (il ? '<div class="il"><b>' + num(il.value) + "</b><span>" + T.il + "</span></div>" : "");
+  $("pDuel").href = "/compare?r=" + region + "&p1=" + encodeURIComponent(d.server) + "/" + encodeURIComponent(d.name);
   if (d.officialUrl) $("pOfficial").href = d.officialUrl; else $("pOfficial").hidden = true;
 
   renderBests(d, region);

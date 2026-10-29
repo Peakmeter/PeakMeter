@@ -18,7 +18,7 @@
   --fb: #e3c27a;            /* faction second (Elyos: gold) */
   --glow: rgba(127, 216, 255, .35);
   --up: #4fe09a; --down: #ff6b81; --dead: #ff8a8a;
-  --r-common: #b9b4c4; --r-rare: #4aa8ff; --r-epic: #b07cff; --r-legend: #ff9f40; --r-mythic: #ff4f6d;
+  --r-common: #b9b4c4; --r-rare: #4aa8ff; --r-legend: #ff9f40; --r-unique: #ffd76a; --r-epic: #b07cff; --r-mythic: #ff4f6d;
   --c-gla: #e8a84c; --c-ele: #f26ca7; --c-ran: #6fcf7c; --c-cle: #f5e06e; --c-cha: #3fd1b5;
   --display: "Marcellus SC", "Marcellus", Georgia, "Times New Roman", serif;
   --body: "Sora", "Segoe UI", system-ui, -apple-system, sans-serif;

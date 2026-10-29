@@ -5,11 +5,13 @@
 // GET  /                 the download page
 // GET  /ranking          the ranking page (the meter before 1.36 opened /?region=..., which lands there too)
 // GET  /player[/<region>/<server>/<name>]   player search and profile
+// GET  /compare?r=<region>&p1=<server>/<name>&p2=...   two players side by side
 // GET  /api/char/search  NCSOFT's official character search, trimmed
 // GET  /api/char         one character: official profile, gear, skills (NCSOFT) + PeakMeter bests
 import page from "./page.html";
 import landing from "./landing.html";
 import player from "./player.html";
+import compare from "./compare.html";
 import siteCss from "./client/site.css";
 import siteJs from "./client/site.js";
 
@@ -44,6 +46,7 @@ export default {
       if (url.pathname === "/site.js") return asset(siteJs, "text/javascript; charset=utf-8");
       if (url.pathname === "/ranking" || url.pathname === "/ranking/") return html(page);
       if (url.pathname === "/player" || url.pathname.startsWith("/player/")) return html(player);
+      if (url.pathname === "/compare" || url.pathname === "/compare/") return html(compare);
       if (url.pathname === "/api/char/search") return await charSearch(url);
       if (url.pathname === "/api/char") return await charProfile(url, env, ctx);
       if (url.pathname === "/api/submit" && req.method === "POST") return await submit(req, env);
