@@ -47,6 +47,8 @@ export default {
       if (url.pathname === "/robots.txt") return text(`User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: ${url.origin}/sitemap.xml\n`);
       if (url.pathname === "/sitemap.xml") return await sitemap(url, env);
       if (url.pathname === `/${INDEXNOW_KEY}.txt`) return text(INDEXNOW_KEY);
+      // Google Search Console ownership file
+      if (url.pathname === "/google4f18a70ffc7e17f1.html") return html("google-site-verification: google4f18a70ffc7e17f1.html");
       if (url.pathname === "/site.css") return asset(siteCss, "text/css; charset=utf-8");
       if (url.pathname === "/site.js") return asset(siteJs, "text/javascript; charset=utf-8");
       if (url.pathname === "/ranking" || url.pathname === "/ranking/") return html(isBot(req) ? await rankingCard(url, env, page) : page);
