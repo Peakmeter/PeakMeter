@@ -98,26 +98,46 @@
   .gear-h { font: 600 12px/1 var(--hud); color: var(--fb); text-transform: uppercase; letter-spacing: .12em; margin: 22px 0 10px; }
   .gear-h:first-child { margin-top: 0; }
 
-  .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
-  @media (max-width: 820px) { .two { grid-template-columns: minmax(0, 1fr); } }
-  .two h2 { font-size: 24px; margin-bottom: 10px; }
-  .board { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; padding: 8px 0; }
-  .board img { width: 34px; height: 34px; border-radius: 6px; background: #15171f; padding: 3px; box-shadow: 0 0 0 1px var(--line); }
-  .bar { height: 5px; border-radius: 3px; background: #1d1f2a; overflow: hidden; margin-top: 6px; }
-  .bar i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--fb), var(--fa)); box-shadow: 0 0 10px var(--glow); }
-  .board .pct { font: 600 13px/1 var(--hud); color: var(--dim); }
-  .stat { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 9px 0; border-bottom: 1px dotted rgba(255,255,255,.1); }
-  .stat:last-child { border-bottom: 0; }
-  .stat b { font: 700 15px/1 var(--hud); color: var(--text); }
-  .stat small { grid-column: 1 / -1; color: var(--mute); font-size: 12px; }
-  .skills { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
-  .skill { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 6px; min-width: 0; border: 1px solid transparent; }
-  .skill.on { background: rgba(0,0,0,.28); border-color: var(--line-2); }
-  .skill img { width: 40px; height: 40px; border-radius: 6px; flex: none; box-shadow: 0 0 0 1px var(--line); }
-  .skill b { display: block; font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .skill span { font-size: 12px; color: var(--dim); font-family: var(--hud); }
+  /* attributes | skills + Daevanion */
+  .cols { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 880px) { .cols { grid-template-columns: minmax(0, 1fr); } .side { order: -1; } }
+  .side { display: grid; gap: 20px; min-width: 0; }
+  .cols .box { padding: 22px 22px 18px; }
+  .ph { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+  .ph h2 { font-size: 22px; }
+  .more { font: 600 12.5px/1 var(--hud); letter-spacing: .04em; color: var(--fa); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none; white-space: nowrap; }
+  .more:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .base { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .tile { background: rgba(0,0,0,.28); border: 1px solid var(--line-2); border-radius: 8px; padding: 16px 8px 14px; text-align: center; min-width: 0; }
+  .tile svg { width: 24px; height: 24px; color: var(--dim); }
+  .tile .n { font-size: 12.5px; color: var(--dim); margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile b { display: block; font: 700 21px/1.2 var(--hud); margin-top: 2px; }
+  .tile.zero b { color: var(--mute); } .tile.zero svg { opacity: .4; }
+  .sublbl { font: 600 11.5px/1 var(--hud); letter-spacing: .12em; text-transform: uppercase; color: var(--mute); margin: 24px 0 6px; }
+  .dv { display: grid; grid-template-columns: 26px minmax(0, 1.15fr) minmax(50px, 1fr) 34px; gap: 4px 12px; align-items: center; padding: 8px 0; }
+  .dv svg { width: 22px; height: 22px; color: var(--dim); }
+  .dv b { display: block; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dv b span { color: var(--dim); font-weight: 400; font-size: 12.5px; }
+  .dv small { display: block; color: var(--mute); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dv .v { font: 700 15px/1 var(--hud); text-align: right; }
+  .bar { height: 6px; border-radius: 3px; background: #1d1f2a; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 3px; }
+  .dv .bar i { background: var(--fa); }
+  @media (max-width: 520px) { .dv { grid-template-columns: 26px minmax(0, 1fr) 34px; } .dv .bar { grid-column: 2 / -1; grid-row: 2; } .dv .v { grid-column: 3; grid-row: 1; } }
+  .bd { padding: 9px 0; }
+  .bd .top { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
+  .bd b { font-size: 14px; font-weight: 600; }
+  .bd span { font: 600 13px/1 var(--hud); color: var(--dim); white-space: nowrap; }
+  .bd .bar i { background: var(--r-epic); }
+  .sk { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line-2); }
+  .sk:last-child { border-bottom: 0; }
+  .sk img { width: 32px; height: 32px; border-radius: 6px; box-shadow: 0 0 0 1px var(--line); }
+  .sk b { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sk .lv { font: 700 13.5px/1 var(--hud); color: var(--gold); white-space: nowrap; }
+  .sk.off b { color: var(--dim); }
+  .all { max-height: 470px; overflow-y: auto; padding-right: 6px; margin-top: 10px; }
   .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-  .tabs button { font: 600 12px/1 var(--hud); letter-spacing: .08em; text-transform: uppercase; padding: 8px 12px; border-radius: 4px; border: 1px solid var(--line-2); background: rgba(0,0,0,.3); color: var(--dim); cursor: pointer; }
+  .tabs button { font: 600 11.5px/1 var(--hud); letter-spacing: .08em; text-transform: uppercase; padding: 7px 10px; border-radius: 4px; border: 1px solid var(--line-2); background: rgba(0,0,0,.3); color: var(--dim); cursor: pointer; }
   .tabs button.on { color: var(--fb); border-color: var(--fb); }
   .note { color: var(--mute); font-size: 12.5px; padding-block: 36px 20px; }
   .skel { background: linear-gradient(90deg, rgba(255,255,255,.03), rgba(255,255,255,.07), rgba(255,255,255,.03)); background-size: 200% 100%; animation: sk 1.2s infinite; border-radius: 10px; height: 150px; }
@@ -173,19 +193,30 @@
       <div class="s-head"><h2 data-i="bestH">Best kills with PeakMeter</h2><span class="rule"></span><p data-i="bestP">Per boss, the best value and its place in the ranking.</p></div>
       <div id="bests"><div class="skel"></div></div>
     </section>
+    <section class="s" id="boardS">
+      <div class="cols">
+        <div class="box win">
+          <div class="ph"><h2 data-i="attrH">Attributes</h2></div>
+          <div class="base" id="base"></div>
+          <p class="sublbl" data-i="divH">Divine stats</p>
+          <div id="divine"></div>
+        </div>
+        <div class="side">
+          <div class="box win" id="skillS">
+            <div class="ph"><h2>Skills</h2><button class="more" type="button" id="skillMore" data-i="allSkills">All skills →</button></div>
+            <div id="skillTop"></div>
+            <div id="skillAll" hidden><div class="tabs" id="skillTabs"></div><div class="all" id="skills"></div></div>
+          </div>
+          <div class="box win">
+            <div class="ph"><h2>Daevanion</h2><a class="more" id="dvnLink" target="_blank" rel="noopener" data-i="dvnOpen">Open boards →</a></div>
+            <div id="boards"></div>
+          </div>
+        </div>
+      </div>
+    </section>
     <section class="s" id="gearS">
       <div class="s-head"><h2 data-i="gearH">Equipment</h2><span class="rule"></span><p id="petLine" class="hud"></p></div>
       <div class="box win" id="gear"><div class="skel"></div></div>
-    </section>
-    <section class="s" id="boardS">
-      <div class="two">
-        <div class="box win"><h2>Daevanion</h2><div id="boards"></div></div>
-        <div class="box win"><h2 data-i="statH">Stats</h2><div id="stats"></div></div>
-      </div>
-    </section>
-    <section class="s" id="skillS">
-      <div class="s-head"><h2 data-i="skillH">Skills</h2><span class="rule"></span><div class="tabs" id="skillTabs"></div></div>
-      <div class="box win"><div class="skills" id="skills"></div></div>
     </section>
     <p class="note" id="note"></p>
   </main>
@@ -198,7 +229,7 @@ const DE = {
   go: "Suchen", hint: "Tipp: Im PeakMeter auf einen Spieler klicken und dann „Profil“.",
   copy: "Link kopieren", official: "Offizielle Seite", duel: "Vergleichen",
   bestH: "Beste Kills mit PeakMeter", bestP: "Pro Boss der beste Wert und sein Platz in der Rangliste.",
-  gearH: "Ausrüstung", statH: "Werte", skillH: "Skills",
+  gearH: "Ausrüstung", attrH: "Attribute", divH: "Göttliche Werte", allSkills: "Alle Skills →", dvnOpen: "Bretter öffnen →",
 };
 const T = de ? {
   ph: "Charaktername", lvl: "Stufe", cp: "Kampfkraft", il: "Gegenstandsstufe", none: "Keine Charaktere gefunden.", err: "Die offizielle Suche antwortet gerade nicht. Bitte gleich nochmal.",
@@ -207,7 +238,7 @@ const T = de ? {
   optinH: "Noch keine Ranking-Kills.", optinP: "Im PeakMeter unter Einstellungen „Am Ranking teilnehmen“ einschalten. Nach jedem Dungeon-Boss-Kill erscheinen hier deine Bestwerte mit Platz.",
   dl: "PeakMeter laden", dps: "DPS", hps: "Heilung/s", stagger: "Stagger/s", of: "von", place: "Platz", fight: "Kampf", party: "Gruppe",
   weapons: "Waffen", armor: "Rüstung", acc: "Schmuck", pet: "Pet", wing: "Flügel", active: "Aktiv", passive: "Passiv", dp: "DP", equipped: "ausgerüstet",
-  copied: "Kopiert ✓", titles: (a, b) => `${a} von ${b} Titeln`,
+  copied: "Kopiert ✓", titles: (a, b) => `${a} von ${b} Titeln`, all: "Alle Skills →", less: "Weniger ←", lv: "Stufe",
   noOfficial: "Die offizielle Charakterseite war gerade nicht erreichbar – hier nur die PeakMeter-Daten.",
   src: (t) => `Ausrüstung, Werte und Skills: offizielle AION-2-Charakterseite (NCSOFT), Stand ${t}. Bestwerte: PeakMeter-Rangliste, nur von Spielern, die teilnehmen.`,
 } : {
@@ -217,7 +248,7 @@ const T = de ? {
   optinH: "No ranked kills yet.", optinP: "In PeakMeter, turn on Settings → “Join the ranking”. After every dungeon boss kill your best values show up here with your place.",
   dl: "Get PeakMeter", dps: "DPS", hps: "Healing/s", stagger: "Stagger/s", of: "of", place: "Place", fight: "Fight", party: "Party",
   weapons: "Weapons", armor: "Armor", acc: "Accessories", pet: "Pet", wing: "Wings", active: "Active", passive: "Passive", dp: "DP", equipped: "equipped",
-  copied: "Copied ✓", titles: (a, b) => `${a} of ${b} titles`,
+  copied: "Copied ✓", titles: (a, b) => `${a} of ${b} titles`, all: "All skills →", less: "Less ←", lv: "Lv",
   noOfficial: "The official character page was not reachable just now – showing PeakMeter data only.",
   src: (t) => `Gear, stats and skills: official AION 2 character page (NCSOFT), as of ${t}. Bests: PeakMeter ranking, only from players who joined.`,
 };
@@ -372,25 +403,60 @@ function renderGear(d) {
   if (d.titles) $("petLine").textContent = T.titles(d.titles.owned, d.titles.total);
 }
 
+// Line icons for the six base attributes; the divine ones share a rune.
+const ICONS = {
+  STR: '<path d="M7 11V7.5a1.8 1.8 0 0 1 3.6 0V10 M10.6 10V6.5a1.8 1.8 0 0 1 3.6 0V10 M14.2 10V7.5a1.8 1.8 0 0 1 3.6 0v5.2A7.3 7.3 0 0 1 10.5 20h-.3A5.7 5.7 0 0 1 4.5 14.3V12a1.8 1.8 0 0 1 3.6 0v1"/>',
+  DEX: '<path d="M20 4C12.5 4 7.5 9 6.5 16L4 20 M6.8 15.5c3.2 0 6-1.2 8-3.4 M9.3 11.5c3 0 5.3-1 7.2-3"/>',
+  INT: '<path d="M3.5 5.5h6.5a2 2 0 0 1 2 2V19a2 2 0 0 0-2-2H3.5z M20.5 5.5H14a2 2 0 0 0-2 2V19a2 2 0 0 1 2-2h6.5z"/>',
+  CON: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.3a4.2 4.2 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/>',
+  AGI: '<path d="M2.5 12S6.2 5.5 12 5.5 21.5 12 21.5 12 17.8 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
+  WIS: '<path d="M12 3c1 3.6 5 5 5 10a5 5 0 0 1-10 0c0-2.9 1.8-4.1 2-6.8 1.6 1 2.8 2.7 3 4.8"/>',
+  rune: '<path d="M12 2.8l2.4 6.8 6.8 2.4-6.8 2.4L12 21.2l-2.4-6.8L2.8 12l6.8-2.4z"/><circle cx="12" cy="12" r="2"/>',
+};
+const icon = k => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[k] || ICONS.rune) + "</svg>";
+const BASE = ["STR", "DEX", "INT", "CON", "AGI", "WIS"];
+// "Defense increase + +5.1%" reads as "Defense increase +5.1%".
+const effect = t => String(t).replace(/\+\s*\+/g, "+").replace(/\s+/g, " ").trim();
+
 function renderBoards(d) {
+  const stats = (d.stats || []).filter(s => s.type !== "ItemLevel");
+  $("base").innerHTML = BASE.map(t => stats.find(s => s.type === t)).filter(Boolean).map(s =>
+    '<div class="tile' + (s.value ? "" : " zero") + '">' + icon(s.type) + '<p class="n">' + esc(s.name) + "</p><b>" + num(s.value) + "</b></div>").join("");
+  const divine = stats.filter(s => !BASE.includes(s.type));
+  const top = Math.max(1, ...divine.map(s => s.value || 0));
+  $("divine").innerHTML = divine.map(s => {
+    const m = /^(.*?)\s*\[(.+)\]\s*$/.exec(s.name || "");
+    const name = m ? m[1] : s.name, god = m ? m[2] : "";
+    return '<div class="dv">' + icon("rune") + '<div style="min-width:0"><b>' + esc(name) + (god ? " <span>· " + esc(god) + "</span>" : "") + "</b>" +
+      (s.more.length ? '<small title="' + esc(s.more.map(effect).join(" · ")) + '">' + esc(effect(s.more[0])) + "</small>" : "") + '</div><div class="bar"><i style="width:' +
+      ((s.value || 0) / top * 100) + '%"></i></div><span class="v">' + num(s.value) + "</span></div>";
+  }).join("");
   $("boards").innerHTML = d.daevanion.map(b =>
-    '<div class="board"><img src="' + esc(b.icon) + '" alt="" loading="lazy"><div><b style="font-weight:600;font-size:15px">' + esc(b.name) +
-    '</b><div class="bar"><i style="width:' + b.pct + '%"></i></div></div><span class="pct">' + b.open + " / " + b.total + "</span></div>").join("") || "–";
-  $("stats").innerHTML = (d.stats || []).filter(s => s.type !== "ItemLevel").map(s =>
-    '<div class="stat"><span>' + esc(s.name) + "</span><b>" + num(s.value) + "</b>" + (s.more.length ? "<small>" + s.more.map(esc).join(" · ") + "</small>" : "") + "</div>").join("") || "–";
+    '<div class="bd"><div class="top"><b>' + esc(b.name) + "</b><span>" + b.open + " / " + b.total + " · " + b.pct + '%</span></div><div class="bar"><i style="width:' +
+    b.pct + '%"></i></div></div>').join("") || "–";
+  if (d.officialUrl) $("dvnLink").href = d.officialUrl; else $("dvnLink").hidden = true;
 }
 
 function renderSkills(d) {
+  if (!d.skills.length) { $("skillS").hidden = true; return; }
+  const row = s => '<div class="sk' + (s.on ? "" : " off") + '"><img src="' + esc(s.icon) + '" alt="" loading="lazy"><b>' + esc(s.name) + '</b><span class="lv">' + T.lv + " " + s.level + "</span></div>";
+  // At a glance: the equipped active skills, highest first.
+  const top = d.skills.filter(s => s.kind === "Active").sort((a, b) => b.on - a.on || b.level - a.level).slice(0, 6);
+  $("skillTop").innerHTML = (top.length ? top : d.skills.slice(0, 6)).map(row).join("");
   const kinds = [["Active", T.active], ["Passive", T.passive], ["Dp", T.dp]].filter(([k]) => d.skills.some(s => s.kind === k));
-  let cur = kinds[0]?.[0];
+  let cur = kinds[0][0], open = false;
   const draw = () => {
     $("skillTabs").innerHTML = kinds.map(([k, l]) => '<button type="button" data-k="' + k + '" class="' + (k === cur ? "on" : "") + '">' + l + " · " + d.skills.filter(s => s.kind === k).length + "</button>").join("");
-    $("skills").innerHTML = d.skills.filter(s => s.kind === cur).sort((a, b) => b.on - a.on || b.level - a.level).map(s =>
-      '<div class="skill' + (s.on ? " on" : "") + '"><img src="' + esc(s.icon) + '" alt="" loading="lazy"><div style="min-width:0"><b>' + esc(s.name) + "</b><span>" + T.lvl + " " + s.level +
-      (s.on ? " · " + T.equipped : "") + "</span></div></div>").join("");
+    $("skills").innerHTML = d.skills.filter(s => s.kind === cur).sort((a, b) => b.on - a.on || b.level - a.level).map(row).join("");
     $("skillTabs").querySelectorAll("button").forEach(b => b.onclick = () => { cur = b.dataset.k; draw(); });
   };
-  if (cur) draw(); else $("skillS").hidden = true;
+  $("skillMore").onclick = () => {
+    open = !open;
+    $("skillAll").hidden = !open;
+    $("skillTop").hidden = open;
+    $("skillMore").textContent = open ? T.less : T.all;
+    if (open) draw();
+  };
 }
 </script>
 </body>
