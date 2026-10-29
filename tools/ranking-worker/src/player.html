@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/site.css?v=6">
-<script src="/site.js?v=6"></script>
+<link rel="stylesheet" href="/site.css?v=7">
+<script src="/site.js?v=7"></script>
 <style>
   /* A character's page as an in-game character window: portrait and combat power up top, then PeakMeter's bests,
      gear slots with rarity frames, Daevanion, stats and skills – all in the site's dark glass windows. */
@@ -183,6 +183,7 @@
           <a class="btn sm ghost" id="pOfficial" target="_blank" rel="noopener" data-i="official">Official page</a>
           <a class="btn sm ghost" id="pIndex" target="_blank" rel="noopener">aion2index</a>
         </div>
+        <div id="pShare" style="margin-top:14px"></div>
       </div>
       <div class="cp" id="pCp"></div>
     </div>
@@ -334,6 +335,11 @@ async function showProfile(region, server, name) {
   const il = (d.stats || []).find(s => s.type === "ItemLevel");
   $("pCp").innerHTML = (p.cp ? '<b class="metal">' + num(p.cp) + "</b><span>" + T.cp + "</span>" : "") +
     (il ? '<div class="il"><b>' + num(il.value) + "</b><span>" + T.il + "</span></div>" : "");
+  PM.share("pShare", {
+    url: location.origin + profileUrl(region, d.server, d.name),
+    text: d.name + " – " + (de ? "AION-2-Profil auf PeakMeter" : "AION 2 profile on PeakMeter"),
+    discord: "🛡️ **" + d.name + "** · " + [p.level ? T.lvl + " " + p.level : "", p.className, d.server].filter(Boolean).join(" · ") + (p.cp ? " · " + num(p.cp) + " " + T.cp : ""),
+  });
   $("pDuel").href = "/compare?r=" + region + "&p1=" + encodeURIComponent(d.server) + "/" + encodeURIComponent(d.name);
   if (d.officialUrl) $("pOfficial").href = d.officialUrl; else $("pOfficial").hidden = true;
 

@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/site.css?v=6">
-<script src="/site.js?v=6"></script>
+<link rel="stylesheet" href="/site.css?v=7">
+<script src="/site.js?v=7"></script>
 <style>
   /* A duel: two fighters facing each other across a VS seal, then every value mirrored around a centre line,
      the stronger side lit in the up colour. */
@@ -140,6 +140,7 @@
     <div class="vs" aria-hidden="true"><span>VS</span></div>
     <div id="slotB"></div>
   </div>
+  <div id="cShare" style="justify-content:center;margin-top:22px" hidden></div>
   <div class="tug" id="tug" hidden><div class="bar"><i class="l" id="tugL"></i><i class="r" id="tugR"></i></div><div class="lbl"><span id="tugLl"></span><span id="tugRl"></span></div></div>
 
   <div id="rows" hidden>
@@ -282,9 +283,14 @@ function renderRows() {
   const both = A && B;
   $("rows").hidden = !both;
   $("tug").hidden = !both;
+  $("cShare").hidden = !both;
   document.querySelectorAll(".win-tag").forEach(t => t.hidden = true);
   if (!both) return;
   document.title = A.name + " vs " + B.name + " · PeakMeter";
+  PM.share("cShare", {
+    url: location.href, text: A.name + " vs " + B.name + " – " + (de ? "Duell auf PeakMeter" : "duel on PeakMeter"),
+    discord: "⚔️ **" + A.name + "** (" + num((A.profile || {}).cp) + ") vs **" + B.name + "** (" + num((B.profile || {}).cp) + ")",
+  });
   const pa = A.profile || {}, pb = B.profile || {};
 
   // tug of war on combat power

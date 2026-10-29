@@ -63,9 +63,13 @@ nav.top .links a.on { color: var(--fb); }
 .faction button { display: grid; place-items: center; width: 30px; height: 26px; border: 0; border-radius: 999px; background: transparent; color: var(--mute); cursor: pointer; transition: background .3s, color .3s; }
 .faction button svg { width: 16px; height: 16px; }
 .faction button[aria-pressed="true"] { background: color-mix(in srgb, var(--fa) 22%, transparent); color: var(--fa); }
+.lang { display: inline-flex; gap: 2px; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: rgba(0,0,0,.35); cursor: pointer; }
+.lang span { font: 700 11px/1 var(--hud); letter-spacing: .06em; color: var(--mute); padding: 6px 7px; border-radius: 999px; }
+.lang span.on { color: var(--fb); background: color-mix(in srgb, var(--fb) 16%, transparent); }
 @media (max-width: 760px) { nav.top .links a.opt { display: none; } nav.top .wrap { gap: 10px; } }
 @media (max-width: 520px) {
   nav.top .btn.sm { display: none; }
+  .lang span { padding: 6px 5px; }
   nav.top .links { gap: 0; }
   nav.top .links a { padding: 8px 7px; letter-spacing: .06em; }
   .brand span { display: none; }
@@ -96,6 +100,17 @@ nav.top .links a.on { color: var(--fb); }
 .orn { display: flex; align-items: center; gap: 12px; color: var(--fb); }
 .orn::before, .orn::after { content: ""; height: 1px; flex: 1; background: linear-gradient(90deg, transparent, var(--line), transparent); }
 .orn i { width: 8px; height: 8px; transform: rotate(45deg); border: 1px solid currentColor; box-shadow: 0 0 10px var(--glow); }
+
+/* share row */
+.share { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.share .hud { margin-right: 4px; }
+.share .sh { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--line-2); background: rgba(0,0,0,.35);
+  color: var(--dim); cursor: pointer; text-decoration: none; transition: color .2s, border-color .2s, transform .2s; }
+.share .sh:hover { color: var(--fb); border-color: var(--fb); transform: translateY(-1px); }
+.share .sh[data-k="discord"]:hover { color: #8c9bff; border-color: #8c9bff; }
+.share .sh[data-k="reddit"]:hover { color: #ff6a33; border-color: #ff6a33; }
+.share .sh[data-k="whatsapp"]:hover { color: #4fe09a; border-color: #4fe09a; }
+.share .sh-msg { font: 600 12px/1 var(--hud); color: var(--up); margin-left: 6px; letter-spacing: .04em; }
 
 /* class emblem in a small round frame of the class colour */
 .emb { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; flex: none; vertical-align: middle;

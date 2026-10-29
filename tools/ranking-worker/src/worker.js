@@ -45,9 +45,9 @@ export default {
       }
       if (url.pathname === "/site.css") return asset(siteCss, "text/css; charset=utf-8");
       if (url.pathname === "/site.js") return asset(siteJs, "text/javascript; charset=utf-8");
-      if (url.pathname === "/ranking" || url.pathname === "/ranking/") return html(page);
-      if (url.pathname === "/player" || url.pathname.startsWith("/player/")) return html(player);
-      if (url.pathname === "/compare" || url.pathname === "/compare/") return html(compare);
+      if (url.pathname === "/ranking" || url.pathname === "/ranking/") return html(isBot(req) ? await rankingCard(url, env, page) : page);
+      if (url.pathname === "/player" || url.pathname.startsWith("/player/")) return html(isBot(req) ? await playerCard(url, env, ctx, player) : player);
+      if (url.pathname === "/compare" || url.pathname === "/compare/") return html(isBot(req) ? await duelCard(url, env, ctx, compare) : compare);
       if (url.pathname === "/api/char/search") return await charSearch(url);
       if (url.pathname === "/api/char") return await charProfile(url, env, ctx);
       if (url.pathname === "/api/updates") return await updates(url, ctx);
@@ -325,6 +325,104 @@ async function charProfile(url, env, ctx) {
   const res = json(body, 200, { "cache-control": "public, max-age=600" });
   ctx.waitUntil(caches.default.put(key, res.clone()));
   return res;
+}
+
+// ---------------------------------------------------------------- link previews
+// Discord, WhatsApp, Reddit, X … read og: tags when a link is posted. Only their fetchers get the filled-in page,
+// so ordinary visits never cost an extra call to NCSOFT.
+const BOTS = /discordbot|twitterbot|facebookexternalhit|facebot|slackbot|telegrambot|whatsapp|linkedinbot|redditbot|embedly|skypeuripreview|pinterest|vkshare|mastodon|bluesky|iframely|applebot|googlebot|bingbot/i;
+const isBot = (req) => BOTS.test(req.headers.get("user-agent") || "");
+const attr = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const short = (v) => (v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e4 ? (v / 1e3).toFixed(1) + "K" : String(Math.round(v)));
+const group = (v) => Number(v || 0).toLocaleString("en-US");
+const CLASS_EN = { gladiator: "Gladiator", templar: "Templar", ranger: "Ranger", assassin: "Assassin", sorcerer: "Sorcerer", elementalist: "Spiritmaster", cleric: "Cleric", chanter: "Chanter" };
+const LOGO = "https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png";
+
+function withCard(page, url, m) {
+  const tags = [
+    `<meta property="og:site_name" content="PeakMeter">`,
+    `<meta property="og:type" content="website">`,
+    `<meta property="og:url" content="${attr(url.href)}">`,
+    `<meta property="og:title" content="${attr(m.title)}">`,
+    `<meta property="og:description" content="${attr(m.desc)}">`,
+    `<meta property="og:image" content="${attr(m.image || LOGO)}">`,
+    `<meta name="twitter:card" content="${m.large ? "summary_large_image" : "summary"}">`,
+    `<meta name="twitter:title" content="${attr(m.title)}">`,
+    `<meta name="twitter:description" content="${attr(m.desc)}">`,
+    `<meta name="twitter:image" content="${attr(m.image || LOGO)}">`,
+    `<meta name="description" content="${attr(m.desc)}">`,
+  ].join("\n");
+  return page.replace(/<title>[\s\S]*?<\/title>/, `<title>${attr(m.title)}</title>`).replace(/<meta name="description"[^>]*>/, "").replace("</head>", tags + "\n</head>");
+}
+
+async function charData(url, env, ctx, region, server, name) {
+  const u = new URL(url.origin + "/api/char");
+  u.search = new URLSearchParams({ region, server, name, lang: "en" }).toString();
+  try {
+    const r = await charProfile(u, env, ctx);
+    return r.ok ? await r.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+function charLine(d) {
+  const p = d.profile || {};
+  const cls = CLASS_EN[p.cls] || p.className || "";
+  return [p.level ? "Lv " + p.level : "", cls].filter(Boolean).join(" ");
+}
+
+async function playerCard(url, env, ctx, page) {
+  const [, , region, server, name] = url.pathname.split("/").map(decodeURIComponent);
+  if (!region || !server || !name) return withCard(page, url, { title: "PeakMeter · Find any AION 2 player", desc: "Gear, stats, Daevanion and skills of any AION 2 player, plus their best kills measured with PeakMeter." });
+  const d = await charData(url, env, ctx, region.toLowerCase(), server, name);
+  if (!d) return withCard(page, url, { title: `${name} · ${server} · PeakMeter`, desc: "AION 2 player profile on PeakMeter." });
+  const p = d.profile || {};
+  const il = (d.stats || []).find((s) => s.type === "ItemLevel");
+  const best = (d.bests || []).filter((b) => b.metric === "dps").sort((a, b) => b.value - a.value)[0];
+  const desc = [
+    p.cp ? group(p.cp) + " combat power" : "",
+    il ? "item level " + group(il.value) : "",
+    best ? `best: ${best.bossName} ${short(best.value)} DPS (#${best.place} of ${best.total})` : "",
+  ].filter(Boolean).join(" · ") + " — gear, stats, Daevanion and skills on PeakMeter.";
+  return withCard(page, url, { title: `${d.name} · ${charLine(d)} · ${d.server} (${region.toUpperCase()})`, desc, image: p.img });
+}
+
+async function duelCard(url, env, ctx, page) {
+  const region = (url.searchParams.get("r") || "eu").toLowerCase();
+  const pick = (v) => { const i = (v || "").indexOf("/"); return i > 0 ? [v.slice(0, i), v.slice(i + 1)] : null; };
+  const a = pick(url.searchParams.get("p1")), b = pick(url.searchParams.get("p2"));
+  if (!a || !b) return withCard(page, url, { title: "PeakMeter · The duel", desc: "Compare two AION 2 players side by side: combat power, gear, stats, Daevanion and best kills." });
+  const [da, db] = await Promise.all([charData(url, env, ctx, region, a[0], a[1]), charData(url, env, ctx, region, b[0], b[1])]);
+  const side = (d, w) => d ? `${d.name} (${charLine(d)}, ${group(d.profile?.cp)} CP)` : w[1];
+  return withCard(page, url, {
+    title: `${da?.name || a[1]} vs ${db?.name || b[1]} · PeakMeter duel`,
+    desc: `${side(da, a)} vs ${side(db, b)} — gear, stats, Daevanion and best kills side by side.`,
+    image: da?.profile?.img || db?.profile?.img,
+  });
+}
+
+async function rankingCard(url, env, page) {
+  const region = (url.searchParams.get("region") || "eu").toLowerCase();
+  const boss = Number(url.searchParams.get("boss"));
+  const metric = METRICS.includes(url.searchParams.get("metric")) ? url.searchParams.get("metric") : "dps";
+  const label = { dps: "DPS", hps: "healing", stagger: "stagger" }[metric];
+  const plain = { title: "PeakMeter Hall of Fame · AION 2", desc: "The best DPS, healing and stagger per AION 2 dungeon boss – overall, per class and per week." };
+  if (!REGIONS.has(region) || !Number.isInteger(boss) || boss <= 0) return withCard(page, url, plain);
+  try {
+    const o = await env.DB.prepare("SELECT name FROM bosses WHERE boss = ?1").bind(boss).first();
+    const { results } = await env.DB.prepare(
+      "SELECT name, value FROM best WHERE region = ?1 AND boss = ?2 AND metric = ?3 ORDER BY value DESC LIMIT 3"
+    ).bind(region, boss, metric).all();
+    if (!o) return withCard(page, url, plain);
+    const top = results.map((r, i) => `${i + 1}. ${r.name} ${short(r.value)}`).join(" · ");
+    return withCard(page, url, {
+      title: `Hall of Fame · ${o.name} · ${label} (${region.toUpperCase()})`,
+      desc: (top || "No entries yet – be the first.") + " — PeakMeter ranking for AION 2.",
+    });
+  } catch {
+    return withCard(page, url, plain);
+  }
 }
 
 // ---------------------------------------------------------------- updates (patch notes)

@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/site.css?v=6">
-<script src="/site.js?v=6"></script>
+<link rel="stylesheet" href="/site.css?v=7">
+<script src="/site.js?v=7"></script>
 <style>
   /* ---------- hero: words left, the live meter right, combat text rising off it */
   .hero { padding-block: 64px 40px; overflow-x: clip; }
@@ -193,22 +193,27 @@
   .codex p { color: var(--dim); font-size: 14.5px; margin-top: 6px; max-width: 80ch; }
   @media (max-width: 560px) { .codex { grid-template-columns: minmax(0, 1fr); } }
 
-  /* patch notes: a chronicle down a gold line, newest on top */
-  .chron { position: relative; max-width: 860px; margin: 0 auto; padding-left: 34px; }
-  .chron::before { content: ""; position: absolute; left: 11px; top: 6px; bottom: 6px; width: 1px; background: linear-gradient(180deg, var(--fb), var(--line) 30%, transparent); }
-  .pn { position: relative; padding: 0 0 26px; }
-  .pn::before { content: ""; position: absolute; left: -28px; top: 7px; width: 11px; height: 11px; transform: rotate(45deg); border: 1.5px solid var(--fb); background: var(--void); box-shadow: 0 0 10px var(--glow); }
-  .pn.new::before { background: var(--fb); }
-  .pn .h { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-  .pn .ver { font: 700 17px/1 var(--hud); color: var(--fb); letter-spacing: .04em; }
-  .pn .date { font: 600 12px/1 var(--hud); color: var(--mute); letter-spacing: .06em; }
-  .pn .tag { font: 700 10.5px/1 var(--hud); letter-spacing: .12em; text-transform: uppercase; color: #0b0c12; background: var(--up); padding: 4px 7px; border-radius: 3px; }
-  .pn p { margin-top: 8px; color: var(--text); font-size: 15px; max-width: 72ch; }
-  .pn:not(.new) p { color: #cfc9bb; }
-  .pn.new .card { padding: 16px 18px; margin-top: 10px; }
-  .pn.new .card p { margin: 0; }
-  .chron-more { display: flex; justify-content: center; margin-top: 6px; }
-  .chron .err { color: var(--dim); }
+  /* compendium: every feature, filterable by school */
+  .schools { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 26px; }
+  .schools button { display: inline-flex; align-items: center; gap: 8px; background: rgba(0,0,0,.35); border: 1px solid var(--line-2); color: var(--dim); border-radius: 4px;
+    padding: 9px 13px; font: 600 12.5px/1 var(--hud); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+  .schools button i { width: 8px; height: 8px; transform: rotate(45deg); background: var(--c); box-shadow: 0 0 8px var(--c); }
+  .schools button small { color: var(--mute); font-size: 11px; }
+  .schools button.on { color: var(--text); border-color: var(--c, var(--fb)); background: color-mix(in srgb, var(--c, var(--fb)) 12%, rgba(0,0,0,.35)); }
+  .codexgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 960px) { .codexgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 600px) { .codexgrid { grid-template-columns: minmax(0, 1fr); } }
+  .feat { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px; border-radius: 8px; min-width: 0;
+    background: linear-gradient(180deg, rgba(20,22,33,.9), rgba(12,13,20,.9)); border: 1px solid var(--line-2); border-left: 2px solid var(--c); transition: border-color .2s, transform .2s; }
+  .feat:hover { border-color: color-mix(in srgb, var(--c) 55%, transparent); border-left-color: var(--c); transform: translateY(-2px); }
+  .feat .fi { width: 38px; height: 38px; border-radius: 6px; display: grid; place-items: center; color: var(--c);
+    background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--c) 28%, #14151d), #0b0c12); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 50%, transparent); }
+  .feat .fi svg { width: 20px; height: 20px; }
+  .feat b { display: block; font-size: 15px; font-weight: 600; line-height: 1.3; }
+  .feat p { color: var(--dim); font-size: 13.5px; line-height: 1.5; margin-top: 3px; }
+  .feat .nw { font: 700 10px/1 var(--hud); letter-spacing: .1em; text-transform: uppercase; color: #0b0c12; background: var(--up); padding: 3px 5px; border-radius: 3px; margin-left: 6px; vertical-align: 2px; }
+  .codex-foot { text-align: center; color: var(--mute); font-size: 13px; margin-top: 18px; }
+  .final .share { justify-content: center; margin-top: 26px; }
 
   .final { text-align: center; padding-block: 120px 20px; }
   .final h2 { font-size: clamp(44px, 7vw, 86px); line-height: 1; }
@@ -373,15 +378,16 @@
     </div>
   </section>
 
-  <section class="sec" id="updates">
+  <section class="sec" id="all">
     <div class="wrap">
       <div class="sec-head">
         <div class="orn"><i></i></div>
-        <h2 data-i="upH">Patch notes</h2>
-        <p data-i="upP">Every update since the first release. PeakMeter installs them by itself while the game is closed.</p>
+        <h2 data-i="allH">The compendium</h2>
+        <p data-i="allP">Everything PeakMeter can do, in one place. Pick a school.</p>
       </div>
-      <div class="chron" id="chron"><p class="err" data-i="upLoad">Loading the chronicle …</p></div>
-      <div class="chron-more"><button class="btn ghost sm" type="button" id="chronMore" hidden></button></div>
+      <div class="schools" id="schools" role="tablist"></div>
+      <div class="codexgrid" id="codexgrid"></div>
+      <p class="codex-foot" data-i="allFoot">All of it free, in one small download – and it updates itself.</p>
     </div>
   </section>
 
@@ -434,13 +440,14 @@
         <a class="btn dl" href="https://github.com/Peakmeter/PeakMeter/releases/latest" data-i="dl2">Download free</a>
         <a class="btn ghost" href="https://ko-fi.com/peakmeter" data-i="kofi">Support on Ko-fi</a>
       </div>
+      <div id="shareHome"></div>
     </div>
   </section>
 </main>
 
 <footer class="foot">
   <div class="wrap">
-    <div class="fl"><a href="/ranking" data-i="fRank">Ranking</a><a href="/player" data-i="fPl">Players</a><a href="/#updates" data-i="fUp">Updates</a><a href="https://github.com/Peakmeter/PeakMeter">GitHub</a><a href="https://ko-fi.com/peakmeter">Ko-fi</a><a href="https://github.com/Peakmeter/PeakMeter/blob/main/LICENSE" data-i="fLic">License GPL-3.0</a></div>
+    <div class="fl"><a href="/ranking" data-i="fRank">Ranking</a><a href="/player" data-i="fPl">Players</a><a href="/#all" data-i="fUp">All features</a><a href="https://github.com/Peakmeter/PeakMeter">GitHub</a><a href="https://ko-fi.com/peakmeter">Ko-fi</a><a href="https://github.com/Peakmeter/PeakMeter/blob/main/LICENSE" data-i="fLic">License GPL-3.0</a></div>
     <p data-i="fDis">PeakMeter is not an official product and is not affiliated with NCSOFT. AION is a trademark of NCSOFT Corporation. Names in the pictures are made up.</p>
   </div>
 </footer>
@@ -463,7 +470,7 @@ PM.translate({
   i7h: "Schriftrolle des Herolds", i7k: "Selten · Teilen", i7t: "Heute 21:47", i7e: "Ein Klick kopiert ein Bild vom Kampf. In den Gilden-Chat mit Strg+V.", i7l: "„Screenshot, sonst ist es nicht passiert.“",
   i8h: "Seelenkompass", i8k: "Selten · Pets", i8e: "Monster anhauen und sehen, welches Pet es füttert und wie viele Seelen noch fehlen.", i8l: "„Jedes Monster trägt eine Seele. Manche tragen deine.“",
   i9h: "Glocke der Stunden", i9k: "Selten · Timer", i9e: "Shugo-Festival, Luftangriff, Riss, Belagerung und alle Weltbosse, mit sanftem Ton eine Minute vorher.", i9l: "„Der frühe Daeva fängt den Loot.“",
-  upH: "Patchnotes", upP: "Jedes Update seit der ersten Version. PeakMeter installiert sie von selbst, sobald das Spiel zu ist.", upLoad: "Die Chronik wird geladen …",
+  allH: "Das Kompendium", allP: "Alles, was PeakMeter kann, an einem Ort. Wähle eine Schule.", allFoot: "Alles kostenlos, in einem kleinen Download – und es aktualisiert sich selbst.",
   qH: "In zwei Minuten startklar", sheetK: "Charakterwerte",
   s1: "Preis", s2: "CPU im Leerlauf", s3: "Arbeitsspeicher", s4: "Sprachen", s5: "Regionen", s6: "Updates", s6v: "Automatisch", s7: "Zugriff auf Spielspeicher", s7v: "Keiner",
   questK: "Hauptquest", questH: "Erste Schritte",
@@ -475,7 +482,7 @@ PM.translate({
   cH: "Der Kodex: liest nur, fasst nichts an",
   cP: "PeakMeter liest nur den Netzwerkverkehr deines eigenen Spiels. Kein Speicherzugriff, nichts wird ans Spiel gesendet, Updates kommen von GitHub. Tools von Drittanbietern können trotzdem gegen die Nutzungsbedingungen verstoßen – Nutzung auf eigenes Risiko.",
   fH: "Der nächste Pull wartet.", fP: "Kostenlos, und das bleibt so. Wenn er dir hilft, hält ein Kaffee ihn am Laufen.", kofi: "Auf Ko-fi unterstützen",
-  fRank: "Rangliste", fPl: "Spieler", fUp: "Updates", fLic: "Lizenz GPL-3.0",
+  fRank: "Rangliste", fPl: "Spieler", fUp: "Alle Funktionen", fLic: "Lizenz GPL-3.0",
   fDis: "PeakMeter ist kein offizielles Produkt und nicht mit NCSOFT verbunden. AION ist eine Marke der NCSOFT Corporation. Die Namen in den Bildern sind erfunden.",
 });
 const de = PM.de, $ = id => document.getElementById(id);
@@ -590,28 +597,85 @@ if (!PM.still) {
     let n = 0; const step = () => { big.textContent = n; if (n++ < 6) setTimeout(step, 90); }; step();
   }), { threshold: .6 }).observe(big);
 }
-// patch notes from the meter's own changelog
-(async () => {
-  const el = $("chron"), more = $("chronMore");
-  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  let list;
-  try { const r = await fetch("/api/updates?lang=" + (de ? "de" : "en")); if (!r.ok) throw 0; list = await r.json(); }
-  catch { el.innerHTML = '<p class="err">' + (de ? "Die Patchnotes sind gerade nicht erreichbar. Alle Versionen stehen auch auf GitHub." : "The patch notes are not reachable right now. Every version is also on GitHub.") + "</p>"; return; }
-  const day = iso => iso ? new Date(iso).toLocaleDateString(de ? "de-DE" : "en-GB", { day: "numeric", month: "long", year: "numeric" }) : "";
-  const SHOW = 6;
-  const entry = (e, i) => '<article class="pn' + (i === 0 ? " new" : "") + '"><div class="h"><span class="ver">v' + esc(e.v) + '</span>' +
-    (e.date ? '<span class="date">' + day(e.date) + "</span>" : "") + (i === 0 ? '<span class="tag">' + (de ? "Neu" : "New") + "</span>" : "") + "</div>" +
-    (i === 0 ? '<div class="win card"><p>' + esc(e.text) + "</p></div>" : "<p>" + esc(e.text) + "</p>") + "</article>";
-  let open = false;
+// ---------------- the compendium: every feature, by school
+const SCHOOLS = [
+  ["fight", "#ff6b6b", "Fight", "Kampf", '<path d="M14.5 3.5 20.5 3.5 20.5 9.5 9 21 3 15z M13 8l3 3"/>'],
+  ["insight", "#b07cff", "Insight", "Analyse", '<circle cx="11" cy="11" r="6.5"/><path d="M20.5 20.5 15.8 15.8"/>'],
+  ["party", "#4fe09a", "Party", "Gruppe", '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.6 6.5-5.6s5.7 2 6.5 5.6"/><circle cx="17" cy="9" r="2.6"/><path d="M15.8 14.3c2.6-.3 4.9 1.5 5.7 4.7"/>'],
+  ["glory", "#ffd76a", "Glory", "Ruhm", '<path d="M7 3h10v2h3.5v2.5A4.5 4.5 0 0 1 16.4 12a5 5 0 0 1-3.4 2.9V18h3.5v3h-9v-3H11v-3.1A5 5 0 0 1 7.6 12 4.5 4.5 0 0 1 3.5 7.5V5H7z"/>'],
+  ["world", "#7fd8ff", "World", "Welt", '<circle cx="12" cy="12" r="9"/><path d="M3 12h18 M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9 M12 3C9.4 5.6 8.2 8.6 8.2 12s1.2 6.4 3.8 9"/>'],
+  ["collect", "#ff9f40", "Collecting", "Sammeln", '<path d="M12 13c-2.8 0-5 2.3-5 4.6 0 1.6 1.2 2.4 2.6 2.4.9 0 1.6-.4 2.4-.4s1.5.4 2.4.4c1.4 0 2.6-.8 2.6-2.4 0-2.3-2.2-4.6-5-4.6z"/><circle cx="6.3" cy="11" r="2"/><circle cx="17.7" cy="11" r="2"/><circle cx="9.4" cy="6.7" r="2"/><circle cx="14.6" cy="6.7" r="2"/>'],
+  ["comfort", "#c8b98f", "Comfort", "Komfort", '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M2.5 12h3M18.5 12h3M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/>'],
+];
+// [school, new?, English name, English text, German name, German text]
+const FEATS = [
+  ["fight", 0, "Live overlay", "DPS, share and combat power per player. Solo only you, in a party only your party.", "Live-Overlay", "DPS, Anteil und Kampfkraft pro Spieler. Allein nur du, in der Gruppe nur deine Gruppe."],
+  ["fight", 0, "Boss HP & kill time", "The boss's HP and when it will be down, from the pace of the last 20 seconds.", "Boss-HP & Kill-Zeit", "HP des Bosses und wann er liegt, aus dem Tempo der letzten 20 Sekunden."],
+  ["fight", 0, "⚡ Stagger", "Each player's share of the stagger gauge, right next to their DPS – and per skill.", "⚡ Stagger", "Der Stagger-Anteil jedes Spielers direkt neben der DPS – auch pro Skill."],
+  ["fight", 0, "☠ Deaths", "How often someone died in the fight, after their name.", "☠ Tode", "Wie oft jemand im Kampf gestorben ist, direkt hinter dem Namen."],
+  ["fight", 0, "DPS · HEAL · TANK", "Damage dealt, healing done or damage taken – as eDPS or aDPS.", "DPS · HEAL · TANK", "Schaden, Heilung oder erlittener Schaden – als eDPS oder aDPS."],
+  ["fight", 1, "Against your best", "Live during the pull: your DPS against your best kill of this boss.", "Gegen deinen Bestwert", "Live im Pull: deine DPS gegen deinen besten Kill dieses Bosses."],
+  ["fight", 0, "Fight history ◀ ▶", "Leaf through earlier fights right in the overlay, also with the mouse wheel.", "Kampfverlauf ◀ ▶", "Frühere Kämpfe direkt im Overlay durchblättern, auch mit dem Mausrad."],
+  ["fight", 0, "Ping", "Your ping to the game server, measured from the traffic.", "Ping", "Dein Ping zum Spielserver, gemessen am Datenverkehr."],
+  ["insight", 1, "Idle time", "Seconds without an own hit – often the biggest DPS loss.", "Leerlauf", "Sekunden ohne eigenen Treffer – oft der größte DPS-Verlust."],
+  ["insight", 1, "Death recap", "At ☠: the hardest hits of the last eight seconds before the death.", "Todes-Analyse", "Bei ☠: die stärksten Treffer der letzten acht Sekunden vor dem Tod."],
+  ["insight", 0, "Skill breakdown", "Click a player: every skill with damage, share, crit and max hit.", "Skill-Aufschlüsselung", "Klick auf einen Spieler: jeder Skill mit Schaden, Anteil, Krit und Max-Hit."],
+  ["insight", 0, "Every fight saved", "Logs of every fight with all skills and icons; your best kills are marked.", "Jeder Kampf gespeichert", "Logs jedes Kampfs mit allen Skills und Icons; deine besten Kills sind markiert."],
+  ["insight", 0, "Party top skills", "The whole party's strongest skills in one list: who carried with what.", "Top-Skills der Gruppe", "Die stärksten Skills der ganzen Gruppe in einer Liste: wer mit was getragen hat."],
+  ["insight", 0, "Buff uptime", "Every buff and boss debuff with uptime and the DPS with and without it.", "Buff-Uptime", "Jeder Buff und Boss-Debuff mit Uptime und DPS mit und ohne."],
+  ["party", 0, "Party panel", "Level, gear score and combat power of every member, server tags like in game.", "Gruppen-Fenster", "Stufe, Gearscore und Kampfkraft aller Mitglieder, Server-Kürzel wie im Spiel."],
+  ["party", 0, "Ready check", "✓ or ✗ next to every party member in the lobby.", "Bereit-Check", "✓ oder ✗ bei jedem Gruppenmitglied in der Lobby."],
+  ["party", 1, "Profile button", "Click a player in the meter and open their PeakMeter profile.", "Profil-Knopf", "Spieler im Meter anklicken und sein PeakMeter-Profil öffnen."],
+  ["party", 0, "Stream mode", "Hide other players' names – they show as their class.", "Stream-Modus", "Namen anderer Spieler verstecken – sie erscheinen als ihre Klasse."],
+  ["glory", 1, "Hall of fame", "Best DPS, healing and stagger per dungeon boss – overall, per class, per week. Opt-in.", "Ruhmeshalle", "Beste DPS, Heilung und Stagger pro Dungeon-Boss – gesamt, pro Klasse, pro Woche. Freiwillig."],
+  ["glory", 1, "Your place after the kill", "Right after a ranked kill: your place, your class place and this week's.", "Dein Platz nach dem Kill", "Direkt nach dem Ranking-Kill: dein Platz, in deiner Klasse und diese Woche."],
+  ["glory", 1, "Player profiles", "Gear, stats, Daevanion and skills of any player, plus their best kills.", "Spieler-Profile", "Ausrüstung, Werte, Daevanion und Skills jedes Spielers, dazu seine besten Kills."],
+  ["glory", 1, "The duel", "Two players side by side: combat power, gear, stats and best kills.", "Das Duell", "Zwei Spieler nebeneinander: Kampfkraft, Ausrüstung, Werte und Bestwerte."],
+  ["glory", 1, "Picture for Discord", "One click copies a clean card of the fight – paste it with Ctrl+V.", "Bild für Discord", "Ein Klick kopiert eine saubere Karte vom Kampf – mit Strg+V einfügen."],
+  ["glory", 0, "Result as text", "Copy the ranking for the game chat, also with a hotkey.", "Ergebnis als Text", "Die Platzierung für den Spiel-Chat kopieren, auch per Hotkey."],
+  ["world", 0, "Event timers", "Shugo Festival, air raid, rift, siege, Nahma and resets – with a soft chime.", "Event-Timer", "Shugo-Festival, Luftangriff, Riss, Belagerung, Nahma und Resets – mit sanftem Ton."],
+  ["world", 0, "World boss timers", "Every field boss with exact respawns, taken from the game's own list.", "Weltboss-Timer", "Alle Feldbosse mit genauen Respawns, aus der Liste des Spiels."],
+  ["world", 0, "Alert cards", "Events, world bosses and full energy slide in at the edge of the screen.", "Hinweis-Karten", "Events, Weltbosse und volle Energie gleiten am Bildschirmrand herein."],
+  ["collect", 0, "Pet souls at the monster", "Hit a monster: which pet it feeds and how many souls are still missing.", "Pet-Seelen beim Monster", "Monster anhauen: welches Pet es füttert und wie viele Seelen noch fehlen."],
+  ["collect", 0, "Here in the area", "Every monster on your map whose souls you still need, with spawns on the map.", "Hier im Gebiet", "Alle Monster auf deiner Karte, deren Seelen dir fehlen, mit Spawns auf der Karte."],
+  ["collect", 0, "All pets", "Level, souls and where each pet drops; search by pet or monster.", "Alle Pets", "Stufe, Seelen und wo jedes Pet droppt; Suche nach Pet oder Monster."],
+  ["collect", 0, "Odyle energy", "Your energy for every character, read from the game and counted forward.", "Odyle-Energie", "Deine Energie für jeden Charakter, aus dem Spiel gelesen und weitergezählt."],
+  ["collect", 0, "Tickets", "Odyle, nightmare, ascension, daily dungeon and keys – per character.", "Tickets", "Odyle, Albtraum, Aszension, täglicher Dungeon und Schlüssel – pro Charakter."],
+  ["comfort", 0, "9 languages, 5 regions", "English, German, French, Spanish, Portuguese, Russian, Korean, Chinese, Japanese.", "9 Sprachen, 5 Regionen", "Deutsch, Englisch, Französisch, Spanisch, Portugiesisch, Russisch, Koreanisch, Chinesisch, Japanisch."],
+  ["comfort", 0, "Click-through & see-through", "Clicks pass to the game; Ctrl + mouse wheel sets the transparency.", "Durchklicken & Transparenz", "Klicks gehen ans Spiel; Strg + Mausrad stellt die Transparenz ein."],
+  ["comfort", 0, "Focus mode & fading", "Header hides in fights, the meter fades when idle, shows only over the game.", "Fokus-Modus & Ausblenden", "Kopfzeile im Kampf weg, Meter blendet im Leerlauf aus, nur über dem Spiel."],
+  ["comfort", 0, "Hotkeys & autostart", "Your own hotkeys, start with Windows, UI scale and refresh rate.", "Hotkeys & Autostart", "Eigene Hotkeys, Start mit Windows, UI-Größe und Aktualisierungsrate."],
+  ["comfort", 0, "Character portrait", "Your official in-game portrait instead of the class emblem.", "Charakter-Porträt", "Dein offizielles Porträt aus dem Spiel statt des Klassenwappens."],
+  ["comfort", 0, "Automatic updates", "New versions install themselves while the game is closed.", "Automatische Updates", "Neue Versionen installieren sich von selbst, sobald das Spiel zu ist."],
+  ["comfort", 0, "Light on your PC", "No GPU, low priority: about 0.2 % CPU and 65 MB memory.", "Leicht für deinen PC", "Keine GPU, niedrige Priorität: etwa 0,2 % CPU und 65 MB Speicher."],
+  ["comfort", 0, "Demo fight", "Try everything without the game: a fight that runs right in the meter.", "Demo-Kampf", "Alles ohne Spiel ausprobieren: ein Kampf, der direkt im Meter läuft."],
+];
+(() => {
+  const ico = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + "</svg>";
+  const by = Object.fromEntries(SCHOOLS.map(x => [x[0], x]));
+  let cur = "all";
+  const tabs = [["all", "var(--fb)", "All", "Alle"], ...SCHOOLS];
   const draw = () => {
-    el.innerHTML = (open ? list : list.slice(0, SHOW)).map(entry).join("");
-    more.hidden = list.length <= SHOW;
-    more.textContent = open ? (de ? "Weniger anzeigen" : "Show less") : (de ? "Alle " + list.length + " Updates anzeigen" : "Show all " + list.length + " updates");
+    $("schools").innerHTML = tabs.map(t => '<button type="button" role="tab" aria-selected="' + (t[0] === cur) + '" class="' + (t[0] === cur ? "on" : "") + '" data-s="' + t[0] +
+      '" style="--c:' + t[1] + '"><i></i>' + (de ? t[3] : t[2]) + " <small>" + (t[0] === "all" ? FEATS.length : FEATS.filter(f => f[0] === t[0]).length) + "</small></button>").join("");
+    $("codexgrid").innerHTML = FEATS.filter(f => cur === "all" || f[0] === cur).map(f => {
+      const sc = by[f[0]];
+      return '<div class="feat" style="--c:' + sc[1] + '"><span class="fi">' + ico(sc[4]) + '</span><div style="min-width:0"><b>' + (de ? f[4] : f[2]) +
+        (f[1] ? '<span class="nw">' + (de ? "Neu" : "New") + "</span>" : "") + "</b><p>" + (de ? f[5] : f[3]) + "</p></div></div>";
+    }).join("");
+    $("schools").querySelectorAll("button").forEach(b => b.onclick = () => { cur = b.dataset.s; draw(); });
   };
-  more.onclick = () => { open = !open; draw(); if (!open) $("updates").scrollIntoView({ behavior: PM.still ? "auto" : "smooth" }); };
   draw();
 })();
-PM.reveal(".tip, .sec-head, .duo .win, .codex, .final h2");
+
+// share the home page
+PM.share("shareHome", {
+  url: location.origin + "/",
+  text: de ? "PeakMeter – kostenloser DPS-Meter für AION 2 mit Rangliste und Spieler-Profilen" : "PeakMeter – free DPS meter for AION 2 with a ranking and player profiles",
+  discord: de ? "⚔️ **PeakMeter** – kostenloser DPS-Meter für AION 2: Live-DPS, Leerlauf, Todes-Analyse, Rangliste pro Boss und Spieler-Profile."
+              : "⚔️ **PeakMeter** – free DPS meter for AION 2: live DPS, idle time, death recap, a ranking per boss and player profiles.",
+});
+PM.reveal(".tip, .sec-head, .duo .win, .codex, .final h2, .codexgrid");
 </script>
 </body>
 </html>

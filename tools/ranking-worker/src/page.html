@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/site.css?v=6">
-<script src="/site.js?v=6"></script>
+<link rel="stylesheet" href="/site.css?v=7">
+<script src="/site.js?v=7"></script>
 <style>
   /* The hall of fame: bosses on the left like a dungeon list, the leaderboard as a game window on the right. */
   :root { --edge: var(--line-2); --accent: var(--fb); --silver: #d4dae4; --bronze: #d9a070; }
@@ -56,7 +56,7 @@
 <body>
 <nav class="top" data-page="ranking" aria-label="Main"></nav>
 <main class="wrap hall">
-  <div class="hall-head"><div class="orn"><i></i></div><h1 class="metal" id="hallH">Hall of Fame</h1><p class="sub" id="sub"></p></div>
+  <div class="hall-head"><div class="orn"><i></i></div><h1 class="metal" id="hallH">Hall of Fame</h1><p class="sub" id="sub"></p><div id="rShare" style="justify-content:center;margin-top:16px"></div></div>
   <div class="bar">
     <select id="region">
       <option value="eu">Europe</option><option value="nae">NA East</option><option value="naw">NA West</option>
@@ -157,6 +157,13 @@ async function loadTop() {
   try { rows = await api("/api/top?region=" + state.region + "&boss=" + state.boss + "&metric=" + state.metric + "&period=" + state.period +
     (state.cls ? "&cls=" + state.cls : "") + "&limit=100"); }
   catch { el.innerHTML = '<div class="empty">' + T.err + "</div>"; return; }
+  const bossName = (document.querySelector(".boss.on span") || {}).textContent || "";
+  PM.share("rShare", {
+    url: location.href,
+    text: (de ? "Ruhmeshalle" : "Hall of Fame") + (bossName ? " · " + bossName : "") + " – PeakMeter",
+    discord: "🏆 **" + (de ? "Ruhmeshalle" : "Hall of Fame") + (bossName ? " · " + bossName : "") + "** (" + state.metric.toUpperCase() + ")" +
+      (rows.length ? "\n" + rows.slice(0, 3).map((r, i) => ["🥇", "🥈", "🥉"][i] + " " + r.name + " " + fmt(r.value)).join("  ") : ""),
+  });
   if (!rows.length) { el.innerHTML = '<div class="empty">' + T.none + "</div>"; return; }
   const head = state.metric === "dps" ? "DPS" : state.metric === "hps" ? T.heal + "/s" : "Stagger/s";
   let html = "<table><tr><th>#</th><th>" + T.player + "</th><th>" + T.cls + '</th><th class="num">CP</th><th class="num">' + head +
