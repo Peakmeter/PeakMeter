@@ -51,8 +51,8 @@
   }
 
   var NAV_TEXT = PM.de
-    ? { features: "Funktionen", ranking: "Rangliste", players: "Spieler", compare: "Duell", install: "Installieren", dl: "Laden", elyos: "Elyos", asmo: "Asmodier" }
-    : { features: "Features", ranking: "Ranking", players: "Players", compare: "Duel", install: "Install", dl: "Download", elyos: "Elyos", asmo: "Asmodian" };
+    ? { features: "Funktionen", ranking: "Rangliste", players: "Spieler", compare: "Duell", updates: "Updates", install: "Installieren", dl: "Laden", elyos: "Elyos", asmo: "Asmodier" }
+    : { features: "Features", ranking: "Ranking", players: "Players", compare: "Duel", updates: "Updates", install: "Install", dl: "Download", elyos: "Elyos", asmo: "Asmodian" };
   var SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>';
   var MOON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3.2A9 9 0 1 0 20.8 15 7.2 7.2 0 0 1 15.5 3.2z"/></svg>';
 
@@ -64,7 +64,7 @@
     var page = nav.dataset.page || "";
     var a = function (href, key, cls) { return '<a href="' + href + '" class="' + (cls || "") + (page === key ? " on" : "") + '">' + NAV_TEXT[key] + "</a>"; };
     nav.innerHTML = '<div class="wrap"><a class="brand" href="/"><img src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png" alt=""><span>PeakMeter</span></a>' +
-      '<div class="links">' + a("/#features", "features", "opt") + a("/ranking", "ranking") + a("/player", "players") + a("/compare", "compare", "opt") + a("/#install", "install", "opt") + "</div>" +
+      '<div class="links">' + a("/#features", "features", "opt") + a("/ranking", "ranking") + a("/player", "players") + a("/compare", "compare", "opt") + a("/#updates", "updates", "opt") + "</div>" +
       '<div class="faction" role="group" aria-label="Faction">' +
       '<button type="button" data-f="elyos" title="' + NAV_TEXT.elyos + '" aria-label="' + NAV_TEXT.elyos + '">' + SUN + "</button>" +
       '<button type="button" data-f="asmo" title="' + NAV_TEXT.asmo + '" aria-label="' + NAV_TEXT.asmo + '">' + MOON + "</button></div>" +

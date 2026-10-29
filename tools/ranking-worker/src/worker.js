@@ -6,6 +6,7 @@
 // GET  /ranking          the ranking page (the meter before 1.36 opened /?region=..., which lands there too)
 // GET  /player[/<region>/<server>/<name>]   player search and profile
 // GET  /compare?r=<region>&p1=<server>/<name>&p2=...   two players side by side
+// GET  /api/updates      every version with its note (from the meter's own changelog) and release date
 // GET  /api/char/search  NCSOFT's official character search, trimmed
 // GET  /api/char         one character: official profile, gear, skills (NCSOFT) + PeakMeter bests
 import page from "./page.html";
@@ -49,6 +50,7 @@ export default {
       if (url.pathname === "/compare" || url.pathname === "/compare/") return html(compare);
       if (url.pathname === "/api/char/search") return await charSearch(url);
       if (url.pathname === "/api/char") return await charProfile(url, env, ctx);
+      if (url.pathname === "/api/updates") return await updates(url, ctx);
       if (url.pathname === "/api/submit" && req.method === "POST") return await submit(req, env);
       if (url.pathname === "/api/bosses") return await bosses(url, env);
       if (url.pathname === "/api/top") return await top(url, env);
@@ -322,6 +324,50 @@ async function charProfile(url, env, ctx) {
   };
   const res = json(body, 200, { "cache-control": "public, max-age=600" });
   ctx.waitUntil(caches.default.put(key, res.clone()));
+  return res;
+}
+
+// ---------------------------------------------------------------- updates (patch notes)
+
+// The meter's changelog (Settings → What's new) is the one list of every version, in German and English.
+const CHANGELOG_SRC = "https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/src/PeakMeter/SettingsWindow.xaml.cs";
+const RELEASES = "https://api.github.com/repos/Peakmeter/PeakMeter/releases?per_page=100";
+
+// Reads `Changelog => L.S("de…" + …, "en…" + …);` without running any C#: string literals only.
+export function parseChangelog(src, english) {
+  const start = src.indexOf("Changelog => L.S(");
+  if (start < 0) return [];
+  const tail = src.slice(start + "Changelog => L.S(".length);
+  const end = /"\s*\);/.exec(tail);
+  if (!end) return [];
+  const args = tail.slice(0, end.index + 1).split(/"\s*,\s*\r?\n\s*"/);
+  const literal = (s) => s.trim().replace(/^"/, "").replace(/"$/, "").replace(/"\s*\+\s*\r?\n\s*"/g, "")
+    .replace(/\\n/g, "\n").replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+  const text = literal(args[english && args.length > 1 ? 1 : 0]);
+  return text.split(/\n\s*\n+/).map((e) => {
+    const m = /^v(\d+(?:\.\d+)*)\s*[–-]\s*([\s\S]+)$/.exec(e.trim());
+    return m ? { v: m[1], text: m[2].replace(/\s+/g, " ").trim() } : null;
+  }).filter(Boolean);
+}
+
+async function updates(url, ctx) {
+  const english = url.searchParams.get("lang") !== "de";
+  const key = new Request("https://cache.peakmeter/updates/v1/" + (english ? "en" : "de"));
+  const cached = await caches.default.match(key);
+  if (cached) return cached;
+  let list = [];
+  try {
+    const r = await fetch(CHANGELOG_SRC, { headers: { "user-agent": "PeakMeter" }, cf: { cacheTtl: 600, cacheEverything: true } });
+    if (r.ok) list = parseChangelog(await r.text(), english);
+  } catch { /* GitHub down: an empty list, the page says so */ }
+  const dates = {};
+  try {
+    const r = await fetch(RELEASES, { headers: { "user-agent": "PeakMeter", accept: "application/vnd.github+json" }, cf: { cacheTtl: 3600, cacheEverything: true } });
+    if (r.ok) for (const x of await r.json()) if (!x.draft) dates[String(x.tag_name).replace(/^v/, "")] = x.published_at;
+  } catch { /* no dates */ }
+  const body = list.map((e) => ({ ...e, date: dates[e.v] || dates[e.v + ".0"] || null }));
+  const res = json(body, list.length ? 200 : 502, { "cache-control": "public, max-age=600" });
+  if (list.length) ctx.waitUntil(caches.default.put(key, res.clone()));
   return res;
 }
 
