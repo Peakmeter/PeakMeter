@@ -1,7 +1,7 @@
 name = "peakmeter-ranking"
 main = "src/worker.js"
 compatibility_date = "2025-09-01"
-rules = [{ type = "Text", globs = ["**/*.html"], fallthrough = true }]
+rules = [{ type = "Text", globs = ["**/*.html", "**/*.css", "**/client/*.js"], fallthrough = true }]
 
 [[d1_databases]]
 binding = "DB"

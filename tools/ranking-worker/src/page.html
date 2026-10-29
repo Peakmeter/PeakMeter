@@ -2,49 +2,60 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PeakMeter Ranking</title>
+<meta name="theme-color" content="#05060a">
+<link rel="icon" href="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/site.css?v=2">
+<script src="/site.js?v=2"></script>
 <style>
-  :root { --bg:#0f1217; --card:#171c24; --edge:#252c38; --text:#e8ecf2; --dim:#8a94a6; --accent:#f2c26b; --gold:#f2c26b; --silver:#c9d1dc; --bronze:#d39a6a; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.4 "Segoe UI", system-ui, sans-serif; padding:24px 16px; }
-  .wrap { max-width:980px; margin:0 auto; }
-  h1 { font-size:22px; margin:0 0 4px; }
-  .sub { color:var(--dim); font-size:13px; margin-bottom:18px; }
-  .bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:14px; }
-  select, button { background:var(--card); color:var(--text); border:1px solid var(--edge); border-radius:8px; padding:7px 12px; font:inherit; font-size:14px; cursor:pointer; }
-  button.on { border-color:var(--accent); color:var(--accent); }
-  .layout { display:grid; grid-template-columns:260px 1fr; gap:14px; }
-  @media (max-width:720px) { .layout { grid-template-columns:1fr; } }
-  .card { background:var(--card); border:1px solid var(--edge); border-radius:12px; padding:12px; min-width:0; }
-  .zone { color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.4px; margin:10px 6px 4px; }
-  .zone:first-child { margin-top:0; }
-  .boss { display:flex; justify-content:space-between; gap:8px; padding:7px 8px; border-radius:7px; cursor:pointer; }
-  .boss:hover { background:#1e2530; }
-  .boss.on { background:#232b37; color:var(--accent); }
-  .boss small { color:var(--dim); }
-  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
-  th { text-align:left; color:var(--dim); font-weight:600; font-size:12px; padding:6px 8px; border-bottom:1px solid var(--edge); }
-  td { padding:7px 8px; border-bottom:1px solid #1d232d; white-space:nowrap; }
-  td.num, th.num { text-align:right; }
-  td.rank { width:36px; color:var(--dim); font-weight:700; }
-  tr:nth-child(2) td.rank { color:var(--gold); } tr:nth-child(3) td.rank { color:var(--silver); } tr:nth-child(4) td.rank { color:var(--bronze); }
-  .val { font-weight:700; color:var(--accent); }
-  .scroll { overflow-x:auto; }
-  .empty { color:var(--dim); padding:24px 8px; text-align:center; }
-  .foot { color:var(--dim); font-size:12px; margin-top:16px; }
-  .srv { color:var(--dim); font-size:12px; }
-  a.pl { color:var(--text); text-decoration:none; border-bottom:1px solid transparent; }
-  a.pl:hover { color:var(--accent); border-bottom-color:var(--accent); }
-  .sep { width:1px; height:22px; background:var(--edge); margin:0 4px; }
-  .top { display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; }
-  .top a { color:var(--accent); text-decoration:none; font-size:13px; }
+  /* The hall of fame: bosses on the left like a dungeon list, the leaderboard as a game window on the right. */
+  :root { --edge: var(--line-2); --accent: var(--fb); --silver: #d4dae4; --bronze: #d9a070; }
+  .hall { padding-block: 56px 0; }
+  .hall-head { text-align: center; margin-bottom: 30px; }
+  .hall-head .orn { max-width: 240px; margin: 0 auto 18px; }
+  .hall-head h1 { font-size: clamp(42px, 6.4vw, 76px); line-height: 1; }
+  .sub { color: var(--dim); max-width: 64ch; margin: 14px auto 0; font-size: 15px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin-bottom: 18px; }
+  .bar select, .bar button { background: rgba(0,0,0,.35); color: var(--dim); border: 1px solid var(--line-2); border-radius: 4px; padding: 9px 13px;
+    font: 600 12.5px/1 var(--hud); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+  .bar select option { background: var(--panel-solid); color: var(--text); text-transform: none; }
+  .bar button:hover, .bar select:hover { color: var(--text); }
+  .bar button.on { color: var(--fb); border-color: var(--fb); box-shadow: 0 0 14px -4px var(--glow); }
+  .sep { width: 1px; height: 24px; background: var(--line); margin: 0 4px; }
+  .layout { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+  .card { padding: 12px; min-width: 0; }
+  .zone { font: 600 11.5px/1 var(--hud); color: var(--fb); text-transform: uppercase; letter-spacing: .12em; margin: 14px 8px 6px; }
+  .zone:first-child { margin-top: 4px; }
+  .boss { display: flex; justify-content: space-between; gap: 8px; padding: 9px 10px; border-radius: 4px; cursor: pointer; font-size: 14.5px; border: 1px solid transparent; }
+  .boss:hover { background: rgba(255,255,255,.04); }
+  .boss.on { background: color-mix(in srgb, var(--fb) 10%, transparent); border-color: color-mix(in srgb, var(--fb) 40%, transparent); color: var(--fb); }
+  .boss small { color: var(--mute); font-family: var(--hud); }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th { text-align: left; font: 600 11.5px/1 var(--hud); letter-spacing: .1em; text-transform: uppercase; color: var(--mute); padding: 10px 10px; border-bottom: 1px solid var(--line); }
+  td { padding: 10px 10px; border-bottom: 1px solid var(--line-2); white-space: nowrap; font-size: 14.5px; }
+  td.num, th.num { text-align: right; }
+  td.num { font-family: var(--hud); }
+  td.rank { width: 40px; font: 700 15px/1 var(--hud); color: var(--mute); }
+  tr:nth-child(2) td.rank { color: #ffd76a; text-shadow: 0 0 10px rgba(255,215,106,.5); } tr:nth-child(3) td.rank { color: var(--silver); } tr:nth-child(4) td.rank { color: var(--bronze); }
+  tr:nth-child(2) td { background: linear-gradient(90deg, rgba(255,215,106,.08), transparent 60%); }
+  .val { font-weight: 700; color: var(--gold); font-size: 15px; }
+  .scroll { overflow-x: auto; }
+  .empty { color: var(--dim); padding: 30px 8px; text-align: center; }
+  .foot { color: var(--mute); font-size: 12.5px; margin-top: 16px; text-align: center; }
+  .srv { color: var(--mute); font-size: 12px; font-family: var(--hud); }
+  a.pl { color: var(--text); text-decoration: none; border-bottom: 1px solid transparent; }
+  a.pl:hover { color: var(--fb); border-bottom-color: var(--fb); }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="top"><h1>PeakMeter Ranking</h1><a href="/" id="dl"></a></div>
-  <div class="sub" id="sub"></div>
+<nav class="top" data-page="ranking" aria-label="Main"></nav>
+<main class="wrap hall">
+  <div class="hall-head"><div class="orn"><i></i></div><h1 class="metal" id="hallH">Hall of Fame</h1><p class="sub" id="sub"></p></div>
   <div class="bar">
     <select id="region">
       <option value="eu">Europe</option><option value="nae">NA East</option><option value="naw">NA West</option>
@@ -59,13 +70,13 @@
     <select id="cls"></select>
   </div>
   <div class="layout">
-    <div class="card" id="bosses"></div>
-    <div class="card scroll" id="table"></div>
+    <div class="card win" id="bosses"></div>
+    <div class="card win scroll" id="table"></div>
   </div>
   <div class="foot" id="foot"></div>
-</div>
+</main>
 <script>
-const de = (navigator.language || "").toLowerCase().startsWith("de");
+const de = PM.de;
 const T = de ? {
   sub: "Die besten Werte pro Dungeon-Boss. Nur Spieler, die in PeakMeter „Am Ranking teilnehmen“ eingeschaltet haben. Gezählt werden nur Kills, die der Meter von Anfang an gesehen hat.",
   heal: "Heilung", noBoss: "Noch keine Einträge in dieser Region.", pick: "Boss links auswählen.", none: "Noch keine Einträge für diesen Wert.",
@@ -87,7 +98,7 @@ document.getElementById("b-hps").textContent = T.heal;
 document.getElementById("foot").textContent = T.foot;
 document.getElementById("p-all").textContent = T.all;
 document.getElementById("p-week").textContent = T.week;
-document.getElementById("dl").textContent = T.dl;
+document.getElementById("hallH").textContent = de ? "Ruhmeshalle" : "Hall of Fame";
 const clsSel = document.getElementById("cls");
 clsSel.innerHTML = '<option value="">' + T.allCls + "</option>" +
   Object.keys(CLS_DE).map(c => '<option value="' + c + '">' + (de ? CLS_DE[c] : c) + "</option>").join("");

@@ -1,0 +1,110 @@
+/* PeakMeter site: one dark world for every page.
+   Layout: night sky (aether particles, faction auroras) behind glass "game windows" with gold hairlines and corner marks.
+   Factions: Elyos (sky blue + gold) or Asmodian (violet + crimson) recolour the accents; the choice is remembered. */
+:root {
+  color-scheme: dark;
+  --void: #05060a;          /* page ground */
+  --abyss: #0b0d15;         /* raised ground */
+  --panel: rgba(16, 18, 28, .78);
+  --panel-solid: #11131d;
+  --line: rgba(227, 194, 122, .22);   /* gold hairline */
+  --line-2: rgba(255, 255, 255, .07);
+  --text: #ece6d8;          /* parchment white */
+  --dim: #9d98ab;
+  --mute: #6c6879;
+  --gold: #e3c27a;
+  --gold-2: #b8893a;
+  --fa: #7fd8ff;            /* faction accent (Elyos: aether sky) */
+  --fb: #e3c27a;            /* faction second (Elyos: gold) */
+  --glow: rgba(127, 216, 255, .35);
+  --up: #4fe09a; --down: #ff6b81; --dead: #ff8a8a;
+  --r-common: #b9b4c4; --r-rare: #4aa8ff; --r-epic: #b07cff; --r-legend: #ff9f40; --r-mythic: #ff4f6d;
+  --c-gla: #e8a84c; --c-ele: #f26ca7; --c-ran: #6fcf7c; --c-cle: #f5e06e; --c-cha: #3fd1b5;
+  --display: "Marcellus SC", "Marcellus", Georgia, "Times New Roman", serif;
+  --body: "Sora", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --hud: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --gutter: max(20px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(20px, env(safe-area-inset-right, 0px));
+}
+:root[data-faction="asmo"] { --fa: #b07cff; --fb: #ff5f7e; --glow: rgba(176, 124, 255, .38); }
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--void); color: var(--text); font: 16px/1.6 var(--body); -webkit-font-smoothing: antialiased; }
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+p { margin: 0; }
+h1, h2, h3 { margin: 0; font-family: var(--display); font-weight: 400; letter-spacing: .02em; text-wrap: balance; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--fa); outline-offset: 3px; border-radius: 6px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: var(--gutter); padding-right: var(--gutter-r); }
+.hud { font-family: var(--hud); letter-spacing: .08em; text-transform: uppercase; font-size: 12px; color: var(--dim); }
+.num { font-family: var(--hud); font-variant-numeric: tabular-nums; }
+
+/* sky: fixed canvas + auroras behind everything */
+.sky { position: fixed; inset: 0; z-index: -1; pointer-events: none; background:
+  radial-gradient(60% 50% at 12% 0%, color-mix(in srgb, var(--fb) 16%, transparent), transparent 70%),
+  radial-gradient(50% 45% at 92% 10%, color-mix(in srgb, var(--fa) 18%, transparent), transparent 70%),
+  radial-gradient(80% 60% at 50% 110%, rgba(40, 30, 80, .45), transparent 70%), var(--void); transition: background 1s; }
+.sky canvas { width: 100%; height: 100%; display: block; }
+
+/* nav */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 11; background: rgba(5, 6, 10, .9); }
+nav.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: rgba(6, 7, 12, .72);
+  backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); border-bottom: 1px solid var(--line); }
+nav.top .wrap { display: flex; align-items: center; gap: 18px; height: 58px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 400 19px/1 var(--display); letter-spacing: .06em; }
+.brand img { width: 28px; height: 28px; border-radius: 7px; box-shadow: 0 0 18px var(--glow); }
+nav.top .links { display: flex; gap: 4px; margin-left: auto; }
+nav.top .links a { text-decoration: none; font: 500 12.5px/1 var(--hud); letter-spacing: .1em; text-transform: uppercase; color: var(--dim); padding: 9px 11px; border-radius: 8px; }
+nav.top .links a:hover { color: var(--text); background: var(--line-2); }
+nav.top .links a.on { color: var(--fb); }
+.faction { display: flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; background: rgba(0,0,0,.35); }
+.faction button { display: grid; place-items: center; width: 30px; height: 26px; border: 0; border-radius: 999px; background: transparent; color: var(--mute); cursor: pointer; transition: background .3s, color .3s; }
+.faction button svg { width: 16px; height: 16px; }
+.faction button[aria-pressed="true"] { background: color-mix(in srgb, var(--fa) 22%, transparent); color: var(--fa); }
+@media (max-width: 760px) { nav.top .links a.opt { display: none; } nav.top .wrap { gap: 10px; } }
+@media (max-width: 520px) {
+  nav.top .btn.sm { display: none; }
+  nav.top .links { gap: 0; }
+  nav.top .links a { padding: 8px 7px; letter-spacing: .06em; }
+  .brand span { display: none; }
+}
+
+/* buttons */
+.btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; cursor: pointer;
+  font: 600 14px/1 var(--hud); letter-spacing: .12em; text-transform: uppercase; padding: 15px 26px; border-radius: 4px; border: 0; color: #160f04;
+  background: linear-gradient(180deg, #f6dfa4, var(--gold) 45%, var(--gold-2)); box-shadow: 0 0 0 1px rgba(255,236,190,.5) inset, 0 10px 30px -8px rgba(227,194,122,.55);
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%); transition: filter .2s, transform .2s; }
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: translateY(1px); }
+.btn.ghost { color: var(--text); background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  box-shadow: 0 0 0 1px var(--line) inset; }
+.btn.ghost:hover { box-shadow: 0 0 0 1px var(--fb) inset; color: var(--fb); }
+.btn.sm { padding: 10px 16px; font-size: 11.5px; }
+.link { color: var(--fa); text-decoration: none; font: 600 13px/1 var(--hud); letter-spacing: .1em; text-transform: uppercase; }
+.link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.link::after { content: " \2192"; }
+
+/* game window: glass panel with gold hairline and corner marks */
+.win { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.win::before, .win::after { content: ""; position: absolute; width: 14px; height: 14px; border: 2px solid var(--fb); pointer-events: none; opacity: .85; }
+.win::before { top: -2px; left: -2px; border-right: 0; border-bottom: 0; border-top-left-radius: 10px; }
+.win::after { bottom: -2px; right: -2px; border-left: 0; border-top: 0; border-bottom-right-radius: 10px; }
+
+/* ornament divider: line – diamond – line */
+.orn { display: flex; align-items: center; gap: 12px; color: var(--fb); }
+.orn::before, .orn::after { content: ""; height: 1px; flex: 1; background: linear-gradient(90deg, transparent, var(--line), transparent); }
+.orn i { width: 8px; height: 8px; transform: rotate(45deg); border: 1px solid currentColor; box-shadow: 0 0 10px var(--glow); }
+
+.metal { background: linear-gradient(180deg, #fff6dc 0%, #f1d28b 38%, #b98a3d 62%, #f4dc9f 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+footer.foot { border-top: 1px solid var(--line); padding-block: 30px 44px; color: var(--mute); font-size: 12.5px; margin-top: 80px; background: rgba(5,6,10,.6); }
+footer.foot .wrap { display: grid; gap: 12px; }
+footer.foot .fl { display: flex; flex-wrap: wrap; gap: 8px 22px; font-family: var(--hud); letter-spacing: .08em; text-transform: uppercase; font-size: 12px; }
+footer.foot a { color: var(--dim); text-decoration: none; } footer.foot a:hover { color: var(--fb); }
+footer.foot p { max-width: 90ch; }
+
+.pre { opacity: 0; transform: translateY(26px); }
+.in { opacity: 1; transform: none; transition: opacity .9s cubic-bezier(.2,.8,.2,1), transform .9s cubic-bezier(.2,.8,.2,1); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .pre { opacity: 1; transform: none; } }

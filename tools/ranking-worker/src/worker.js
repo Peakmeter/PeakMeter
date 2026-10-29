@@ -10,6 +10,8 @@
 import page from "./page.html";
 import landing from "./landing.html";
 import player from "./player.html";
+import siteCss from "./client/site.css";
+import siteJs from "./client/site.js";
 
 const REGIONS = new Set(["eu", "na", "nae", "naw", "kr", "tw"]);
 const METRICS = ["dps", "hps", "stagger"];
@@ -38,6 +40,8 @@ export default {
         if (url.searchParams.has("region")) return Response.redirect(url.origin + "/ranking" + url.search, 302);
         return html(landing);
       }
+      if (url.pathname === "/site.css") return asset(siteCss, "text/css; charset=utf-8");
+      if (url.pathname === "/site.js") return asset(siteJs, "text/javascript; charset=utf-8");
       if (url.pathname === "/ranking" || url.pathname === "/ranking/") return html(page);
       if (url.pathname === "/player" || url.pathname.startsWith("/player/")) return html(player);
       if (url.pathname === "/api/char/search") return await charSearch(url);
@@ -54,6 +58,7 @@ export default {
 
 const html = (body) =>
   new Response(body, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" } });
+const asset = (body, type) => new Response(body, { headers: { "content-type": type, "cache-control": "public, max-age=300" } });
 const int = (v) => (Number.isInteger(v) ? v : NaN);
 const cleanText = (s, max) =>
   typeof s === "string" && s.length > 0 && s.length <= max && !/[\u0000-\u001f\u007f<>]/.test(s) ? s.trim() : null;
