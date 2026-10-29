@@ -278,10 +278,13 @@ public sealed class CombatTracker
         if (targetIsPlayer)
         {
             // Mob → player: incoming damage for the defence view. Player → player (PvP, duels) is ignored for now.
-            if (!sourceIsPlayer && _current is { IsActive: true } && _current.Combatants.TryGetValue(target, out var victim))
+            if (!sourceIsPlayer && _current is { IsActive: true } enc0 && enc0.Combatants.TryGetValue(target, out var victim))
             {
                 victim.DamageTaken += d.Damage;
                 victim.HitsTaken++;
+                var skill = _data.SkillName(d.SkillCode);
+                victim.NoteTaken(new TakenHit((int)Math.Max(0, d.TimeMs - enc0.StartMs), _entities.NpcName(source),
+                    skill.StartsWith("Skill ", StringComparison.Ordinal) ? "" : skill, d.Damage));
             }
             return;
         }
@@ -769,7 +772,11 @@ public sealed class CombatTracker
         }
         if (!_downPlayers.Add(id)) return;
         if (id == _entities.SelfId) _selfDownMs = LastEventMs;
-        if (_current is { IsActive: true } enc && enc.Combatants.TryGetValue(id, out var c)) c.Deaths++;
+        if (_current is { IsActive: true } enc && enc.Combatants.TryGetValue(id, out var c))
+        {
+            c.Deaths++;
+            c.NoteDeath((int)Math.Max(0, LastEventMs - enc.StartMs));
+        }
     }
 
     private void CheckIdle(long nowMs)
@@ -1005,7 +1012,8 @@ public sealed class CombatTracker
         var casts = c.Casts.Count <= maxCasts ? c.Casts.ToArray() : c.Casts.GetRange(0, maxCasts).ToArray();
         return new CombatantDetail(
             c.ActorId, c.Name, c.Class, c.IsSelf, t.Damage, t.Damage / seconds, (double)t.Damage / Math.Max(1, enc.TotalDamage),
-            enc.CombatMs, c.DamageTaken, c.HitsTaken, quality, skills, c.PerSecond.ToArray(), casts, c.ServerId, c.GearScore, c.CombatPower, c.Stagger);
+            enc.CombatMs, c.DamageTaken, c.HitsTaken, quality, skills, c.PerSecond.ToArray(), casts, c.ServerId, c.GearScore, c.CombatPower, c.Stagger,
+            c.DeathRecaps.Count > 0 ? c.DeathRecaps.ToArray() : null);
     }
 
     private FightRecord BuildRecord(Encounter enc)

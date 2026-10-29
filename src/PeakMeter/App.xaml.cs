@@ -87,6 +87,17 @@ public partial class App : Application
         if (Settings.Region == "na") Settings.Region = "nae"; // before 1.18 NA was one choice
         Meter = new Meter(Settings, demo: e.Args.Contains("--demo"), saveDemo: e.Args.Contains("--save-demo"));
 
+        // After a ranked kill: your place, and a click opens that boss's list.
+        Meter.RankingPlaced += (p, cls) => Dispatcher.BeginInvoke(() =>
+        {
+            var (title, detail) = Ranking.Describe(p, cls);
+            var url = Ranking.PageUrl(Settings.Region, p.Boss, p.Metric);
+            Notify(title, detail, "rank", () =>
+            {
+                try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true }); } catch { }
+            });
+        });
+
         _overlay = new Overlay(this);
         new WindowInteropHelper(_overlay).EnsureHandle();
         if (Settings.Visible) _overlay.Show();
@@ -412,6 +423,9 @@ public sealed class Meter : IDisposable
 
     /// <summary>Raised (on any thread) when the party's members change.</summary>
     public event Action? RosterChanged;
+
+    /// <summary>Raised (on a worker thread) when the ranking server answered a kill with your place.</summary>
+    public event Action<Ranking.Place, GameClass>? RankingPlaced;
 
     private readonly object _rosterGate = new();
 
@@ -913,7 +927,10 @@ public sealed class Meter : IDisposable
         if (_disposing) Save();
         else ThreadPool.QueueUserWorkItem(_ => Save());
         if (_settings.RankingOptIn && !_demoOnly && !DemoRunning && !_disposing)
-            Ranking.Submit(record, Data, _settings.Region, Log);
+        {
+            var cls = s.Combatants.FirstOrDefault(c => c.IsSelf)?.Class ?? GameClass.Unknown;
+            Ranking.Submit(record, Data, _settings.Region, Log, p => RankingPlaced?.Invoke(p, cls));
+        }
 
         void Save()
         {

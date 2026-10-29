@@ -125,6 +125,10 @@ public sealed class DemoFightSource : IDisposable
             if (!died && progress > 0.4)
             {
                 died = true;
+                // What took her down (for the death recap): a cleave and a slam just before.
+                _sink(new DamageEvent(now - 2_400, BossId, party[4].Id, 99_000_001, 21_000, HitFlags.None));
+                _sink(new DamageEvent(now - 1_100, BossId, party[4].Id, 99_000_002, 14_500, HitFlags.None));
+                _sink(new DamageEvent(now - 300, BossId, party[4].Id, 99_000_002, 16_500, HitFlags.None));
                 _sink(new NpcHpEvent(now, party[4].Id, 0, 52_000, IsNpc: false));
             }
             else if (died && !revived && progress > 0.47)

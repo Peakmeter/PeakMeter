@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PeakMeter – free DPS meter for AION 2</title>
+<meta name="description" content="PeakMeter: free DPS meter for AION 2. Live DPS, healing, stagger, boss HP, logs, ranking, event timers.">
+<meta property="og:title" content="PeakMeter – free DPS meter for AION 2">
+<meta property="og:description" content="Live DPS, healing and stagger, boss HP with kill time, saved fights, ranking per dungeon boss, event timers. Free.">
+<meta property="og:image" content="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/screenshot-overlay.png">
+<link rel="icon" href="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png">
+<style>
+  :root { --bg:#0f1217; --card:#171c24; --edge:#252c38; --text:#e8ecf2; --dim:#8a94a6; --accent:#f2c26b; --green:#6fd48a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 "Segoe UI", system-ui, sans-serif; padding:32px 16px 48px; }
+  .wrap { max-width:960px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:14px; }
+  header img { width:52px; height:52px; border-radius:12px; }
+  h1 { font-size:30px; margin:0; letter-spacing:.2px; }
+  .tag { color:var(--dim); margin:2px 0 0; }
+  .hero { display:grid; grid-template-columns:1.1fr 1fr; gap:28px; align-items:center; margin:28px 0 36px; }
+  @media (max-width:760px) { .hero { grid-template-columns:1fr; } }
+  .shot { width:100%; border-radius:14px; border:1px solid var(--edge); display:block; }
+  .cta { display:inline-block; background:var(--accent); color:#1a1408; font-weight:700; font-size:18px; padding:13px 26px;
+         border-radius:12px; text-decoration:none; }
+  .cta:hover { filter:brightness(1.08); }
+  .small { color:var(--dim); font-size:13px; margin-top:10px; }
+  .live { display:inline-flex; align-items:center; gap:8px; margin-top:16px; color:var(--dim); font-size:14px; }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--green); animation:p 1.6s infinite; }
+  @keyframes p { 50% { opacity:.3; } }
+  .links { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
+  .links a { color:var(--text); text-decoration:none; border:1px solid var(--edge); background:var(--card); padding:8px 14px; border-radius:10px; font-size:14px; }
+  .links a:hover { border-color:var(--accent); color:var(--accent); }
+  h2 { font-size:20px; margin:36px 0 14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px; }
+  .card { background:var(--card); border:1px solid var(--edge); border-radius:12px; padding:14px 16px; }
+  .card b { display:block; margin-bottom:4px; }
+  .card span { color:var(--dim); font-size:14px; }
+  .shots { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:12px; }
+  ol { padding-left:20px; margin:0; } ol li { margin-bottom:6px; } ol li span { color:var(--dim); font-size:14px; }
+  footer { color:var(--dim); font-size:13px; margin-top:40px; border-top:1px solid var(--edge); padding-top:16px; }
+  footer a { color:var(--dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png" alt="">
+    <div><h1>PeakMeter</h1><p class="tag" data-t="tag"></p></div>
+  </header>
+
+  <div class="hero">
+    <div>
+      <p data-t="intro" style="margin-top:0;font-size:18px"></p>
+      <a class="cta" id="dl" href="https://github.com/Peakmeter/PeakMeter/releases/latest"></a>
+      <div class="small" id="ver" data-t="small"></div>
+      <div class="live" id="live" hidden><span class="dot"></span><span id="liveText"></span></div>
+      <div class="links">
+        <a href="/ranking" data-t="rank"></a>
+        <a href="https://ko-fi.com/peakmeter" data-t="kofi"></a>
+        <a href="https://github.com/Peakmeter/PeakMeter">GitHub</a>
+      </div>
+    </div>
+    <img class="shot" src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/screenshot-overlay.png" alt="PeakMeter overlay">
+  </div>
+
+  <h2 data-t="whatH"></h2>
+  <div class="grid" id="features"></div>
+
+  <h2 data-t="shotsH"></h2>
+  <div class="shots">
+    <img class="shot" src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/screenshot-logs-topskills.png" alt="">
+    <img class="shot" src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/screenshot-logs-buffs.png" alt="">
+    <img class="shot" src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/screenshot-pets.png" alt="">
+  </div>
+
+  <h2 data-t="installH"></h2>
+  <div class="card"><ol id="steps"></ol></div>
+
+  <footer data-t="foot"></footer>
+</div>
+<script>
+const de = (navigator.language || "").toLowerCase().startsWith("de");
+const T = de ? {
+  tag: "Kostenloser DPS-Meter für AION 2 · EU · NA · Korea · Taiwan",
+  intro: "Live-DPS, Heilung und Stagger deiner Gruppe, Boss-HP mit Kill-Zeit, jeder Kampf gespeichert – und eine Rangliste pro Dungeon-Boss.",
+  dl: "Kostenlos herunterladen", small: "Windows 10/11 · aktualisiert sich selbst", rank: "🏆 Rangliste", kofi: "☕ Unterstützen",
+  online: n => n === 1 ? "1 Spieler gerade im Spiel" : n + " Spieler gerade im Spiel",
+  whatH: "Was es kann", shotsH: "Bilder", installH: "Installieren (2 Minuten)",
+  features: [
+    ["Live-DPS", "Allein nur du, in der Gruppe nur deine Gruppe – mit Kampfkraft und Server."],
+    ["Boss-HP & Kill-Zeit", "Wie lange der Boss noch steht, aus dem Tempo der letzten 20 Sekunden."],
+    ["Vergleich mit dir selbst", "Live: wie weit du über oder unter deinem besten Kill liegst."],
+    ["Todes-Analyse", "Welche Treffer dich in den letzten Sekunden umgehauen haben."],
+    ["Leerlauf", "Wie viele Sekunden du nichts gemacht hast – oft der größte DPS-Verlust."],
+    ["Logs", "Jeder Kampf gespeichert, mit Top-Skills und Buff-Uptime der ganzen Gruppe."],
+    ["Rangliste", "Freiwillig: dein bester Kill pro Dungeon-Boss, gesamt, pro Klasse und pro Woche."],
+    ["Für Discord", "Ein Klick kopiert ein Bild vom Kampf zum Einfügen in Discord."],
+    ["Event-Timer", "Shugo-Festival, Luftangriff, Riss, Belagerung, Weltbosse – mit sanftem Ton."],
+    ["Pets & Energie", "Welche Pet-Seelen noch fehlen und wie viel Odyle-Energie du hast."],
+  ],
+  steps: [
+    ["ZIP herunterladen und entpacken", "Rechtsklick → „Alle extrahieren“. Nicht direkt aus der ZIP starten."],
+    ["„PeakMeter installieren.cmd“ doppelklicken", "Meldet Windows „Der Computer wurde geschützt“: „Weitere Informationen“ → „Trotzdem ausführen“."],
+    ["Npcap installieren, falls gefragt", "Die Download-Seite öffnet sich von selbst – Standard-Einstellungen reichen."],
+    ["PeakMeter starten, bevor du dich einloggst", "Dann kennt es Namen, Pets und Energie von Anfang an."],
+  ],
+  foot: "PeakMeter liest nur den Netzwerkverkehr deines eigenen Spiels – kein Speicherzugriff, nichts wird ans Spiel gesendet. Tools von Drittanbietern können trotzdem gegen die Nutzungsbedingungen verstoßen: Nutzung auf eigenes Risiko. Kein offizielles Produkt, nicht mit NCSOFT verbunden. Lizenz GPL-3.0.",
+} : {
+  tag: "Free DPS meter for AION 2 · EU · NA · Korea · Taiwan",
+  intro: "Live DPS, healing and stagger of your party, boss HP with kill time, every fight saved – and a ranking per dungeon boss.",
+  dl: "Download for free", small: "Windows 10/11 · updates itself", rank: "🏆 Ranking", kofi: "☕ Support",
+  online: n => n === 1 ? "1 player in game right now" : n + " players in game right now",
+  whatH: "What it does", shotsH: "Pictures", installH: "Install (2 minutes)",
+  features: [
+    ["Live DPS", "Solo only you, in a party only your party – with combat power and server."],
+    ["Boss HP & kill time", "How long the boss has left, from the pace of the last 20 seconds."],
+    ["You against yourself", "Live: how far above or below your best kill you are."],
+    ["Death recap", "Which hits took you down in the last seconds."],
+    ["Idle time", "How many seconds you did nothing – often the biggest DPS loss."],
+    ["Logs", "Every fight saved, with top skills and buff uptime of the whole party."],
+    ["Ranking", "Opt-in: your best kill per dungeon boss, overall, per class and per week."],
+    ["For Discord", "One click copies a picture of the fight to paste into Discord."],
+    ["Event timers", "Shugo festival, air raid, rift, siege, world bosses – with a soft chime."],
+    ["Pets & energy", "Which pet souls are still missing and how much Odyle energy you have."],
+  ],
+  steps: [
+    ["Download the ZIP and unzip it", "Right-click → “Extract All”. Do not start it from inside the ZIP."],
+    ["Double-click “PeakMeter installieren.cmd”", "If Windows says “Windows protected your PC”: “More info” → “Run anyway”."],
+    ["Install Npcap if asked", "Its download page opens by itself – the default settings are fine."],
+    ["Start PeakMeter before you log in", "Then it knows names, pets and energy from the start."],
+  ],
+  foot: "PeakMeter only reads your own game's network traffic – no memory access, nothing is sent to the game. Third-party tools may still be against the terms of service: use at your own risk. Not an official product, not affiliated with NCSOFT. License GPL-3.0.",
+};
+document.documentElement.lang = de ? "de" : "en";
+document.querySelectorAll("[data-t]").forEach(el => { const v = T[el.dataset.t]; if (typeof v === "string") el.textContent = v; });
+const esc = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+document.getElementById("features").innerHTML = T.features.map(([a, b]) => '<div class="card"><b>' + esc(a) + "</b><span>" + esc(b) + "</span></div>").join("");
+document.getElementById("steps").innerHTML = T.steps.map(([a, b]) => "<li><b>" + esc(a) + "</b><br><span>" + esc(b) + "</span></li>").join("");
+const dl = document.getElementById("dl");
+dl.textContent = T.dl;
+
+// The newest release's ZIP, so the button downloads straight away (falls back to the release page).
+fetch("https://api.github.com/repos/Peakmeter/PeakMeter/releases/latest").then(r => r.ok ? r.json() : null).then(j => {
+  if (!j) return;
+  const zip = (j.assets || []).find(a => /\.zip$/i.test(a.name));
+  if (zip) dl.href = zip.browser_download_url;
+  if (j.tag_name) document.getElementById("ver").textContent = j.tag_name + " · " + T.small;
+}).catch(() => {});
+
+// Players in game right now: the anonymous counter the meter raises every 10 minutes (current or last slot).
+const pad = n => String(n).padStart(2, "0");
+const slot = d => "o-" + d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()) + "-" + pad(d.getUTCHours()) + Math.floor(d.getUTCMinutes() / 10) + "0";
+const get = k => fetch("https://abacus.jasoncameron.dev/get/peakmeter-live/" + k, { cache: "no-store" }).then(r => r.ok ? r.json() : { value: 0 }).then(j => j.value || 0).catch(() => 0);
+const now = new Date();
+Promise.all([get(slot(now)), get(slot(new Date(now - 600000)))]).then(([a, b]) => {
+  const n = Math.max(a, b);
+  if (n > 0) { document.getElementById("liveText").textContent = T.online(n); document.getElementById("live").hidden = false; }
+});
+</script>
+</body>
+</html>

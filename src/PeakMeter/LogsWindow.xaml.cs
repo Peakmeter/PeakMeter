@@ -151,6 +151,8 @@ public partial class LogsWindow : Window
             return vm;
         }).ToList();
 
+        IdleText.Visibility = Visibility.Collapsed;
+        DeathText.Visibility = Visibility.Collapsed;
         GroupButton.Foreground = (Brush)FindResource(_selected == GroupId ? "Accent" : "Text");
         BuffsButton.Foreground = (Brush)FindResource(_selected == BuffsId ? "Accent" : "Text");
         if (_selected == BuffsId)
@@ -175,6 +177,12 @@ public partial class LogsWindow : Window
         _profile = (d.Name, _meter.Data.ServerName(d.ServerId));
         SkillStats.Text = L.S($"{Format.Compact(d.Damage)} Schaden · {Format.Compact(d.Dps)} DPS · Krit {Format.Percent(d.Quality.CritRate)} · ", $"{Format.Compact(d.Damage)} damage · {Format.Compact(d.Dps)} DPS · crit {Format.Percent(d.Quality.CritRate)} · ") +
                           $"Max {Format.Compact(d.Quality.MaxHit)}" + (d.Stagger > 0 ? $" · Stagger {d.Stagger}" : "");
+        var idle = Insights.IdleText(d.Casts);
+        IdleText.Text = idle;
+        IdleText.Visibility = idle.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        var deaths = Insights.DeathLines(d.DeathRecaps);
+        DeathText.Text = string.Join("\n", deaths);
+        DeathText.Visibility = deaths.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         var skills = d.Skills.OrderByDescending(x => x.Damage).ToList();
         var stop = Math.Max(1, skills.Count > 0 ? skills[0].Damage : 1);
         var swidth = Math.Max(0, Skills.ActualWidth > 0 ? Skills.ActualWidth : width);
@@ -297,6 +305,36 @@ public partial class LogsWindow : Window
             sb.Append(" | ").Append(++i).Append(". ").Append(c.Name).Append(' ')
               .Append(Format.Compact(c.Dps)).Append(" (").Append(Format.Share(c.Share)).Append(')');
         try { Clipboard.SetText(sb.ToString()); } catch { }
+    }
+
+    /// <summary>The fight as a picture for Discord: everyone by damage, and your idle time and deaths.</summary>
+    private void CopyImage_Click(object sender, RoutedEventArgs e)
+    {
+        if (_record is not { Summary: var s } r) return;
+        var rows = s.Combatants.Where(c => !c.IsUnknownSummons).OrderByDescending(c => c.Damage).Take(10)
+            .Select(c => new DiscordCard.Row(c.Name, c.Class, c.Dps, c.Share, c.Deaths, c.IsSelf)).ToList();
+        var parts = new List<string>();
+        if (s.Reason == AionMeter.Core.Combat.EncounterEndReason.Kill) parts.Add("Kill");
+        else if (s.Reason == AionMeter.Core.Combat.EncounterEndReason.Wipe) parts.Add("Wipe");
+        if (!string.IsNullOrEmpty(s.Zone) && s.Zone != s.Title) parts.Add(s.Zone!);
+        parts.Add(L.S($"{rows.Count} Spieler", rows.Count == 1 ? "1 player" : $"{rows.Count} players"));
+        parts.Add(L.S($"Gruppe {Format.Compact(s.PartyDps)} DPS", $"Party {Format.Compact(s.PartyDps)} DPS"));
+        parts.Add(s.StartedAt.ToLocalTime().ToString("d", L.Culture));
+        var notes = new List<string>();
+        if (s.Combatants.FirstOrDefault(c => c.IsSelf) is { } me && r.Details.FirstOrDefault(x => x.ActorId == me.ActorId) is { } d)
+        {
+            if (Insights.IdleText(d.Casts) is { Length: > 0 } idle) notes.Add($"{me.Name}: {idle}");
+            notes.AddRange(Insights.DeathLines(d.DeathRecaps, 2).Select(l => $"{me.Name}: {l}"));
+        }
+        var ok = DiscordCard.Copy(s.Title, string.Join(" · ", parts), Format.ClockShort(s.CombatMs), "DPS", rows, notes);
+        // Feedback on the chip itself for two seconds.
+        if (sender is System.Windows.Controls.Button { Content: System.Windows.Controls.StackPanel { Children: [_, System.Windows.Controls.TextBlock label] } })
+        {
+            label.Text = ok ? L.S("Kopiert ✓", "Copied ✓") : L.S("Nochmal versuchen", "Try again");
+            var t = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+            t.Tick += (_, _) => { t.Stop(); label.Text = L.S("Bild", "Picture"); };
+            t.Start();
+        }
     }
 
     private void Delete_Click(object sender, RoutedEventArgs e)

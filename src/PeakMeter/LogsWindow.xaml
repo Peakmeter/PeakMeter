@@ -132,6 +132,13 @@
                                             <TextBlock Text="{local:T De='Kopieren', En='Copy'}" />
                                         </StackPanel>
                                     </Button>
+                                    <Button Style="{StaticResource Chip}" Height="24" Click="CopyImage_Click" Margin="0,0,4,0"
+                                            ToolTip="{local:T De='Bild für Discord kopieren (dort Strg+V)', En='Copy picture for Discord (paste with Ctrl+V)'}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE722;" FontFamily="{StaticResource IconFont}" Margin="0,1,6,0" />
+                                            <TextBlock Text="{local:T De='Bild', En='Picture'}" />
+                                        </StackPanel>
+                                    </Button>
                                     <Button Style="{StaticResource Chip}" Height="24" Click="Delete_Click" ToolTip="{local:T De='Kampf löschen', En='Delete fight'}">
                                         <TextBlock Text="&#xE74D;" FontFamily="{StaticResource IconFont}" />
                                     </Button>
@@ -157,6 +164,10 @@
                                                 </StackPanel>
                                                 <TextBlock x:Name="SkillStats" HorizontalAlignment="Right" Foreground="{StaticResource TextDim}" FontSize="11" />
                                             </Grid>
+                                            <TextBlock x:Name="IdleText" Foreground="{StaticResource TextSoft}" FontSize="11" Margin="2,0,2,4" Visibility="Collapsed"
+                                                       ToolTip="{local:T De='Zeit ohne eigenen Treffer (Pausen über 2,5 s, ohne DoTs) – Tod, Laufen und Phasen ohne Ziel zählen mit', En='Time without an own hit (pauses over 2.5 s, DoTs excluded) – deaths, running and phases without a target count too'}" />
+                                            <TextBlock x:Name="DeathText" Foreground="#FF8A8A" FontSize="11" Margin="2,0,2,8" TextWrapping="Wrap" Visibility="Collapsed"
+                                                       ToolTip="{local:T De='Die stärksten Treffer der letzten 8 Sekunden vor dem Tod', En='The hardest hits of the last 8 seconds before the death'}" />
                                             <ItemsControl x:Name="Skills" ItemTemplate="{StaticResource SkillTemplate}" />
                                         </StackPanel>
                                     </Border>

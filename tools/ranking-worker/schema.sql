@@ -16,6 +16,25 @@ CREATE TABLE IF NOT EXISTS best (
 );
 CREATE INDEX IF NOT EXISTS best_top ON best (region, boss, metric, value DESC);
 
+-- The same, per week (weeks start Monday 00:00 UTC); weeks older than 8 are dropped.
+CREATE TABLE IF NOT EXISTS week_best (
+  week INTEGER NOT NULL,
+  region TEXT NOT NULL,
+  boss INTEGER NOT NULL,
+  metric TEXT NOT NULL,
+  name TEXT NOT NULL,
+  server INTEGER NOT NULL,
+  server_name TEXT,
+  cls TEXT,
+  cp INTEGER,
+  value REAL NOT NULL,
+  dur_ms INTEGER,
+  party INTEGER,
+  at INTEGER NOT NULL,
+  PRIMARY KEY (week, region, boss, metric, name, server)
+);
+CREATE INDEX IF NOT EXISTS week_top ON week_best (week, region, boss, metric, value DESC);
+
 -- Boss names and HP as first reported (the HP check keeps made-up damage out).
 CREATE TABLE IF NOT EXISTS bosses (
   boss INTEGER PRIMARY KEY,

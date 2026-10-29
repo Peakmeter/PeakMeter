@@ -232,32 +232,41 @@ public partial class Overlay : Window
         return L.S($"Kill in ~{Format.ClockShort((long)leftMs)}", $"Kill in ~{Format.ClockShort((long)leftMs)}");
     }
 
-    /// <summary>In a boss fight: your DPS against last time, and the best kill time so far.</summary>
+    /// <summary>In a boss fight: your DPS live against your best kill of this boss (else last time), and the best kill time.</summary>
     private void UpdateCompare(EncounterSnapshot snap)
     {
         var code = snap.Boss?.NpcCode ?? 0;
         var rec = code != 0 ? _meter.Records.For(code, snap.StartedAt) : null;
         var self = snap.Combatants.FirstOrDefault(c => c.IsSelf);
-        if (rec is not { } r || (r.LastSelfDps <= 0 && r.BestKillMs <= 0))
+        if (rec is not { } r || (r.LastSelfDps <= 0 && r.BestKillMs <= 0 && r.BestSelfDps <= 0))
         {
             ComparePanel.Visibility = Visibility.Collapsed;
             return;
         }
         ComparePanel.Visibility = Visibility.Visible;
-        if (self is not null && r.LastSelfDps > 0 && snap.CombatMs > 5000)
+        var vsBest = r.BestSelfDps > 0;
+        var against = vsBest ? r.BestSelfDps : r.LastSelfDps;
+        if (self is not null && against > 0 && snap.CombatMs > 5000)
         {
-            var diff = self.Dps / r.LastSelfDps - 1;
+            var diff = self.Dps / against - 1;
             var up = diff >= 0;
+            var pct = $"{Math.Abs(diff) * 100:0}%";
             CompareArrow.Text = up ? "\u25B2" : "\u25BC";
             CompareArrow.Foreground = up ? Up : Down;
-            CompareText.Text = L.S($"{Math.Abs(diff) * 100:0}% {(up ? "besser" : "weniger")} als letztes Mal ({Format.Compact(r.LastSelfDps)})",
-                $"{Math.Abs(diff) * 100:0}% {(up ? "better" : "lower")} than last time ({Format.Compact(r.LastSelfDps)})");
+            CompareText.Text = vsBest
+                ? L.S($"{pct} {(up ? "über" : "unter")} deinem Bestwert ({Format.Compact(against)})", $"{pct} {(up ? "above" : "below")} your best ({Format.Compact(against)})")
+                : L.S($"{pct} {(up ? "besser" : "weniger")} als letztes Mal ({Format.Compact(against)})", $"{pct} {(up ? "better" : "lower")} than last time ({Format.Compact(against)})");
         }
         else
         {
             CompareArrow.Text = "";
-            CompareText.Text = r.LastSelfDps > 0 ? L.S($"Letztes Mal: {Format.Compact(r.LastSelfDps)} DPS", $"Last time: {Format.Compact(r.LastSelfDps)} DPS") : "";
+            CompareText.Text = vsBest ? L.S($"Dein Bestwert: {Format.Compact(against)} DPS", $"Your best: {Format.Compact(against)} DPS")
+                : against > 0 ? L.S($"Letztes Mal: {Format.Compact(against)} DPS", $"Last time: {Format.Compact(against)} DPS") : "";
         }
+        CompareText.ToolTip = vsBest && r.LastSelfDps > 0
+            ? L.S($"Bestwert = dein bester Kill dieses Bosses · letztes Mal: {Format.Compact(r.LastSelfDps)} DPS",
+                  $"Best = your best kill of this boss · last time: {Format.Compact(r.LastSelfDps)} DPS")
+            : null;
         BestText.Text = r.BestKillMs > 0 ? L.S("Bestzeit", "Best") + $" {Format.ClockShort(r.BestKillMs)}" : "";
     }
 
@@ -457,6 +466,12 @@ public partial class Overlay : Window
         _profile = (d.Name, ServerOf(d.Name, d.ServerId));
         DetailStats.Text = $"{Format.Compact(d.Damage)} · {L.S("Krit", "Crit")} {Format.Percent(d.Quality.CritRate)} · Max {Format.Compact(d.Quality.MaxHit)}"
                            + (d.Stagger > 0 ? $" · Stagger {d.Stagger}" : "");
+        var idle = Insights.IdleText(d.Casts);
+        IdleText.Text = idle;
+        IdleText.Visibility = idle.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        var deaths = Insights.DeathLines(d.DeathRecaps, 2);
+        DeathText.Text = string.Join("\n", deaths);
+        DeathText.Visibility = deaths.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         var skills = d.Skills.OrderByDescending(s => s.Damage).Take(MaxSkills).ToList();
         var top = skills.Count > 0 ? Math.Max(1, skills[0].Damage) : 1;
@@ -922,6 +937,55 @@ public partial class Overlay : Window
             : head + " | " + string.Join(" | ", lines);
         try { Clipboard.SetText(text); } catch { }
         SubText.Text = L.S("In die Zwischenablage kopiert ✓", "Copied to clipboard ✓");
+    }
+
+    private void CopyImage_Click(object sender, RoutedEventArgs e) => CopyImage();
+
+    /// <summary>A picture of the fight on screen for Discord: the players as shown, and your idle time and deaths.</summary>
+    public void CopyImage()
+    {
+        if (_last is not { } s || s.Combatants.Count == 0) return;
+        var (list, shares, dps, _) = Visible(s);
+        var seconds = Math.Max(1, s.CombatMs / 1000.0);
+        double Value(CombatantSnapshot c) => _settings.View switch
+        {
+            "heal" => c.Healing / seconds,
+            "tank" => c.DamageTaken,
+            _ => DpsOf(c),
+        };
+        var rows = list.Where(c => !c.IsUnknownSummons).Take(10)
+            .Select(c => new DiscordCard.Row(NameOf(c), c.Class, Value(c), shares[c.ActorId], c.Deaths, c.IsSelf)).ToList();
+        var label = _settings.View switch
+        {
+            "heal" => L.S("Heilung pro Sekunde", "Healing per second"),
+            "tank" => L.S("Erlittener Schaden", "Damage taken"),
+            _ => _settings.DpsMode == "a" ? "aDPS" : "DPS",
+        };
+        var parts = new List<string>();
+        if (s.Reason == EncounterEndReason.Kill) parts.Add("Kill");
+        else if (s.Reason == EncounterEndReason.Wipe) parts.Add("Wipe");
+        else if (s.IsActive) parts.Add("LIVE");
+        if (!string.IsNullOrEmpty(s.Zone) && s.Zone != s.Title) parts.Add(s.Zone!);
+        parts.Add(L.S($"{rows.Count} Spieler", rows.Count == 1 ? "1 player" : $"{rows.Count} players"));
+        if (_settings.View == "dps") parts.Add(L.S($"Gruppe {Format.Compact(dps)} DPS", $"Party {Format.Compact(dps)} DPS"));
+        parts.Add(s.StartedAt.ToLocalTime().ToString("d", L.Culture));
+
+        var notes = new List<string>();
+        if (s.Combatants.FirstOrDefault(c => c.IsSelf && !c.IsUnknownSummons) is { } me)
+        {
+            var d = _savedRecord is { } rec ? rec.Details.FirstOrDefault(x => x.ActorId == me.ActorId) : _meter.Tracker.Detail(_segment, me.ActorId);
+            if (d is not null)
+            {
+                var name = NameOf(me);
+                if (Insights.IdleText(d.Casts) is { Length: > 0 } idle) notes.Add($"{name}: {idle}");
+                notes.AddRange(Insights.DeathLines(d.DeathRecaps, 2).Select(l => $"{name}: {l}"));
+            }
+        }
+
+        var ok = DiscordCard.Copy(s.Title, string.Join(" · ", parts), Format.ClockShort(s.CombatMs), label, rows, notes);
+        ShowAlert(ok ? L.S("Bild kopiert – in Discord mit Strg+V einfügen", "Picture copied – paste it in Discord with Ctrl+V")
+                     : L.S("Kopieren hat nicht geklappt, bitte nochmal", "Copying did not work, please try again"));
+        _bannerUntil = Environment.TickCount64 + 4_000;
     }
 
     private void Reset_Click(object sender, RoutedEventArgs e)

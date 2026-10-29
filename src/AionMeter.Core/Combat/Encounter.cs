@@ -89,6 +89,28 @@ public sealed class Combatant
     public long Healing { get; set; }
     /// <summary>How often this player died during the fight.</summary>
     public int Deaths { get; set; }
+    /// <summary>The last hits this player took (for the death recap), oldest first.</summary>
+    public List<TakenHit> RecentTaken { get; } = new();
+    /// <summary>Every death with the hits taken just before it.</summary>
+    public List<DeathRecap> DeathRecaps { get; } = new();
+
+    public const int RecentTakenMax = 16;
+    /// <summary>Hits older than this before a death are not part of its recap.</summary>
+    public const int RecapWindowMs = 8_000;
+
+    public void NoteTaken(TakenHit hit)
+    {
+        RecentTaken.Add(hit);
+        if (RecentTaken.Count > RecentTakenMax) RecentTaken.RemoveAt(0);
+    }
+
+    /// <summary>Freezes the hits of the last seconds into a recap for a death at <paramref name="offsetMs"/>.</summary>
+    public void NoteDeath(int offsetMs)
+    {
+        if (DeathRecaps.Count >= 20) return;
+        DeathRecaps.Add(new DeathRecap(offsetMs, RecentTaken.Where(h => h.OffsetMs >= offsetMs - RecapWindowMs).ToArray()));
+        RecentTaken.Clear();
+    }
     /// <summary>Stagger this player took off monsters' gauges, in total and per skill.</summary>
     public long Stagger { get; set; }
     public Dictionary<int, long> StaggerBySkill { get; } = new();

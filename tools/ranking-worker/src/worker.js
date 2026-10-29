@@ -1,9 +1,11 @@
 // PeakMeter ranking: the best DPS, healing and stagger per dungeon boss, from players who turned it on in the meter.
-// POST /api/submit       one kill (sent by the meter)
-// GET  /api/bosses       the bosses with entries, per region
-// GET  /api/top          one boss's list for one metric
-// GET  /                 the ranking page
+// POST /api/submit       one kill (sent by the meter); answers with the player's places
+// GET  /api/bosses       the bosses with entries, per region (period=all|week)
+// GET  /api/top          one boss's list for one metric (period=all|week, cls=<class>)
+// GET  /                 the download page
+// GET  /ranking          the ranking page (the meter before 1.36 opened /?region=..., which lands there too)
 import page from "./page.html";
+import landing from "./landing.html";
 
 const REGIONS = new Set(["eu", "na", "nae", "naw", "kr", "tw"]);
 const METRICS = ["dps", "hps", "stagger"];
@@ -11,6 +13,9 @@ const CLASSES = new Set(["Gladiator", "Templar", "Ranger", "Assassin", "Sorcerer
 // Far above anything real: only keeps typos and nonsense out (the HP check below does the real work).
 const CAP = { dps: 50_000_000, hps: 50_000_000, stagger: 10_000_000 };
 const PER_HOUR = 60;
+const DAY = 86_400_000;
+// Weeks start Monday 00:00 UTC (1970-01-01 was a Thursday).
+const weekOf = (ms) => Math.floor((Math.floor(ms / DAY) + 3) / 7);
 
 const cors = {
   "access-control-allow-origin": "*",
@@ -25,8 +30,11 @@ export default {
     const url = new URL(req.url);
     if (req.method === "OPTIONS") return new Response(null, { headers: cors });
     try {
-      if (url.pathname === "/" || url.pathname === "/index.html")
-        return new Response(page, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" } });
+      if (url.pathname === "/" || url.pathname === "/index.html") {
+        if (url.searchParams.has("region")) return Response.redirect(url.origin + "/ranking" + url.search, 302);
+        return html(landing);
+      }
+      if (url.pathname === "/ranking" || url.pathname === "/ranking/") return html(page);
       if (url.pathname === "/api/submit" && req.method === "POST") return await submit(req, env);
       if (url.pathname === "/api/bosses") return await bosses(url, env);
       if (url.pathname === "/api/top") return await top(url, env);
@@ -37,6 +45,8 @@ export default {
   },
 };
 
+const html = (body) =>
+  new Response(body, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" } });
 const int = (v) => (Number.isInteger(v) ? v : NaN);
 const cleanText = (s, max) =>
   typeof s === "string" && s.length > 0 && s.length <= max && !/[\u0000-\u001f\u007f<>]/.test(s) ? s.trim() : null;
@@ -66,7 +76,10 @@ async function submit(req, env) {
     "INSERT INTO hits (ip, hour, n) VALUES (?1, ?2, 1) ON CONFLICT(ip, hour) DO UPDATE SET n = n + 1 RETURNING n"
   ).bind(ip, hour).first();
   if (row && row.n > PER_HOUR) return json({ error: "slow down" }, 429);
-  if (row && row.n === 1) await env.DB.prepare("DELETE FROM hits WHERE hour < ?1").bind(hour - 2).run();
+  if (row && row.n === 1) {
+    await env.DB.prepare("DELETE FROM hits WHERE hour < ?1").bind(hour - 2).run();
+    await env.DB.prepare("DELETE FROM week_best WHERE week < ?1").bind(weekOf(Date.now()) - 8).run();
+  }
 
   // The boss's HP: the first report sets it; later ones must agree (within 10 %).
   const known = await env.DB.prepare("SELECT max_hp FROM bosses WHERE boss = ?1").bind(boss).first();
@@ -88,31 +101,79 @@ async function submit(req, env) {
   const serverName = cleanText(b.serverName, 30);
   const now = Date.now();
 
+  const week = weekOf(now);
+  const cols = "region, boss, metric, name, server, server_name, cls, cp, value, dur_ms, party, at";
+  const set = `server_name = excluded.server_name, cls = excluded.cls, cp = excluded.cp, value = excluded.value,
+           dur_ms = excluded.dur_ms, party = excluded.party, at = excluded.at`;
+  const sent = [];
   const stmts = [];
   for (const m of METRICS) {
     const v = Number(b[m]);
     if (!(v > 0) || v > CAP[m]) continue;
+    sent.push(m);
+    const args = [region, boss, m, name, server, serverName, cls, cp, Math.round(v), durMs, party, now];
     stmts.push(
       env.DB.prepare(
-        `INSERT INTO best (region, boss, metric, name, server, server_name, cls, cp, value, dur_ms, party, at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
-         ON CONFLICT(region, boss, metric, name, server) DO UPDATE SET
-           server_name = excluded.server_name, cls = excluded.cls, cp = excluded.cp, value = excluded.value,
-           dur_ms = excluded.dur_ms, party = excluded.party, at = excluded.at
-         WHERE excluded.value > best.value`
-      ).bind(region, boss, m, name, server, serverName, cls, cp, Math.round(v), durMs, party, now)
+        `INSERT INTO best (${cols}) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+         ON CONFLICT(region, boss, metric, name, server) DO UPDATE SET ${set}
+         WHERE excluded.value > best.value RETURNING value`
+      ).bind(...args),
+      env.DB.prepare(
+        `INSERT INTO week_best (week, ${cols}) VALUES (?13, ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+         ON CONFLICT(week, region, boss, metric, name, server) DO UPDATE SET ${set}
+         WHERE excluded.value > week_best.value`
+      ).bind(...args, week)
     );
   }
-  if (stmts.length) await env.DB.batch(stmts);
-  return json({ ok: true });
+  if (!stmts.length) return json({ ok: true, places: {} });
+  const done = await env.DB.batch(stmts);
+
+  // Where the player stands now: overall, in the class, and this week.
+  const ask = sent.map((m) =>
+    env.DB.prepare(
+      `WITH me AS (SELECT value, cls FROM best WHERE region = ?1 AND boss = ?2 AND metric = ?3 AND name = ?4 AND server = ?5),
+            wk AS (SELECT value FROM week_best WHERE week = ?6 AND region = ?1 AND boss = ?2 AND metric = ?3 AND name = ?4 AND server = ?5)
+       SELECT (SELECT value FROM me) AS best,
+         (SELECT COUNT(*) FROM best WHERE region = ?1 AND boss = ?2 AND metric = ?3) AS total,
+         (SELECT COUNT(*) + 1 FROM best WHERE region = ?1 AND boss = ?2 AND metric = ?3 AND value > (SELECT value FROM me)) AS place,
+         (SELECT COUNT(*) FROM best WHERE region = ?1 AND boss = ?2 AND metric = ?3 AND cls = (SELECT cls FROM me)) AS clsTotal,
+         (SELECT COUNT(*) + 1 FROM best WHERE region = ?1 AND boss = ?2 AND metric = ?3 AND cls = (SELECT cls FROM me)
+            AND value > (SELECT value FROM me)) AS clsPlace,
+         (SELECT COUNT(*) FROM week_best WHERE week = ?6 AND region = ?1 AND boss = ?2 AND metric = ?3) AS weekTotal,
+         (SELECT COUNT(*) + 1 FROM week_best WHERE week = ?6 AND region = ?1 AND boss = ?2 AND metric = ?3
+            AND value > (SELECT value FROM wk)) AS weekPlace`
+    ).bind(region, boss, m, name, server, week)
+  );
+  const rows = await env.DB.batch(ask);
+  const places = {};
+  sent.forEach((m, i) => {
+    const r = rows[i].results[0] || {};
+    places[m] = {
+      value: Math.round(Number(b[m])),
+      best: r.best,
+      improved: (done[i * 2].results || []).length > 0,
+      place: r.place, total: r.total,
+      clsPlace: cls ? r.clsPlace : null, clsTotal: cls ? r.clsTotal : null,
+      weekPlace: r.weekPlace, weekTotal: r.weekTotal,
+    };
+  });
+  return json({ ok: true, places });
+}
+
+// period=week: this week's table (since Monday 00:00 UTC); anything else: all time.
+function source(url) {
+  return url.searchParams.get("period") === "week"
+    ? { table: "week_best", where: `week = ${weekOf(Date.now())} AND ` }
+    : { table: "best", where: "" };
 }
 
 async function bosses(url, env) {
   const region = (url.searchParams.get("region") || "eu").toLowerCase();
   if (!REGIONS.has(region)) return json({ error: "invalid" }, 400);
+  const { table, where } = source(url);
   const { results } = await env.DB.prepare(
     `SELECT b.boss AS boss, o.name AS name, o.zone AS zone, COUNT(DISTINCT b.name || '|' || b.server) AS players
-     FROM best b JOIN bosses o ON o.boss = b.boss WHERE b.region = ?1 GROUP BY b.boss ORDER BY o.zone, o.name`
+     FROM ${table} b JOIN bosses o ON o.boss = b.boss WHERE ${where}b.region = ?1 GROUP BY b.boss ORDER BY o.zone, o.name`
   ).bind(region).all();
   return json(results, 200, { "cache-control": "public, max-age=60" });
 }
@@ -121,12 +182,15 @@ async function top(url, env) {
   const region = (url.searchParams.get("region") || "eu").toLowerCase();
   const boss = Number(url.searchParams.get("boss"));
   const metric = url.searchParams.get("metric") || "dps";
+  const cls = url.searchParams.get("cls") || "";
   const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit")) || 50));
-  if (!REGIONS.has(region) || !Number.isInteger(boss) || !METRICS.includes(metric)) return json({ error: "invalid" }, 400);
+  if (!REGIONS.has(region) || !Number.isInteger(boss) || !METRICS.includes(metric) || (cls && !CLASSES.has(cls)))
+    return json({ error: "invalid" }, 400);
+  const { table, where } = source(url);
   const { results } = await env.DB.prepare(
-    `SELECT name, server_name AS server, cls, cp, value, dur_ms AS durMs, party, at FROM best
-     WHERE region = ?1 AND boss = ?2 AND metric = ?3 ORDER BY value DESC LIMIT ?4`
-  ).bind(region, boss, metric, limit).all();
+    `SELECT name, server_name AS server, cls, cp, value, dur_ms AS durMs, party, at FROM ${table}
+     WHERE ${where}region = ?1 AND boss = ?2 AND metric = ?3 AND (?5 = '' OR cls = ?5) ORDER BY value DESC LIMIT ?4`
+  ).bind(region, boss, metric, limit, cls).all();
   return json(results, 200, { "cache-control": "public, max-age=60" });
 }
 

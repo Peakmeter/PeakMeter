@@ -20,7 +20,11 @@ WHAT IT DOES
 - Ready check: ✓ / ✗ for every party member in the lobby.
 - Pets: at a monster you see how many souls its pet still needs (green = full, orange = level 2, red = far off).
   Pet window (paw button): "Here in this area", all pets, and a "Map" button that shows the spawns.
-- Ranking (opt-in): the best DPS, healing and stagger per dungeon boss.
+- Ranking (opt-in): the best DPS, healing and stagger per dungeon boss – overall, per class, per week.
+  After a ranked kill the meter shows your place.
+- Click a player: idle time (seconds without an own hit) and, at ☠, the hits that led to the death.
+- Picture button: copies an image of the fight for Discord (paste with Ctrl+V).
+- Download page to share: https://peakmeter-ranking.peakmeter.workers.dev
 - Logs: every fight saved, with the party's "Top skills" and "Buffs" (uptime, DPS with / without).
 - Event timers with a soft chime: Shugo festival, air raid, rift, siege, Nahma … and every world boss.
   Tip: open Map -> Exploration -> Field monsters once in the game, and PeakMeter takes the real respawn times.
@@ -77,7 +81,11 @@ WAS ES KANN
 - Bereit-Check: ✓ / ✗ bei jedem Gruppenmitglied in der Lobby.
 - Pets: Beim Monster siehst du, wie viele Seelen dem Pet noch fehlen (grün = voll, orange = Stufe 2, rot = viel fehlt).
   Pet-Fenster (Pfote unten): „Hier im Gebiet“, alle Pets, Knopf „Karte“ zeigt die Spawns.
-- Ranking (freiwillig): die besten DPS, Heilung und Stagger pro Dungeon-Boss.
+- Ranking (freiwillig): die besten DPS, Heilung und Stagger pro Dungeon-Boss – gesamt, pro Klasse, pro Woche.
+  Nach einem Ranking-Kill zeigt der Meter deinen Platz.
+- Klick auf einen Spieler: Leerlauf (Sekunden ohne eigenen Treffer) und bei ☠ die Treffer, die zum Tod geführt haben.
+- Bild-Knopf: kopiert ein Bild vom Kampf für Discord (dort mit Strg+V einfügen).
+- Download-Seite zum Teilen: https://peakmeter-ranking.peakmeter.workers.dev
 - Logs: jeder Kampf gespeichert, mit „Top-Skills“ der Gruppe und „Buffs“ (Uptime, DPS mit / ohne).
 - Event-Timer mit sanftem Ton: Shugo-Festival, Luftangriff, Riss, Belagerung, Nahma … und alle Weltbosse.
   Tipp: Im Spiel einmal Karte -> Erkundung -> Feldmonster öffnen, dann übernimmt PeakMeter die echten Respawn-Zeiten.

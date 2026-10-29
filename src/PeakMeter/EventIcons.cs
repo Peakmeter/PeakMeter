@@ -25,6 +25,8 @@ public static class EventIcons
         ["reset"] = new("", "M19.5 12a7.5 7.5 0 1 1-2.2-5.3 M19.5 4v4.8h-4.8", C("#9EF0C8"), C("#3FD18B")),
         ["energy"] = new("M13.5 2 4.5 14h7l-1 8 9-12h-7z", null, C("#E2B8FF"), C("#9B6CFF")),
         ["update"] = new("", "M12 3v12 M7 10.5l5 5 5-5 M5 20h14", C("#9EF0C8"), C("#3FD18B")),
+        ["rank"] = new("M7 3h10v2h3.5v2.5A4.5 4.5 0 0 1 16.4 12a5 5 0 0 1-3.4 2.9V18h3.5v3h-9v-3H11v-3.1A5 5 0 0 1 7.6 12 4.5 4.5 0 0 1 3.5 7.5V5H7z M5.5 7v.5a2.5 2.5 0 0 0 1.6 2.3A9 9 0 0 1 7 8V7z M18.5 7H17v1a9 9 0 0 1-.1 1.8 2.5 2.5 0 0 0 1.6-2.3z",
+            null, C("#FFE08A"), C("#F2C26B")),
         ["info"] = new("M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6z M9.5 18a2.5 2.5 0 0 0 5 0z", null, C("#BFEFFF"), C("#7FD8F2")),
         // tickets
         ["odyle"] = new("M13.5 2 4.5 14h7l-1 8 9-12h-7z", null, C("#E2B8FF"), C("#9B6CFF")),

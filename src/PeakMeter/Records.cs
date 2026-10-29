@@ -3,7 +3,7 @@ using AionMeter.Core.Storage;
 
 namespace PeakMeter;
 
-/// <summary>Your last DPS and the best kill time per boss, read from the saved fights (cached until a fight is saved).</summary>
+/// <summary>Your last DPS, your best DPS on a kill and the best kill time per boss, read from the saved fights (cached until a fight is saved).</summary>
 public sealed class Records
 {
     private readonly HistoryStore _history;
@@ -16,20 +16,21 @@ public sealed class Records
     }
 
     /// <param name="exceptStart">The fight on screen: once saved it must not be compared with itself.</param>
-    public (double LastSelfDps, long BestKillMs)? For(int bossCode, DateTimeOffset? exceptStart = null)
+    public (double LastSelfDps, long BestKillMs, double BestSelfDps)? For(int bossCode, DateTimeOffset? exceptStart = null)
     {
         if (bossCode == 0) return null;
         _byBoss ??= Build();
         if (!_byBoss.TryGetValue(bossCode, out var fights)) return null;
-        double last = 0;
+        double last = 0, bestDps = 0;
         long best = 0;
         foreach (var e in fights) // newest first
         {
             if (exceptStart is { } x && Math.Abs((e.StartedAt - x).TotalSeconds) < 2) continue;
             if (last <= 0 && e.SelfDps > 0) last = e.SelfDps;
             if (e.Reason == EncounterEndReason.Kill && e.CombatMs > 0 && (best == 0 || e.CombatMs < best)) best = e.CombatMs;
+            if (e.Reason == EncounterEndReason.Kill && e.SelfDps > bestDps) bestDps = e.SelfDps;
         }
-        return last > 0 || best > 0 ? (last, best) : null;
+        return last > 0 || best > 0 ? (last, best, bestDps) : null;
     }
 
     /// <summary>The fastest kill of each boss, to mark it in the logs.</summary>

@@ -71,6 +71,7 @@
                             <Button Style="{StaticResource IconButton}" Content="&#xE76B;" Click="Older_Click" ToolTip="{local:T De='Älterer Kampf (auch Mausrad)', En='Older fight (also mouse wheel)'}" />
                             <Button Style="{StaticResource IconButton}" Content="&#xE76C;" Click="Newer_Click" ToolTip="{local:T De='Neuerer Kampf / Live', En='Newer fight / live'}" />
                             <Button Style="{StaticResource IconButton}" Content="&#xE8C8;" Click="Copy_Click" ToolTip="{local:T De='Ergebnis für den Chat kopieren', En='Copy result for the chat'}" />
+                            <Button Style="{StaticResource IconButton}" Content="&#xE722;" Click="CopyImage_Click" ToolTip="{local:T De='Bild für Discord kopieren (dort Strg+V)', En='Copy picture for Discord (paste with Ctrl+V)'}" />
                             <Button Style="{StaticResource IconButton}" Content="&#xE72C;" Click="Reset_Click" ToolTip="{local:T De='Zurücksetzen (Strg+Shift+R)', En='Reset'}" />
                             <Button x:Name="LockButton" Style="{StaticResource IconButton}" Content="&#xE785;" Click="Lock_Click" ToolTip="{local:T De='Position sperren', En='Lock position'}" />
                             <Button Style="{StaticResource IconButton}" Content="&#xE711;" Click="Hide_Click" ToolTip="{local:T De='Verstecken (Strg+Shift+D)', En='Hide'}" />
@@ -212,6 +213,10 @@
                             <TextBlock x:Name="DetailStats" HorizontalAlignment="Right" Foreground="{StaticResource TextDim}" FontSize="10.5"
                                        Typography.NumeralAlignment="Tabular" />
                         </Grid>
+                        <TextBlock x:Name="IdleText" Foreground="{StaticResource TextSoft}" FontSize="10.5" Margin="2,0,2,4" Visibility="Collapsed"
+                                   ToolTip="{local:T De='Zeit ohne eigenen Treffer (Pausen über 2,5 s, ohne DoTs) – Tod, Laufen und Phasen ohne Ziel zählen mit', En='Time without an own hit (pauses over 2.5 s, DoTs excluded) – deaths, running and phases without a target count too'}" />
+                        <TextBlock x:Name="DeathText" Foreground="#FF8A8A" FontSize="10.5" Margin="2,0,2,6" TextWrapping="Wrap" Visibility="Collapsed"
+                                   ToolTip="{local:T De='Die stärksten Treffer der letzten 8 Sekunden vor dem Tod', En='The hardest hits of the last 8 seconds before the death'}" />
                         <ItemsControl x:Name="Skills" ItemTemplate="{StaticResource SkillTemplate}" Focusable="False" />
                     </StackPanel>
                 </Border>

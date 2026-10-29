@@ -133,6 +133,16 @@ public sealed record HitQuality(
     long MaxHit,
     string? MaxHitSkill);
 
+/// <summary>A hit a player took: when (ms since the fight began), from whom, with what.</summary>
+public sealed record TakenHit(int OffsetMs, string Source, string Skill, long Damage);
+
+/// <summary>A death and the hits taken in the seconds before it, oldest first.</summary>
+public sealed record DeathRecap(int OffsetMs, IReadOnlyList<TakenHit> Hits)
+{
+    [System.Text.Json.Serialization.JsonIgnore]
+    public long Total => Hits.Sum(h => h.Damage);
+}
+
 public sealed record CombatantDetail(
     uint ActorId,
     string Name,
@@ -151,7 +161,8 @@ public sealed record CombatantDetail(
     int ServerId = 0,
     int GearScore = 0,
     long CombatPower = 0,
-    long Stagger = 0);
+    long Stagger = 0,
+    IReadOnlyList<DeathRecap>? DeathRecaps = null);
 
 public sealed record SegmentInfo(Guid Id, string Title, DateTimeOffset StartedAt, long CombatMs, bool IsActive, EncounterEndReason Reason, long TotalDamage);
 
