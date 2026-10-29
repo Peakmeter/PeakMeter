@@ -155,7 +155,7 @@
                                                 <StackPanel Orientation="Horizontal">
                                                 <TextBlock x:Name="SkillTitle" Foreground="{StaticResource Text}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" />
                                                 <Button x:Name="ProfileButton" Style="{StaticResource Chip}" Height="22" Margin="10,0,0,0" Click="Profile_Click" VerticalAlignment="Center"
-                                        ToolTip="{local:T De='Ausrüstung, Daevanion, Arcana und Skills auf aion2index.com', En='Gear, Daevanion, arcana and skills on aion2index.com'}">
+                                        ToolTip="{local:T De='PeakMeter-Profil: Ausrüstung, Werte, Daevanion, Skills und die besten Kills', En='PeakMeter profile: gear, stats, Daevanion, skills and the best kills'}">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="&#xE8A7;" FontFamily="{StaticResource IconFont}" FontSize="10" Margin="0,1,5,0" />
                                         <TextBlock Text="{local:T De=Profil, En=Profile}" FontSize="10.5" />

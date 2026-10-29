@@ -24,7 +24,8 @@ WHAT IT DOES
   After a ranked kill the meter shows your place.
 - Click a player: idle time (seconds without an own hit) and, at ☠, the hits that led to the death.
 - Picture button: copies an image of the fight for Discord (paste with Ctrl+V).
-- Download page to share: https://peakmeter-ranking.peakmeter.workers.dev
+- "Profile" button: the player's PeakMeter profile with gear, stats, skills and best kills.
+- Website to share (download, ranking, player search): https://peakmeter-ranking.peakmeter.workers.dev
 - Logs: every fight saved, with the party's "Top skills" and "Buffs" (uptime, DPS with / without).
 - Event timers with a soft chime: Shugo festival, air raid, rift, siege, Nahma … and every world boss.
   Tip: open Map -> Exploration -> Field monsters once in the game, and PeakMeter takes the real respawn times.
@@ -85,7 +86,8 @@ WAS ES KANN
   Nach einem Ranking-Kill zeigt der Meter deinen Platz.
 - Klick auf einen Spieler: Leerlauf (Sekunden ohne eigenen Treffer) und bei ☠ die Treffer, die zum Tod geführt haben.
 - Bild-Knopf: kopiert ein Bild vom Kampf für Discord (dort mit Strg+V einfügen).
-- Download-Seite zum Teilen: https://peakmeter-ranking.peakmeter.workers.dev
+- „Profil“-Knopf: das PeakMeter-Profil des Spielers mit Ausrüstung, Werten, Skills und Bestwerten.
+- Webseite zum Teilen (Download, Rangliste, Spielersuche): https://peakmeter-ranking.peakmeter.workers.dev
 - Logs: jeder Kampf gespeichert, mit „Top-Skills“ der Gruppe und „Buffs“ (Uptime, DPS mit / ohne).
 - Event-Timer mit sanftem Ton: Shugo-Festival, Luftangriff, Riss, Belagerung, Nahma … und alle Weltbosse.
   Tipp: Im Spiel einmal Karte -> Erkundung -> Feldmonster öffnen, dann übernimmt PeakMeter die echten Respawn-Zeiten.

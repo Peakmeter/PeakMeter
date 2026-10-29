@@ -34,6 +34,8 @@
   .empty { color:var(--dim); padding:24px 8px; text-align:center; }
   .foot { color:var(--dim); font-size:12px; margin-top:16px; }
   .srv { color:var(--dim); font-size:12px; }
+  a.pl { color:var(--text); text-decoration:none; border-bottom:1px solid transparent; }
+  a.pl:hover { color:var(--accent); border-bottom-color:var(--accent); }
   .sep { width:1px; height:22px; background:var(--edge); margin:0 4px; }
   .top { display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; }
   .top a { color:var(--accent); text-decoration:none; font-size:13px; }
@@ -149,7 +151,8 @@ async function loadTop() {
     '</th><th class="num">' + T.time + '</th><th class="num">' + T.party + '</th><th class="num">' + T.date + "</th></tr>";
   rows.forEach((r, i) => {
     const cls = r.cls ? (de ? CLS_DE[r.cls] || r.cls : r.cls) : "";
-    html += '<tr><td class="rank">' + (i + 1) + "</td><td>" + esc(r.name) + (r.server ? ' <span class="srv">' + esc(r.server) + "</span>" : "") +
+    const prof = r.server ? "/player/" + state.region + "/" + encodeURIComponent(r.server) + "/" + encodeURIComponent(r.name) : null;
+    html += '<tr><td class="rank">' + (i + 1) + "</td><td>" + (prof ? '<a class="pl" href="' + prof + '">' + esc(r.name) + "</a>" : esc(r.name)) + (r.server ? ' <span class="srv">' + esc(r.server) + "</span>" : "") +
       "</td><td>" + esc(cls) + '</td><td class="num">' + (r.cp ? r.cp.toLocaleString() : "") + '</td><td class="num val">' + fmt(r.value) +
       '</td><td class="num">' + (r.durMs ? dur(r.durMs) : "") + '</td><td class="num">' + (r.party || "") +
       '</td><td class="num">' + new Date(r.at).toLocaleDateString(de ? "de-DE" : undefined) + "</td></tr>";

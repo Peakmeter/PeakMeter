@@ -372,6 +372,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.37.0 – Der „Profil“-Knopf öffnet jetzt das PeakMeter-Profil des Spielers: Ausrüstung, Werte, Daevanion und Skills von der offiziellen Charakterseite, zusammen mit seinen besten Kills aus der Rangliste. Neue Spielersuche auf der Webseite.\n\n" +
         "v1.36.0 – Nach einem Ranking-Kill zeigt der Meter deinen Platz (gesamt, in deiner Klasse und diese Woche); Klick öffnet die Rangliste. Die Rangliste hat jetzt Klassen-Filter und eine Wochenwertung. Live-Vergleich mit deinem besten Kill des Bosses. Klick auf einen Spieler zeigt Leerlauf (Sekunden ohne eigenen Treffer) und bei ☠ die Treffer, die zum Tod geführt haben. Neuer Knopf „Bild für Discord kopieren“ im Meter und in den Logs. Download-Seite: peakmeter-ranking.peakmeter.workers.dev\n\n" +
         "v1.35.0 – Ranking: Wer unter Einstellungen → „Am Ranking teilnehmen“ einschaltet, erscheint nach Dungeon-Boss-Kills in einer öffentlichen Rangliste für DPS, Heilung und Stagger – pro Boss dein bester Kill. Gesendet werden nur deine eigenen Werte. Knopf „Rangliste öffnen“ in den Einstellungen\n\n" +
         "v1.34.1 – Im Download liegt jetzt README.txt (Englisch und Deutsch) statt LIESMICH.txt\n\n" +
@@ -425,6 +426,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.37.0 – The “Profile” button now opens the player's PeakMeter profile: gear, stats, Daevanion and skills from the official character page, together with their best kills from the ranking. New player search on the website.\n\n" +
         "v1.36.0 – After a ranked kill the meter shows your place (overall, in your class and this week); a click opens the ranking. The ranking now has a class filter and a weekly list. Live comparison with your best kill of the boss. Clicking a player shows idle time (seconds without an own hit) and, at ☠, the hits that led to the death. New button “Copy picture for Discord” in the meter and the logs. Download page: peakmeter-ranking.peakmeter.workers.dev\n\n" +
         "v1.35.0 – Ranking: turn on Settings → “Join the ranking” and your dungeon boss kills appear in a public list for DPS, healing and stagger – your best kill per boss. Only your own values are sent. Button “Open ranking” in the settings\n\n" +
         "v1.34.1 – The download now has README.txt (English and German) instead of LIESMICH.txt\n\n" +

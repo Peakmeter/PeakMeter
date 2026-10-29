@@ -37,7 +37,7 @@
 - **Idle time & death recap** – click a player: seconds without an own hit, and at ☠ the hits that took them down.
 - **Copy for Discord** – one click puts a picture of the fight on the clipboard; paste it with Ctrl+V.
 - **Ranking (opt-in)** – the best DPS, healing and stagger per dungeon boss, overall, per class and per week. After a ranked kill the meter shows your place. [Ranking & download page](https://peakmeter-ranking.peakmeter.workers.dev)
-- **Party** – level, gear score and combat power of every member, server tags like in game, a link to each player's profile on aion2index.com.
+- **Party** – level, gear score and combat power of every member, server tags like in game, a link to each player's PeakMeter profile (gear, stats, Daevanion, skills and their best kills).
 
 ### Pets
 <p align="center">
@@ -119,7 +119,7 @@ Bugs and ideas: [Issues](https://github.com/Peakmeter/PeakMeter/issues). The fil
 - **Leerlauf & Todes-Analyse:** Klick auf einen Spieler zeigt die Sekunden ohne eigenen Treffer und bei ☠ die Treffer, die zum Tod geführt haben.
 - **Für Discord kopieren:** Ein Klick legt ein Bild vom Kampf in die Zwischenablage – in Discord mit Strg+V einfügen.
 - **Rangliste (freiwillig)** pro Dungeon-Boss für DPS, Heilung und Stagger – gesamt, pro Klasse und pro Woche; nach einem Kill zeigt der Meter deinen Platz.
-- **Gruppe** mit Level, Gearscore, Combat Power, Server-Kürzel wie im Spiel und Profil-Link zu aion2index.com.
+- **Gruppe** mit Level, Gearscore, Combat Power, Server-Kürzel wie im Spiel und Link zum PeakMeter-Profil (Ausrüstung, Werte, Daevanion, Skills und Bestwerte).
 
 **Pets**
 - **Pet-Seelen beim Monster:** Haust du ein Monster, zeigt der Meter, für welches Pet es Seelen gibt und wie weit es ist – 🟢 voll, 🟠 Stufe 2, 🔴 fehlt noch viel. Nach dem Kill die Seele, die du gerade bekommen hast. Kein Pet-Menü mehr nötig.

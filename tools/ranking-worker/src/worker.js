@@ -4,8 +4,12 @@
 // GET  /api/top          one boss's list for one metric (period=all|week, cls=<class>)
 // GET  /                 the download page
 // GET  /ranking          the ranking page (the meter before 1.36 opened /?region=..., which lands there too)
+// GET  /player[/<region>/<server>/<name>]   player search and profile
+// GET  /api/char/search  NCSOFT's official character search, trimmed
+// GET  /api/char         one character: official profile, gear, skills (NCSOFT) + PeakMeter bests
 import page from "./page.html";
 import landing from "./landing.html";
+import player from "./player.html";
 
 const REGIONS = new Set(["eu", "na", "nae", "naw", "kr", "tw"]);
 const METRICS = ["dps", "hps", "stagger"];
@@ -26,7 +30,7 @@ const json = (body, status = 200, extra = {}) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...cors, ...extra } });
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     const url = new URL(req.url);
     if (req.method === "OPTIONS") return new Response(null, { headers: cors });
     try {
@@ -35,6 +39,9 @@ export default {
         return html(landing);
       }
       if (url.pathname === "/ranking" || url.pathname === "/ranking/") return html(page);
+      if (url.pathname === "/player" || url.pathname.startsWith("/player/")) return html(player);
+      if (url.pathname === "/api/char/search") return await charSearch(url);
+      if (url.pathname === "/api/char") return await charProfile(url, env, ctx);
       if (url.pathname === "/api/submit" && req.method === "POST") return await submit(req, env);
       if (url.pathname === "/api/bosses") return await bosses(url, env);
       if (url.pathname === "/api/top") return await top(url, env);
@@ -192,6 +199,119 @@ async function top(url, env) {
      WHERE ${where}region = ?1 AND boss = ?2 AND metric = ?3 AND (?5 = '' OR cls = ?5) ORDER BY value DESC LIMIT ?4`
   ).bind(region, boss, metric, limit, cls).all();
   return json(results, 200, { "cache-control": "public, max-age=60" });
+}
+
+// ---------------------------------------------------------------- characters (NCSOFT's official character pages)
+
+const NC_SEARCH = "https://api-search.plaync.com/";
+const NC_CHAR = "https://aion2.plaync.com/api/character/";
+const NC_IMG = "https://profileimg.plaync.com";
+const strip = (s) => String(s ?? "").replace(/<[^>]+>/g, "");
+
+// Taiwan has no public character search.
+function ncSearchUrl(region, q, serverId) {
+  const p = `keyword=${encodeURIComponent(q)}&page=1&size=30` + (serverId ? `&serverId=${serverId}` : "");
+  if (region === "kr") return `${NC_SEARCH}aion2/search/v2/character?${p}`;
+  if (region === "eu" || region === "nae" || region === "naw")
+    return `${NC_SEARCH}aion2global/search/v2/character?${p}&region=${region}&localeInfo=en-US`;
+  return null;
+}
+
+async function ncJson(u) {
+  const r = await fetch(u, {
+    headers: { "user-agent": "PeakMeter (+https://peakmeter-ranking.peakmeter.workers.dev)", accept: "application/json" },
+    cf: { cacheTtl: 300, cacheEverything: true },
+  });
+  if (!r.ok) throw new Error("nc " + r.status);
+  return r.json();
+}
+
+async function charSearch(url) {
+  const region = (url.searchParams.get("region") || "eu").toLowerCase();
+  const q = (url.searchParams.get("q") || "").trim();
+  if (!REGIONS.has(region) || q.length < 2 || q.length > 24 || /[\u0000-\u001f<>]/.test(q)) return json({ error: "invalid" }, 400);
+  const u = ncSearchUrl(region, q);
+  if (!u) return json({ error: "region" }, 400);
+  let d;
+  try { d = await ncJson(u); } catch { return json({ error: "official search not reachable" }, 502); }
+  const list = (d.list || []).map((c) => ({
+    name: strip(c.name), server: c.serverName || "", serverId: c.serverId, level: c.level, race: c.race,
+    img: c.profileImageUrl ? NC_IMG + c.profileImageUrl : null,
+  }));
+  return json(list, 200, { "cache-control": "public, max-age=300" });
+}
+
+async function charProfile(url, env, ctx) {
+  const region = (url.searchParams.get("region") || "eu").toLowerCase();
+  const name = cleanText(url.searchParams.get("name"), 24);
+  const server = cleanText(url.searchParams.get("server"), 30);
+  const lang = url.searchParams.get("lang") === "de" ? "de-DE" : "en-US";
+  if (!REGIONS.has(region) || !name || !server) return json({ error: "invalid" }, 400);
+
+  const key = new Request(`https://cache.peakmeter/char/${region}/${encodeURIComponent(server.toLowerCase())}/${encodeURIComponent(name.toLowerCase())}/${lang}`);
+  const cached = await caches.default.match(key);
+  if (cached) return cached;
+
+  const sid = /^\d+$/.test(server) ? Number(server) : null;
+  let found = null;
+  const su = ncSearchUrl(region, name, sid);
+  if (su) {
+    try {
+      const d = await ncJson(su);
+      found = (d.list || []).find((c) => strip(c.name).toLowerCase() === name.toLowerCase() &&
+        (sid ? c.serverId === sid : String(c.serverName || "").toLowerCase() === server.toLowerCase())) || null;
+    } catch { /* official search down: PeakMeter data only */ }
+  }
+
+  let info = null, equip = null;
+  if (found) {
+    const id = encodeURIComponent(decodeURIComponent(found.characterId));
+    const q = (region === "kr" ? `?lang=ko-KR` : `?region=${region}&lang=${lang}`) + `&characterId=${id}&serverId=${found.serverId}`;
+    [info, equip] = await Promise.all([ncJson(NC_CHAR + "info" + q).catch(() => null), ncJson(NC_CHAR + "equipment" + q).catch(() => null)]);
+  }
+
+  // PeakMeter's own: this player's best kills with their places.
+  const serverId = found ? found.serverId : sid;
+  const where = serverId ? "b.server = ?2" : "lower(b.server_name) = lower(?2)";
+  const { results: bests } = await env.DB.prepare(
+    `SELECT b.boss AS boss, o.name AS bossName, o.zone AS zone, b.metric AS metric, b.value AS value, b.dur_ms AS durMs,
+            b.party AS party, b.at AS at, b.cls AS cls, b.cp AS cp,
+            (SELECT COUNT(*) + 1 FROM best x WHERE x.region = b.region AND x.boss = b.boss AND x.metric = b.metric AND x.value > b.value) AS place,
+            (SELECT COUNT(*) FROM best x WHERE x.region = b.region AND x.boss = b.boss AND x.metric = b.metric) AS total
+     FROM best b JOIN bosses o ON o.boss = b.boss
+     WHERE b.region = ?1 AND ${where} AND lower(b.name) = lower(?3) ORDER BY o.zone, o.name`
+  ).bind(region, serverId ?? server, name).all();
+
+  if (!found && !bests.length) return json({ error: "not found" }, 404, { "cache-control": "public, max-age=60" });
+
+  const pr = info?.profile;
+  const body = {
+    region,
+    name: found ? strip(found.name) : name,
+    server: found?.serverName || pr?.serverName || server,
+    serverId,
+    official: !!pr,
+    officialUrl: found && region !== "kr"
+      ? `https://aion2.plaync.com/${lang === "de-DE" ? "de-de" : "en-us"}/characters/${found.serverId}/${found.characterId}?region=${region}`
+      : null,
+    profile: pr ? {
+      level: pr.characterLevel, className: pr.className, race: pr.raceName, gender: pr.genderName, cp: pr.combatPower,
+      img: pr.profileImage || (found?.profileImageUrl ? NC_IMG + found.profileImageUrl : null),
+      title: pr.titleName ? { name: pr.titleName, grade: pr.titleGrade } : null,
+    } : found ? { level: found.level, img: found.profileImageUrl ? NC_IMG + found.profileImageUrl : null } : null,
+    stats: (info?.stat?.statList || []).map((x) => ({ type: x.type, name: x.name, value: x.value, more: x.statSecondList || [] })),
+    titles: info?.title ? { owned: info.title.ownedCount, total: info.title.totalCount } : null,
+    daevanion: (info?.daevanion?.boardList || []).map((x) => ({ name: x.name, icon: x.icon, open: x.openNodeCount, total: x.totalNodeCount, pct: x.openPercent })),
+    gear: (equip?.equipment?.equipmentList || []).map((x) => ({ slot: x.slotPosName, name: x.name, icon: x.icon, grade: x.grade, plus: x.enchantLevel, exceed: x.exceedLevel })),
+    pet: equip?.petwing?.pet ? { name: equip.petwing.pet.name, icon: equip.petwing.pet.icon, level: equip.petwing.pet.level } : null,
+    wing: equip?.petwing?.wing ? { name: equip.petwing.wing.name, icon: equip.petwing.wing.icon, grade: equip.petwing.wing.grade, plus: equip.petwing.wing.enchantLevel } : null,
+    skills: (equip?.skill?.skillList || []).filter((x) => x.acquired).map((x) => ({ name: x.name, icon: x.icon, level: x.skillLevel, kind: x.category, on: !!x.equip })),
+    bests,
+    at: Date.now(),
+  };
+  const res = json(body, 200, { "cache-control": "public, max-age=600" });
+  ctx.waitUntil(caches.default.put(key, res.clone()));
+  return res;
 }
 
 async function hash(s) {

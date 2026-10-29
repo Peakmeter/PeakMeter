@@ -127,7 +127,7 @@
            border: 1px solid #343944; border-radius: 16px; padding: 12px 14px; display: flex; gap: 11px; box-shadow: 0 24px 50px rgba(0,0,0,.55);
            transform: translateY(0); transition: transform .6s cubic-bezier(.2,.8,.2,1), opacity .6s; }
   .toast.off { transform: translateY(14px); opacity: 0; }
-  .toast .ic { width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center; background: linear-gradient(140deg, #ffe08a, #f2c26b); color: #1a1408; font-size: 18px; }
+  .toast .ic { width: 38px; height: 38px; border-radius: 11px; flex: none; display: grid; place-items: center; background: #1c1f26; border: 1px solid #343944; }
   .toast b { display: block; font-size: 14px; color: #fff; }
   .toast span { font-size: 12.5px; color: #c2c9d6; }
   @media (max-width: 560px) { .toast { right: 8px; bottom: 18px; } .row .s { display: none; } .row { font-size: 14px; } }
@@ -206,10 +206,38 @@
   .lb .val { font-weight: 700; color: var(--gold); }
   .lb.you { background: rgba(242,194,107,.08); }
 
+  .skl { width: 100%; background: var(--paper); border-radius: 18px; padding: 8px; display: grid; gap: 4px; font-variant-numeric: tabular-nums; }
+  .skl .r { position: relative; display: grid; grid-template-columns: 34px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 8px 10px; border-radius: 12px; overflow: hidden; }
+  .skl .r > i { position: absolute; inset: 0 auto 0 0; opacity: .18; border-radius: 12px; }
+  .skl .r > *:not(i) { position: relative; }
+  .skl img { width: 34px; height: 34px; border-radius: 8px; }
+  .skl b { display: block; font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .skl span.who { font-size: 12.5px; color: var(--ink-2); }
+  .skl .dmg { font-weight: 700; font-size: 15px; }
+  .skl .sh { color: var(--ink-2); font-size: 13px; width: 46px; text-align: right; }
+  .pets { width: 100%; display: grid; gap: 10px; }
+  .pet { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; background: var(--paper); border-radius: 14px; padding: 12px 14px; }
+  .pet .d { width: 10px; height: 10px; border-radius: 50%; }
+  .pet b { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pet .n { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .pet .bar3 { grid-column: 2 / -1; height: 6px; border-radius: 3px; background: #e3e3e8; overflow: hidden; }
+  .pet .bar3 i { display: block; height: 100%; border-radius: 3px; }
+  .look { width: 100%; background: var(--paper); border-radius: 22px; padding: 18px; display: grid; gap: 14px; }
+  .look .who { display: flex; gap: 14px; align-items: center; }
+  .look .pic { width: 64px; height: 64px; border-radius: 18px; background: linear-gradient(140deg, #2a2d36, #121318); display: grid; place-items: center; flex: none; }
+  .look .pic img { width: 34px; height: 34px; }
+  .look .who b { display: block; font: 700 24px/1.1 var(--sans); letter-spacing: -0.02em; }
+  .look .who span { color: var(--ink-2); font-size: 14px; }
+  .look .cpv { margin-left: auto; text-align: right; } .look .cpv b { font-size: 26px; } .look .cpv span { font-size: 12px; }
+  .look .gr { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+  .look .gr span { aspect-ratio: 1; max-width: 100%; border-radius: 11px; background: #22242a; display: grid; place-items: center; box-shadow: inset 0 0 0 2px var(--g); }
+  .look .gr img { width: 78%; height: 78%; }
+  .look .pmb { display: flex; justify-content: space-between; gap: 10px; background: var(--night); color: var(--snow); border-radius: 14px; padding: 12px 14px; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .look .pmb b { color: var(--gold); }
   .shot { border-radius: 14px; box-shadow: 0 30px 60px rgba(0,0,0,.18); border: 1px solid var(--line-light); }
   .timers { width: 100%; display: grid; gap: 10px; }
   .tm { display: flex; align-items: center; gap: 12px; background: var(--night-2); border: 1px solid var(--line-dark); border-radius: 14px; padding: 12px 14px; font-size: 15px; }
-  .tm i { width: 32px; height: 32px; border-radius: 9px; flex: none; display: grid; place-items: center; font-style: normal; font-size: 16px; }
+  .tm i { width: 36px; height: 36px; border-radius: 10px; flex: none; display: grid; place-items: center; background: #1c1f26; border: 1px solid #2c3039; }
   .tm b { font-weight: 600; color: var(--snow); flex: 1; min-width: 0; }
   .tm span { color: var(--snow-2); font-variant-numeric: tabular-nums; }
   .tm.soon span { color: var(--gold); font-weight: 600; }
@@ -258,6 +286,7 @@
     <div class="links">
       <a class="opt" href="#features" data-i="navFeatures">Features</a>
       <a href="/ranking" data-i="navRanking">Ranking</a>
+      <a href="/player" data-i="navPlayers">Players</a>
       <a class="opt" href="#install" data-i="navInstall">Install</a>
     </div>
     <a class="pill sm dl" href="https://github.com/Peakmeter/PeakMeter/releases/latest" data-i="navDl">Download</a>
@@ -299,7 +328,7 @@
         <div class="m-foot"><span data-i="mFoot">Shugo Festival in 18 min</span><span>⚡ 840 / 1000</span></div>
       </div>
       <div class="toast off" id="toast" role="status">
-        <div class="ic">🏆</div>
+        <div class="ic"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><defs><linearGradient id="g-rank" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE08A"/><stop offset="1" stop-color="#F2C26B"/></linearGradient></defs><path d="M7 3h10v2h3.5v2.5A4.5 4.5 0 0 1 16.4 12a5 5 0 0 1-3.4 2.9V18h3.5v3h-9v-3H11v-3.1A5 5 0 0 1 7.6 12 4.5 4.5 0 0 1 3.5 7.5V5H7z M5.5 7v.5a2.5 2.5 0 0 0 1.6 2.3A9 9 0 0 1 7 8V7z M18.5 7H17v1a9 9 0 0 1-.1 1.8 2.5 2.5 0 0 0 1.6-2.3z" fill="url(#g-rank)"/></svg></div>
         <div><b data-i="toastT">Ranking: place 4 of 37</b><span data-i="toastS">Ultimate Berk · DPS 702K · New personal best! · Week: place 2</span></div>
       </div>
     </div>
@@ -405,11 +434,31 @@
         <article class="tile wide">
           <div class="inner">
             <div>
+              <p class="k" data-i="t9k">Players</p>
+              <h3 data-i="t9h">Every player. One click.</h3>
+              <p class="copy" data-i="t9p">Gear, stats, Daevanion and skills from the official character pages, together with the best kills measured with PeakMeter. In the meter, click a player and then “Profile”.</p>
+              <p style="margin-top:22px"><a class="more" href="/player" data-i="t9a">Find a player</a></p>
+            </div>
+            <div class="vis">
+              <div class="look" aria-label="Player profile (example)">
+                <div class="who"><span class="pic"><img src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/src/PeakMeter/Assets/Classes/elementalist.png" alt=""></span>
+                  <div><b>Ilvane</b><span data-i="t9who">Level 45 · Elementalist · Ariel</span></div>
+                  <div class="cpv"><b>3.412</b><br><span data-i="t9cp">combat power</span></div></div>
+                <div class="gr"><span style="--g:var(--g-legend)"><img src="https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WP_DA_0033_T05.png" alt="" loading="lazy"></span><span style="--g:var(--g-legend)"><img src="https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_GM_0152_T04_Torso.png" alt="" loading="lazy"></span><span style="--g:var(--g-legend)"><img src="https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_GM_0152_T04_Pants.png" alt="" loading="lazy"></span><span style="--g:var(--g-legend)"><img src="https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_GM_0152_T04_Shoulder.png" alt="" loading="lazy"></span><span style="--g:var(--g-legend)"><img src="https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_GM_0040_T04_Gloves.png" alt="" loading="lazy"></span><span style="--g:var(--g-rare)"><img src="https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_GM_0033_T04_Helmet.png" alt="" loading="lazy"></span></div>
+                <div class="pmb"><span>Ultimate Berk · DPS <b>702K</b></span><span data-i="t9pl">#4 of 37</span></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="tile wide">
+          <div class="inner">
+            <div>
               <p class="k" data-i="t6k">Logs</p>
               <h3 data-i="t6h">Every fight, saved.</h3>
               <p class="copy" data-i="t6p">Each skill with hits, crits and max hit. The whole party's top skills. Every buff with its uptime and the DPS with and without it. Your best kills are marked.</p>
             </div>
-            <div class="vis"><img class="shot" src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/screenshot-logs-topskills.png" alt="Logs: the party's top skills" loading="lazy"></div>
+            <div class="vis"><div class="skl" aria-label="Top skills of the party (example)"><div class="r"><i style="width:100%;background:var(--c-gla)"></i><img src="https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_003.png" alt="" loading="lazy"><div style="min-width:0"><b data-i="sk0">Rupture Strike</b><span class="who">Borgrim</span></div><span class="dmg">1.92M</span><span class="sh">14.1%</span></div><div class="r"><i style="width:89%;background:var(--c-ele)"></i><img src="https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_EL_SKILL_002.png" alt="" loading="lazy"><div style="min-width:0"><b data-i="sk1">Vacuum Explosion</b><span class="who">Ilvane</span></div><span class="dmg">1.71M</span><span class="sh">12.6%</span></div><div class="r"><i style="width:81%;background:var(--c-ran)"></i><img src="https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_RA_SKILL_002.png" alt="" loading="lazy"><div style="min-width:0"><b data-i="sk2">Snipe</b><span class="who">Talwyn</span></div><span class="dmg">1.55M</span><span class="sh">11.4%</span></div><div class="r"><i style="width:63%;background:var(--c-gla)"></i><img src="https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_002.png" alt="" loading="lazy"><div style="min-width:0"><b data-i="sk3">Keen Strike</b><span class="who">Borgrim</span></div><span class="dmg">1.20M</span><span class="sh">8.8%</span></div><div class="r"><i style="width:51%;background:var(--c-ele)"></i><img src="https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_EL_SKILL_005.png" alt="" loading="lazy"><div style="min-width:0"><b data-i="sk4">Ashy Call</b><span class="who">Ilvane</span></div><span class="dmg">0.98M</span><span class="sh">7.2%</span></div></div></div>
           </div>
         </article>
 
@@ -417,7 +466,7 @@
           <p class="k" data-i="t7k">Pets</p>
           <h3 data-i="t7h">Which souls are still missing.</h3>
           <p class="copy" data-i="t7p">Hit a monster and the meter shows which pet it feeds and how far along it is. No more pet menu.</p>
-          <div class="vis"><img class="shot" src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/screenshot-pets.png" alt="Pet window" loading="lazy" style="max-height:360px;width:auto"></div>
+          <div class="vis"><div class="pets" aria-label="Pet souls (example)"><div class="pet"><span class="d" style="background:var(--up)"></span><b data-i="pt0">Krall Laborer</b><span class="n">25 / 25</span><span class="bar3"><i style="width:100%;background:var(--up)"></i></span></div><div class="pet"><span class="d" style="background:#ff9f40"></span><b data-i="pt1">Forest Specter</b><span class="n">19 / 25</span><span class="bar3"><i style="width:76%;background:#ff9f40"></i></span></div><div class="pet"><span class="d" style="background:#ff9f40"></span><b data-i="pt2">Potcrab</b><span class="n">11 / 25</span><span class="bar3"><i style="width:44%;background:#ff9f40"></i></span></div><div class="pet"><span class="d" style="background:var(--down)"></span><b data-i="pt3">Baby Odyle Spider</b><span class="n">3 / 25</span><span class="bar3"><i style="width:12%;background:var(--down)"></i></span></div></div></div>
         </article>
 
         <article class="tile dark">
@@ -426,10 +475,10 @@
           <p class="copy" data-i="t8p">Shugo Festival, air raids, rifts, sieges and all world bosses, with a soft chime a minute before.</p>
           <div class="vis">
             <div class="timers">
-              <div class="tm soon"><i style="background:linear-gradient(140deg,#ffd36e,#ff8a5b)">🎁</i><b data-i="t8a">Shugo Festival</b><span data-i="t8an">in 1 min</span></div>
-              <div class="tm"><i style="background:linear-gradient(140deg,#9ad8ff,#5b7cff)">🪽</i><b data-i="t8b">Air raid</b><span>21:30</span></div>
-              <div class="tm"><i style="background:linear-gradient(140deg,#ffe08a,#ff9f59)">👑</i><b>Watcher Kaira</b><span data-i="t8cn">in 2 h 14 min</span></div>
-              <div class="tm"><i style="background:linear-gradient(140deg,#c79bff,#6b4fd8)">🌀</i><b data-i="t8d">Spacetime Rift</b><span>23:00</span></div>
+              <div class="tm soon"><i><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><defs><linearGradient id="g-shugo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFD36E"/><stop offset="1" stop-color="#FF8A5B"/></linearGradient></defs><path d="M4 11h16v9H4z M3 7h18v4H3z M10.9 7h2.2v13h-2.2z M12 7c-1.5-4-6-4.5-5.5-1.2C6.8 7 9.5 7 12 7z M12 7c1.5-4 6-4.5 5.5-1.2C17.2 7 14.5 7 12 7z" fill="url(#g-shugo)"/></svg></i><b data-i="t8a">Shugo Festival</b><span data-i="t8an">in 1 min</span></div>
+              <div class="tm"><i><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><defs><linearGradient id="g-invasion" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9AD8FF"/><stop offset="1" stop-color="#5B7CFF"/></linearGradient></defs><path d="M2 15c5-.6 9.5-3.8 12.5-9.5 1.2 4 .3 7-1.6 9.2 3-.9 6.2-.7 9.1 1.2-4 .7-7.3 2.8-9.4 6.1-1.3-3.4-4.7-5.6-10.6-7z" fill="url(#g-invasion)"/></svg></i><b data-i="t8b">Air raid</b><span>21:30</span></div>
+              <div class="tm"><i><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><defs><linearGradient id="g-boss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE08A"/><stop offset="1" stop-color="#FF9F59"/></linearGradient></defs><path d="M3 17.5 4.8 7.5l4.7 4.6L12 4.5l2.5 7.6 4.7-4.6L21 17.5z M3 19h18v2.2H3z" fill="url(#g-boss)"/></svg></i><b>Watcher Kaira</b><span data-i="t8cn">in 2 h 14 min</span></div>
+              <div class="tm"><i><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><defs><linearGradient id="g-rift" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C79BFF"/><stop offset="1" stop-color="#6B4FD8"/></linearGradient></defs><path d="M12 3a9 9 0 1 1-0.01 0 M12 6.5a5.5 5.5 0 1 1-0.01 0 M12 10a2 2 0 1 1-0.01 0" fill="none" stroke="url(#g-rift)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg></i><b data-i="t8d">Spacetime Rift</b><span>23:00</span></div>
             </div>
           </div>
         </article>
@@ -483,7 +532,7 @@
 
 <footer>
   <div class="wrap">
-    <div class="fl"><a href="/ranking" data-i="fRank">Ranking</a><a href="https://github.com/Peakmeter/PeakMeter">GitHub</a><a href="https://ko-fi.com/peakmeter">Ko-fi</a><a href="https://github.com/Peakmeter/PeakMeter/blob/main/LICENSE" data-i="fLic">License (GPL-3.0)</a></div>
+    <div class="fl"><a href="/ranking" data-i="fRank">Ranking</a><a href="/player" data-i="navPlayers">Players</a><a href="https://github.com/Peakmeter/PeakMeter">GitHub</a><a href="https://ko-fi.com/peakmeter">Ko-fi</a><a href="https://github.com/Peakmeter/PeakMeter/blob/main/LICENSE" data-i="fLic">License (GPL-3.0)</a></div>
     <p data-i="fDis">PeakMeter is not an official product and is not affiliated with NCSOFT. AION is a trademark of NCSOFT Corporation. Names in the pictures are made up.</p>
   </div>
 </footer>
@@ -521,6 +570,23 @@ const DE = {
   trH: "Liest nur. Fasst nichts an.",
   trP: "PeakMeter liest nur den Netzwerkverkehr deines eigenen Spiels. Kein Speicherzugriff, nichts wird ans Spiel gesendet, und Updates kommen von GitHub. Tools von Drittanbietern können trotzdem gegen die Nutzungsbedingungen verstoßen – Nutzung auf eigenes Risiko.",
   fiH: "Kostenlos.<br>Und das bleibt so.", fiP: "Wenn er dir hilft, hält ein Kaffee ihn am Laufen.", kofi: "Auf Ko-fi unterstützen",
+  navPlayers: "Spieler",
+  t9k: "Spieler",
+  t9h: "Jeder Spieler. Ein Klick.",
+  t9p: "Ausrüstung, Werte, Daevanion und Skills von den offiziellen Charakterseiten, zusammen mit den besten Kills, gemessen mit PeakMeter. Im Meter einfach auf einen Spieler klicken und dann „Profil“.",
+  t9a: "Spieler finden",
+  t9who: "Stufe 45 · Beschwörer · Ariel",
+  t9cp: "Kampfkraft",
+  t9pl: "Platz 4 von 37",
+  sk0: "Berstender Schlag",
+  sk1: "Vakuumexplosion",
+  sk2: "Scharfschuss",
+  sk3: "Scharfer Schlag",
+  sk4: "Ruf der Asche",
+  pt0: "Fronarbeiter (Krall)",
+  pt1: "Waldgeistwesen",
+  pt2: "Topfkrabbe",
+  pt3: "Odspinnling",
   fRank: "Rangliste", fLic: "Lizenz (GPL-3.0)",
   fDis: "PeakMeter ist kein offizielles Produkt und nicht mit NCSOFT verbunden. AION ist eine Marke der NCSOFT Corporation. Die Namen in den Bildern sind erfunden.",
 };

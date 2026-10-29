@@ -120,7 +120,7 @@
                             <Grid Style="{StaticResource Row}">
                                 <StackPanel Margin="0,0,230,0">
                                     <TextBlock Style="{StaticResource Label}" Text="{local:T De=Region, En=Region}" />
-                                    <TextBlock Style="{StaticResource Hint}" Text="{local:T De='Server-Zeit der Event-Timer und Profil-Links auf aion2index.com.', En='Server time of the event timers and profile links on aion2index.com.'}" />
+                                    <TextBlock Style="{StaticResource Hint}" Text="{local:T De='Server-Zeit der Event-Timer, Ranking und Spieler-Profile.', En='Server time of the event timers, ranking and player profiles.'}" />
                                 </StackPanel>
                                 <WrapPanel x:Name="RegionChips" HorizontalAlignment="Right" VerticalAlignment="Top" MaxWidth="330">
                                     <Button Style="{StaticResource Chip}" Height="26" Content="{local:T De=Europa, En=Europe}" Tag="eu" Click="Region_Click" Margin="4,0,0,4" />

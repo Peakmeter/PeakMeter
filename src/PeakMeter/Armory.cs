@@ -3,20 +3,19 @@ using System.Diagnostics;
 namespace PeakMeter;
 
 /// <summary>
-/// A player's public profile (gear, Daevanion boards, skills, combat power history) on aion2index.com, a fan site
-/// built from the official character pages. PeakMeter only opens the link in the browser.
+/// A player's profile on the PeakMeter website: gear, stats, Daevanion and skills from the official character pages
+/// (NCSOFT), together with the player's best kills from the PeakMeter ranking. PeakMeter only opens the link in the
+/// browser; the page links on to aion2index.com and the official page.
 /// </summary>
 public static class Armory
 {
-    private const string Site = "https://aion2index.com";
-
     public static string Url(string name, string server, string region)
     {
-        var slug = server.Trim().ToLowerInvariant();
-        // The region from the settings (eu / nae / naw) and the server name give the profile's address.
-        if (region is "eu" or "nae" or "naw" && slug.Length > 0 && slug.All(char.IsAsciiLetter))
-            return $"{Site}/c/{region}/{slug}/{Uri.EscapeDataString(name)}";
-        return $"{Site}/search?q={Uri.EscapeDataString(name)}" + (region == "eu" ? "&region=eu" : "");
+        var r = Uri.EscapeDataString(region);
+        // The region from the settings and the server name give the profile's address; without a server, the search.
+        if (server.Trim() is { Length: > 0 } s)
+            return $"{Ranking.Url}/player/{r}/{Uri.EscapeDataString(s)}/{Uri.EscapeDataString(name)}";
+        return $"{Ranking.Url}/player?region={r}&q={Uri.EscapeDataString(name)}";
     }
 
     /// <summary>"[Zik]" like the game shows it: the first three letters of a server that is not your own.</summary>
