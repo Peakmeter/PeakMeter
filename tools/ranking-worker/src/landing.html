@@ -2,161 +2,626 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PeakMeter – free DPS meter for AION 2</title>
-<meta name="description" content="PeakMeter: free DPS meter for AION 2. Live DPS, healing, stagger, boss HP, logs, ranking, event timers.">
-<meta property="og:title" content="PeakMeter – free DPS meter for AION 2">
-<meta property="og:description" content="Live DPS, healing and stagger, boss HP with kill time, saved fights, ranking per dungeon boss, event timers. Free.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PeakMeter</title>
+<meta name="description" content="PeakMeter: the free DPS meter for AION 2. Live DPS, healing and stagger, boss HP with kill time, idle time, death recap, saved fights and a ranking per dungeon boss.">
+<meta property="og:title" content="PeakMeter – the free DPS meter for AION 2">
+<meta property="og:description" content="Live DPS, healing and stagger, your best kill, idle time, death recap, a ranking per dungeon boss. Free.">
 <meta property="og:image" content="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/screenshot-overlay.png">
+<meta name="theme-color" content="#000000">
 <link rel="icon" href="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
 <style>
-  :root { --bg:#0f1217; --card:#171c24; --edge:#252c38; --text:#e8ecf2; --dim:#8a94a6; --accent:#f2c26b; --green:#6fd48a; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 "Segoe UI", system-ui, sans-serif; padding:32px 16px 48px; }
-  .wrap { max-width:960px; margin:0 auto; }
-  header { display:flex; align-items:center; gap:14px; }
-  header img { width:52px; height:52px; border-radius:12px; }
-  h1 { font-size:30px; margin:0; letter-spacing:.2px; }
-  .tag { color:var(--dim); margin:2px 0 0; }
-  .hero { display:grid; grid-template-columns:1.1fr 1fr; gap:28px; align-items:center; margin:28px 0 36px; }
-  @media (max-width:760px) { .hero { grid-template-columns:1fr; } }
-  .shot { width:100%; border-radius:14px; border:1px solid var(--edge); display:block; }
-  .cta { display:inline-block; background:var(--accent); color:#1a1408; font-weight:700; font-size:18px; padding:13px 26px;
-         border-radius:12px; text-decoration:none; }
-  .cta:hover { filter:brightness(1.08); }
-  .small { color:var(--dim); font-size:13px; margin-top:10px; }
-  .live { display:inline-flex; align-items:center; gap:8px; margin-top:16px; color:var(--dim); font-size:14px; }
-  .dot { width:8px; height:8px; border-radius:50%; background:var(--green); animation:p 1.6s infinite; }
-  @keyframes p { 50% { opacity:.3; } }
-  .links { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
-  .links a { color:var(--text); text-decoration:none; border:1px solid var(--edge); background:var(--card); padding:8px 14px; border-radius:10px; font-size:14px; }
-  .links a:hover { border-color:var(--accent); color:var(--accent); }
-  h2 { font-size:20px; margin:36px 0 14px; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px; }
-  .card { background:var(--card); border:1px solid var(--edge); border-radius:12px; padding:14px 16px; }
-  .card b { display:block; margin-bottom:4px; }
-  .card span { color:var(--dim); font-size:14px; }
-  .shots { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:12px; }
-  ol { padding-left:20px; margin:0; } ol li { margin-bottom:6px; } ol li span { color:var(--dim); font-size:14px; }
-  footer { color:var(--dim); font-size:13px; margin-top:40px; border-top:1px solid var(--edge); padding-top:16px; }
-  footer a { color:var(--dim); }
+  /* Layout: a product page in bands – black hero with a live meter, then a grid of feature tiles
+     (black and white tiles on light grey), specs, install steps, a closing call. One look, both OS themes. */
+  :root {
+    color-scheme: light;
+    --ink: #1d1d1f;        /* text on light */
+    --ink-2: #6e6e73;      /* secondary on light */
+    --paper: #f5f5f7;      /* page ground */
+    --tile: #ffffff;       /* light tile */
+    --night: #000000;      /* hero, dark tiles */
+    --night-2: #101114;    /* raised on dark */
+    --snow: #f5f5f7;       /* text on dark */
+    --snow-2: #a1a1a6;     /* secondary on dark */
+    --line-dark: #2a2b30;
+    --line-light: #d2d2d7;
+    --link: #0071e3;       /* buttons and links on light */
+    --link-dark: #2997ff;  /* links on dark */
+    --gold: #f2c26b;       /* PeakMeter's own accent */
+    --up: #3fd18b;
+    --down: #ff6b81;
+    --dead: #ff8a8a;
+    --c-gla: #e8a84c; --c-ele: #f26ca7; --c-ran: #6fcf7c; --c-cle: #f5e06e; --c-cha: #3fd1b5;
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Figtree", "Segoe UI", system-ui, sans-serif;
+    --text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Figtree", "Segoe UI", system-ui, sans-serif;
+    --radius: 28px;
+    --gutter: max(22px, env(safe-area-inset-left, 0px));
+    --gutter-r: max(22px, env(safe-area-inset-right, 0px));
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.47 var(--text); -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--link-dark); outline-offset: 3px; border-radius: 8px; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding-left: var(--gutter); padding-right: var(--gutter-r); }
+  h1, h2, h3 { font-family: var(--sans); text-wrap: balance; margin: 0; letter-spacing: -0.022em; }
+  p { margin: 0; }
+
+  /* ---------- nav */
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 11; background: rgba(0,0,0,.8); }
+  nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: rgba(0,0,0,.72);
+        backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); color: var(--snow); }
+  nav .wrap { display: flex; align-items: center; gap: 22px; height: 52px; }
+  .brand { display: flex; align-items: center; gap: 9px; text-decoration: none; font: 600 17px/1 var(--sans); letter-spacing: -0.01em; }
+  .brand img { width: 24px; height: 24px; border-radius: 6px; }
+  nav .links { display: flex; gap: 22px; margin-left: auto; font-size: 13px; }
+  nav .links a { text-decoration: none; color: var(--snow-2); transition: color .2s; }
+  nav .links a:hover { color: var(--snow); }
+  .pill { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 999px; text-decoration: none;
+          font: 500 17px/1 var(--text); padding: 13px 24px; background: var(--link); color: #fff; transition: background .2s, transform .2s; border: 0; cursor: pointer; }
+  .pill:hover { background: #0077ed; }
+  .pill:active { transform: scale(.98); }
+  .pill.sm { font-size: 12px; padding: 7px 13px; }
+  .pill.ghost { background: transparent; color: var(--link); box-shadow: inset 0 0 0 1.5px var(--link); }
+  .pill.ghost:hover { background: var(--link); color: #fff; }
+  .more { color: var(--link); text-decoration: none; font-size: 17px; white-space: nowrap; }
+  .more:hover { text-decoration: underline; }
+  .more::after { content: " \203A"; }
+  .dark .more { color: var(--link-dark); }
+  @media (max-width: 640px) { nav .links a.opt { display: none; } nav .links { gap: 16px; } }
+
+  /* ---------- hero */
+  .hero { background: var(--night); color: var(--snow); text-align: center; padding-block: 64px 0; overflow: hidden; }
+  .eyebrow { font: 600 19px/1.2 var(--sans); color: var(--gold); letter-spacing: -0.01em; }
+  .hero h1 { font-size: clamp(48px, 9vw, 104px); font-weight: 700; line-height: 1.02; margin-top: 10px; letter-spacing: -0.035em; }
+  .grad { background: linear-gradient(92deg, var(--c-gla) 0%, var(--c-ele) 38%, var(--c-cha) 78%, var(--c-ran) 100%);
+          -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero .lead { font: 400 clamp(19px, 2.4vw, 24px)/1.35 var(--sans); color: var(--snow-2); max-width: 30ch; margin: 18px auto 0; letter-spacing: -0.01em; }
+  .ctas { display: flex; flex-wrap: wrap; gap: 14px 28px; justify-content: center; align-items: center; margin-top: 30px; }
+  .meta { margin-top: 16px; font-size: 13px; color: var(--snow-2); display: flex; gap: 8px 16px; justify-content: center; flex-wrap: wrap; }
+  .live { display: inline-flex; align-items: center; gap: 7px; color: var(--snow); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--up); box-shadow: 0 0 0 0 rgba(63,209,139,.6); animation: ping 2s infinite; }
+  @keyframes ping { 70% { box-shadow: 0 0 0 8px rgba(63,209,139,0); } 100% { box-shadow: 0 0 0 0 rgba(63,209,139,0); } }
+
+  /* the meter, rebuilt as the product shot */
+  .stage { position: relative; margin: 54px auto 0; max-width: 600px; padding-bottom: 72px; }
+  .stage::before { content: ""; position: absolute; inset: 8% -18% 18%; z-index: 0; filter: blur(70px); opacity: .55;
+                   background: radial-gradient(40% 50% at 25% 45%, var(--c-gla), transparent 70%), radial-gradient(40% 50% at 70% 40%, var(--c-ele), transparent 70%),
+                               radial-gradient(45% 50% at 55% 85%, var(--c-cha), transparent 70%); }
+  .meter { position: relative; z-index: 1; text-align: left; background: rgba(14,16,21,.92); border: 1px solid #262a33; border-radius: 22px;
+           padding: 16px 16px 14px; box-shadow: 0 40px 80px rgba(0,0,0,.6); font-family: "Segoe UI", var(--text); }
+  .m-head { display: flex; align-items: center; gap: 12px; }
+  .m-badge { width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid var(--c-ele); display: grid; place-items: center; flex: none; }
+  .m-badge img { width: 26px; height: 26px; }
+  .m-title { font-weight: 600; font-size: 17px; color: #e8ecf2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .m-sub { font-size: 13px; color: #8a94a6; }
+  .m-clock { margin-left: auto; font-weight: 600; font-size: 22px; color: #e8ecf2; font-variant-numeric: tabular-nums; }
+  .m-hp { margin-top: 14px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; font-size: 12.5px; color: #8a94a6; font-variant-numeric: tabular-nums; }
+  .m-track { height: 6px; border-radius: 3px; background: #1f242d; overflow: hidden; }
+  .m-fill { height: 100%; width: 100%; border-radius: 3px; background: linear-gradient(90deg, #ff4d6d, #ff9f59); }
+  .m-hp .r { text-align: right; color: #c2c9d6; }
+  .m-cmp { margin-top: 10px; font-size: 12.5px; color: #c2c9d6; display: flex; gap: 6px; align-items: center; }
+  .m-cmp b { color: var(--up); }
+  .rows { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+  .row { position: relative; height: 36px; border-radius: 8px; background: #1a1f27; overflow: hidden; display: flex; align-items: center; gap: 10px; padding: 0 12px;
+         font-size: 15px; font-variant-numeric: tabular-nums; }
+  .row .bar { position: absolute; inset: 0 auto 0 0; border-radius: 8px; opacity: .42; transition: width .6s cubic-bezier(.2,.8,.2,1); }
+  .row .bar::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: inherit; filter: brightness(1.4); opacity: 1; }
+  .row > *:not(.bar) { position: relative; }
+  .row .n { width: 14px; color: #6b7487; font-size: 13px; }
+  .row img { width: 20px; height: 20px; }
+  .row .who { color: #c2c9d6; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row.me { box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+  .row.me .who { color: #fff; font-weight: 600; }
+  .row .stg { color: var(--gold); font-size: 13px; }
+  .row .ded { color: var(--dead); font-size: 13px; }
+  .row .v { color: #fff; font-weight: 600; min-width: 64px; text-align: right; }
+  .row .s { color: #8a94a6; font-size: 13px; width: 48px; text-align: right; }
+  .m-foot { margin-top: 12px; display: flex; justify-content: space-between; font-size: 12.5px; color: #8a94a6; }
+  .toast { position: absolute; z-index: 2; right: -14px; bottom: 34px; width: min(330px, 78%); text-align: left; background: rgba(28,31,38,.96);
+           border: 1px solid #343944; border-radius: 16px; padding: 12px 14px; display: flex; gap: 11px; box-shadow: 0 24px 50px rgba(0,0,0,.55);
+           transform: translateY(0); transition: transform .6s cubic-bezier(.2,.8,.2,1), opacity .6s; }
+  .toast.off { transform: translateY(14px); opacity: 0; }
+  .toast .ic { width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center; background: linear-gradient(140deg, #ffe08a, #f2c26b); color: #1a1408; font-size: 18px; }
+  .toast b { display: block; font-size: 14px; color: #fff; }
+  .toast span { font-size: 12.5px; color: #c2c9d6; }
+  @media (max-width: 560px) { .toast { right: 8px; bottom: 18px; } .row .s { display: none; } .row { font-size: 14px; } }
+
+  /* ---------- tiles */
+  .band { padding-block: 22px; }
+  .band-head { text-align: center; padding-block: 72px 36px; }
+  .band-head h2 { font-size: clamp(36px, 5.6vw, 64px); font-weight: 700; line-height: 1.06; }
+  .band-head p { color: var(--ink-2); font: 400 clamp(19px, 2.2vw, 22px)/1.4 var(--sans); max-width: 36ch; margin: 14px auto 0; }
+  .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+  .tile { border-radius: var(--radius); background: var(--tile); padding: 44px 40px 0; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+  .tile.wide { grid-column: span 2; }
+  .tile.dark { background: var(--night); color: var(--snow); }
+  .tile h3 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 700; line-height: 1.08; }
+  .tile .copy { margin-top: 12px; color: var(--ink-2); font-size: 17px; max-width: 40ch; }
+  .tile.dark .copy { color: var(--snow-2); }
+  .tile .k { font: 600 14px/1 var(--sans); color: var(--link); margin-bottom: 10px; letter-spacing: 0; }
+  .tile.dark .k { color: var(--gold); }
+  .tile .vis { margin-top: 30px; flex: 1; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 40px; min-width: 0; }
+  .tile.wide .inner { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 36px; align-items: center; padding-bottom: 44px; }
+  .tile.wide .inner .vis { margin-top: 0; padding-bottom: 0; }
+  @media (max-width: 860px) {
+    .tiles { grid-template-columns: minmax(0, 1fr); }
+    .tile.wide { grid-column: auto; }
+    .tile.wide .inner { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+    .tile { padding: 36px 24px 0; }
+  }
+
+  /* tile visuals */
+  .big { font: 700 clamp(64px, 10vw, 112px)/1 var(--sans); letter-spacing: -0.04em; color: var(--up); font-variant-numeric: tabular-nums; }
+  .big small { font-size: .42em; vertical-align: .55em; margin-right: .08em; }
+  .cmp-line { margin-top: 10px; color: var(--snow-2); font-size: 15px; text-align: center; }
+  .cmp { text-align: center; }
+
+  .timeline { width: 100%; }
+  .tl { display: flex; gap: 0; height: 42px; border-radius: 10px; overflow: hidden; background: #ececf0; }
+  .tl i { display: block; height: 100%; }
+  .tl .on { background: linear-gradient(180deg, #a78bfa, #7c5cf0); }
+  .tl .gap { background: repeating-linear-gradient(135deg, #ff9f59 0 6px, #ffb37d 6px 12px); }
+  .tl-axis { display: flex; justify-content: space-between; color: var(--ink-2); font-size: 12px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  .tl-res { display: flex; align-items: baseline; gap: 10px; margin-top: 18px; }
+  .tl-res b { font: 700 44px/1 var(--sans); letter-spacing: -0.03em; color: #e2712f; font-variant-numeric: tabular-nums; }
+  .tl-res span { color: var(--ink-2); font-size: 15px; }
+
+  .recap { width: 100%; background: var(--night-2); border: 1px solid var(--line-dark); border-radius: 18px; padding: 18px 18px 16px; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .recap .t { display: flex; justify-content: space-between; color: var(--dead); font-weight: 600; font-size: 15px; }
+  .recap .t span { color: var(--snow-2); font-weight: 400; }
+  .hit { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; margin-top: 12px; color: #c2c9d6; }
+  .hit .when { color: #6b7487; font-size: 12.5px; }
+  .hit .bar2 { height: 8px; border-radius: 4px; background: linear-gradient(90deg, #ff4d6d, #ff8a8a); }
+  .hit .lbl { font-size: 13px; color: var(--snow-2); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hit b { color: #fff; font-weight: 600; }
+
+  .discord { width: 100%; max-width: 440px; background: #313338; border-radius: 16px; padding: 16px; color: #dbdee1; font-size: 14px; }
+  .dc-msg { display: flex; gap: 12px; }
+  .dc-av { width: 38px; height: 38px; border-radius: 50%; flex: none; background: linear-gradient(135deg, var(--c-ele), #8a4fff); display: grid; place-items: center; font-weight: 700; color: #fff; }
+  .dc-name { color: #f26ca7; font-weight: 600; } .dc-name span { color: #949ba4; font-weight: 400; font-size: 12px; margin-left: 6px; }
+  .dc-card { margin-top: 8px; background: #0f1217; border: 1px solid #252c38; border-radius: 10px; padding: 12px; }
+  .dc-card .h { display: flex; justify-content: space-between; color: #e8ecf2; font-weight: 600; } .dc-card .h span { color: var(--gold); }
+  .dc-card .sub { color: #8a94a6; font-size: 11.5px; margin: 2px 0 8px; }
+  .dc-row { position: relative; height: 22px; border-radius: 5px; background: #1c222c; margin-top: 3px; display: flex; align-items: center; padding: 0 8px; font-size: 12px; overflow: hidden; }
+  .dc-row i { position: absolute; inset: 0 auto 0 0; opacity: .45; }
+  .dc-row span { position: relative; } .dc-row .x { margin-left: auto; color: #fff; font-weight: 600; }
+
+  .board { width: 100%; background: var(--night-2); border: 1px solid var(--line-dark); border-radius: 18px; overflow: hidden; font-variant-numeric: tabular-nums; }
+  .board .tabs { display: flex; gap: 6px; padding: 12px; border-bottom: 1px solid var(--line-dark); flex-wrap: wrap; }
+  .board .tabs span { font-size: 12.5px; padding: 6px 11px; border-radius: 999px; color: var(--snow-2); border: 1px solid var(--line-dark); }
+  .board .tabs span.on { color: var(--gold); border-color: var(--gold); }
+  .lb { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 11px 16px; border-bottom: 1px solid #1a1c21; font-size: 15px; }
+  .lb:last-child { border-bottom: 0; }
+  .lb .p { font-weight: 700; color: #6b7487; }
+  .lb:nth-child(2) .p { color: #f2c26b; } .lb:nth-child(3) .p { color: #c9d1dc; } .lb:nth-child(4) .p { color: #d39a6a; }
+  .lb .nm { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--snow); }
+  .lb .nm img { width: 18px; height: 18px; }
+  .lb .nm em { font-style: normal; color: #6b7487; font-size: 12.5px; }
+  .lb .val { font-weight: 700; color: var(--gold); }
+  .lb.you { background: rgba(242,194,107,.08); }
+
+  .shot { border-radius: 14px; box-shadow: 0 30px 60px rgba(0,0,0,.18); border: 1px solid var(--line-light); }
+  .timers { width: 100%; display: grid; gap: 10px; }
+  .tm { display: flex; align-items: center; gap: 12px; background: var(--night-2); border: 1px solid var(--line-dark); border-radius: 14px; padding: 12px 14px; font-size: 15px; }
+  .tm i { width: 32px; height: 32px; border-radius: 9px; flex: none; display: grid; place-items: center; font-style: normal; font-size: 16px; }
+  .tm b { font-weight: 600; color: var(--snow); flex: 1; min-width: 0; }
+  .tm span { color: var(--snow-2); font-variant-numeric: tabular-nums; }
+  .tm.soon span { color: var(--gold); font-weight: 600; }
+
+  /* ---------- specs */
+  .specs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px; text-align: center; padding-block: 8px 20px; }
+  .spec b { display: block; font: 700 clamp(36px, 4.6vw, 54px)/1.05 var(--sans); letter-spacing: -0.03em; }
+  .spec span { color: var(--ink-2); font-size: 14px; }
+  @media (max-width: 760px) { .specs { grid-template-columns: repeat(2, minmax(0, 1fr)); } .spec:last-child { grid-column: span 2; } }
+
+  /* ---------- install */
+  .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+  .step { background: var(--tile); border-radius: 22px; padding: 28px 24px; min-width: 0; }
+  .step .num { font: 700 15px/1 var(--sans); color: var(--link); }
+  .step h3 { font-size: 21px; font-weight: 600; margin-top: 14px; letter-spacing: -0.015em; line-height: 1.2; }
+  .step p { color: var(--ink-2); font-size: 15px; margin-top: 8px; }
+  @media (max-width: 900px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 520px) { .steps { grid-template-columns: minmax(0, 1fr); } }
+
+  /* ---------- trust + closing */
+  .trust { text-align: center; padding-block: 96px 40px; }
+  .trust h2 { font-size: clamp(36px, 5.6vw, 64px); font-weight: 700; line-height: 1.06; }
+  .trust p { color: var(--ink-2); max-width: 52ch; margin: 18px auto 0; font-size: 19px; }
+  .final { background: var(--night); color: var(--snow); text-align: center; padding-block: 110px; margin-top: 60px; }
+  .final h2 { font-size: clamp(44px, 7.5vw, 88px); font-weight: 700; line-height: 1.02; letter-spacing: -0.035em; }
+  .final p { color: var(--snow-2); font: 400 clamp(19px, 2.2vw, 22px)/1.4 var(--sans); margin-top: 16px; }
+  .final .pill.ghost { color: var(--link-dark); box-shadow: inset 0 0 0 1.5px var(--link-dark); }
+  .final .pill.ghost:hover { background: var(--link-dark); color: #000; }
+  footer { background: var(--paper); color: var(--ink-2); font-size: 12px; padding-block: 28px 40px; }
+  footer .wrap { display: grid; gap: 12px; }
+  footer .fl { display: flex; gap: 6px 20px; flex-wrap: wrap; }
+  footer a { color: var(--ink); text-decoration: none; } footer a:hover { text-decoration: underline; }
+  footer p { max-width: 90ch; }
+
+  /* reveal on scroll: only for things below the first screen, so the page is complete at rest */
+  .pre { opacity: 0; transform: translateY(28px); }
+  .in { opacity: 1; transform: none; transition: opacity .9s cubic-bezier(.2,.8,.2,1), transform .9s cubic-bezier(.2,.8,.2,1); }
+  @media (prefers-reduced-motion: reduce) { .pre { opacity: 1; transform: none; } .dot { animation: none; } }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <img src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png" alt="">
-    <div><h1>PeakMeter</h1><p class="tag" data-t="tag"></p></div>
-  </header>
 
-  <div class="hero">
-    <div>
-      <p data-t="intro" style="margin-top:0;font-size:18px"></p>
-      <a class="cta" id="dl" href="https://github.com/Peakmeter/PeakMeter/releases/latest"></a>
-      <div class="small" id="ver" data-t="small"></div>
-      <div class="live" id="live" hidden><span class="dot"></span><span id="liveText"></span></div>
-      <div class="links">
-        <a href="/ranking" data-t="rank"></a>
-        <a href="https://ko-fi.com/peakmeter" data-t="kofi"></a>
-        <a href="https://github.com/Peakmeter/PeakMeter">GitHub</a>
+<nav aria-label="Main">
+  <div class="wrap">
+    <a class="brand" href="/"><img src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png" alt="">PeakMeter</a>
+    <div class="links">
+      <a class="opt" href="#features" data-i="navFeatures">Features</a>
+      <a href="/ranking" data-i="navRanking">Ranking</a>
+      <a class="opt" href="#install" data-i="navInstall">Install</a>
+    </div>
+    <a class="pill sm dl" href="https://github.com/Peakmeter/PeakMeter/releases/latest" data-i="navDl">Download</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow" data-i="eyebrow">Free DPS meter for AION 2</p>
+    <h1 data-i="h1">Every hit.<br><span class="grad">Counted.</span></h1>
+    <p class="lead" data-i="lead">Your party's damage, healing and stagger, live. And what it takes to do better.</p>
+    <div class="ctas">
+      <a class="pill dl" href="https://github.com/Peakmeter/PeakMeter/releases/latest" data-i="dl">Download for free</a>
+      <a class="more" href="/ranking" style="color:var(--link-dark)" data-i="seeRanking">See the ranking</a>
+    </div>
+    <div class="meta">
+      <span id="ver" data-i="meta">Windows 10 &amp; 11 · updates itself</span>
+      <span class="live" id="live" hidden><span class="dot"></span><span id="liveText"></span></span>
+    </div>
+
+    <div class="stage" aria-label="The PeakMeter overlay during a boss fight (demo)">
+      <div class="meter" id="meter">
+        <div class="m-head">
+          <div class="m-badge"><img src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/src/PeakMeter/Assets/Classes/elementalist.png" alt=""></div>
+          <div style="min-width:0">
+            <div class="m-title">Krao Cave &nbsp;▸&nbsp; Ultimate Berk</div>
+            <div class="m-sub" id="mSub">LIVE · Party 3.19M DPS · 5 players</div>
+          </div>
+          <div class="m-clock" id="mClock">0:34</div>
+        </div>
+        <div class="m-hp">
+          <div class="m-track"><div class="m-fill" id="mFill" style="width:70%"></div></div>
+          <div class="r" id="mPct">70%</div>
+          <div id="mHp">109M / 156M HP</div>
+          <div class="r" id="mKill">Kill in ~0:48</div>
+        </div>
+        <div class="m-cmp"><b id="mArrow">▲</b><span id="mCmp">6% above your best (630K)</span></div>
+        <div class="rows" id="rows"></div>
+        <div class="m-foot"><span data-i="mFoot">Shugo Festival in 18 min</span><span>⚡ 840 / 1000</span></div>
+      </div>
+      <div class="toast off" id="toast" role="status">
+        <div class="ic">🏆</div>
+        <div><b data-i="toastT">Ranking: place 4 of 37</b><span data-i="toastS">Ultimate Berk · DPS 702K · New personal best! · Week: place 2</span></div>
       </div>
     </div>
-    <img class="shot" src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/screenshot-overlay.png" alt="PeakMeter overlay">
   </div>
+</header>
 
-  <h2 data-t="whatH"></h2>
-  <div class="grid" id="features"></div>
+<main>
+  <section class="band" id="features">
+    <div class="wrap">
+      <div class="band-head">
+        <h2 data-i="featH">Made to make you better.</h2>
+        <p data-i="featP">Numbers are the start. PeakMeter also shows where the damage went missing.</p>
+      </div>
 
-  <h2 data-t="shotsH"></h2>
-  <div class="shots">
-    <img class="shot" src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/screenshot-logs-topskills.png" alt="">
-    <img class="shot" src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/screenshot-logs-buffs.png" alt="">
-    <img class="shot" src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/screenshot-pets.png" alt="">
+      <div class="tiles">
+        <article class="tile dark">
+          <p class="k" data-i="t1k">Live comparison</p>
+          <h3 data-i="t1h">Better than your best?</h3>
+          <p class="copy" data-i="t1p">During the pull, the meter compares your DPS with your best kill of this boss. Up or down, in percent.</p>
+          <div class="vis cmp">
+            <div>
+              <div class="big"><small>▲</small><span id="bigPct">6</span>%</div>
+              <p class="cmp-line" data-i="t1l">above your best kill (630K DPS)</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="tile">
+          <p class="k" data-i="t2k">Idle time</p>
+          <h3 data-i="t2h">Where the seconds go.</h3>
+          <p class="copy" data-i="t2p">Every pause over 2.5 seconds without an own hit adds up. Often the biggest DPS loss, now in plain sight.</p>
+          <div class="vis">
+            <div class="timeline">
+              <div class="tl" aria-hidden="true">
+                <i class="on" style="width:18%"></i><i class="gap" style="width:3%"></i><i class="on" style="width:27%"></i>
+                <i class="gap" style="width:4%"></i><i class="on" style="width:22%"></i><i class="gap" style="width:2%"></i><i class="on" style="width:24%"></i>
+              </div>
+              <div class="tl-axis"><span>0:00</span><span>0:40</span><span>1:20</span><span>2:00</span><span>2:31</span></div>
+              <div class="tl-res"><b data-i="t2b">12 s</b><span data-i="t2s">idle · 8% of the fight</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="tile dark">
+          <p class="k" data-i="t3k">Death recap</p>
+          <h3 data-i="t3h">What took you down.</h3>
+          <p class="copy" data-i="t3p">Click a name with ☠ and see the hardest hits of the last eight seconds before the death.</p>
+          <div class="vis">
+            <div class="recap">
+              <div class="t">☠ 2:14 <span data-i="t3sum">52K in 3 s</span></div>
+              <div class="hit"><span class="when">−2.4 s</span><div><div class="bar2" style="width:100%"></div><div class="lbl"><b>21K</b> · Cleave · Ultimate Berk</div></div><span></span></div>
+              <div class="hit"><span class="when">−1.1 s</span><div><div class="bar2" style="width:69%"></div><div class="lbl"><b>14.5K</b> · Slam · Ultimate Berk</div></div><span></span></div>
+              <div class="hit"><span class="when">−0.3 s</span><div><div class="bar2" style="width:79%"></div><div class="lbl"><b>16.5K</b> · Slam · Ultimate Berk</div></div><span></span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="tile">
+          <p class="k" data-i="t4k">Share</p>
+          <h3 data-i="t4h">One click. Into Discord.</h3>
+          <p class="copy" data-i="t4p">The picture button copies a clean card of the fight. Paste it in your guild chat with Ctrl+V.</p>
+          <div class="vis">
+            <div class="discord">
+              <div class="dc-msg">
+                <div class="dc-av">I</div>
+                <div style="flex:1;min-width:0">
+                  <div class="dc-name">Ilvane<span data-i="t4time">Today at 21:47</span></div>
+                  <div style="margin-top:2px" data-i="t4msg">first try 😎</div>
+                  <div class="dc-card">
+                    <div class="h">Ultimate Berk <span>2:31</span></div>
+                    <div class="sub">Kill · Krao Cave · 5 players · 2.61M DPS</div>
+                    <div class="dc-row"><i style="width:100%;background:var(--c-gla)"></i><span>Borgrim</span><span class="x">812K</span></div>
+                    <div class="dc-row"><i style="width:86%;background:var(--c-ele)"></i><span style="color:#fff;font-weight:600">Ilvane</span><span class="x">701K</span></div>
+                    <div class="dc-row"><i style="width:81%;background:var(--c-ran)"></i><span>Talwyn</span><span class="x">655K</span></div>
+                    <div class="dc-row"><i style="width:31%;background:var(--c-cle)"></i><span>Celesta</span><span class="x">248K</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="tile dark wide">
+          <div class="inner">
+            <div>
+              <p class="k" data-i="t5k">Ranking · opt-in</p>
+              <h3 data-i="t5h">One list per boss. Per class. Per week.</h3>
+              <p class="copy" data-i="t5p">Turn on “Join the ranking” and your best dungeon boss kills count. Right after the kill, the meter tells you your place. Only your own values are sent, never other players'.</p>
+              <p style="margin-top:22px"><a class="more" href="/ranking" data-i="t5a">Open the ranking</a></p>
+            </div>
+            <div class="vis">
+              <div class="board" aria-label="Ranking example">
+                <div class="tabs"><span class="on">DPS</span><span data-i="t5heal">Healing</span><span>Stagger</span><span data-i="t5week">This week</span></div>
+                <div class="lb"><span class="p">1</span><span class="nm"><img src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/src/PeakMeter/Assets/Classes/gladiator.png" alt="">Borgrim <em>Ariel</em></span><span class="val">912K</span></div>
+                <div class="lb"><span class="p">2</span><span class="nm"><img src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/src/PeakMeter/Assets/Classes/ranger.png" alt="">Talwyn <em>Ariel</em></span><span class="val">871K</span></div>
+                <div class="lb"><span class="p">3</span><span class="nm"><img src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/src/PeakMeter/Assets/Classes/sorcerer.png" alt="">Mirelle <em>Azphel</em></span><span class="val">799K</span></div>
+                <div class="lb you"><span class="p">4</span><span class="nm"><img src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/src/PeakMeter/Assets/Classes/elementalist.png" alt="">Ilvane <em>Ariel</em></span><span class="val">702K</span></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="tile wide">
+          <div class="inner">
+            <div>
+              <p class="k" data-i="t6k">Logs</p>
+              <h3 data-i="t6h">Every fight, saved.</h3>
+              <p class="copy" data-i="t6p">Each skill with hits, crits and max hit. The whole party's top skills. Every buff with its uptime and the DPS with and without it. Your best kills are marked.</p>
+            </div>
+            <div class="vis"><img class="shot" src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/screenshot-logs-topskills.png" alt="Logs: the party's top skills" loading="lazy"></div>
+          </div>
+        </article>
+
+        <article class="tile">
+          <p class="k" data-i="t7k">Pets</p>
+          <h3 data-i="t7h">Which souls are still missing.</h3>
+          <p class="copy" data-i="t7p">Hit a monster and the meter shows which pet it feeds and how far along it is. No more pet menu.</p>
+          <div class="vis"><img class="shot" src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/screenshot-pets.png" alt="Pet window" loading="lazy" style="max-height:360px;width:auto"></div>
+        </article>
+
+        <article class="tile dark">
+          <p class="k" data-i="t8k">Timers</p>
+          <h3 data-i="t8h">Never miss a spawn.</h3>
+          <p class="copy" data-i="t8p">Shugo Festival, air raids, rifts, sieges and all world bosses, with a soft chime a minute before.</p>
+          <div class="vis">
+            <div class="timers">
+              <div class="tm soon"><i style="background:linear-gradient(140deg,#ffd36e,#ff8a5b)">🎁</i><b data-i="t8a">Shugo Festival</b><span data-i="t8an">in 1 min</span></div>
+              <div class="tm"><i style="background:linear-gradient(140deg,#9ad8ff,#5b7cff)">🪽</i><b data-i="t8b">Air raid</b><span>21:30</span></div>
+              <div class="tm"><i style="background:linear-gradient(140deg,#ffe08a,#ff9f59)">👑</i><b>Watcher Kaira</b><span data-i="t8cn">in 2 h 14 min</span></div>
+              <div class="tm"><i style="background:linear-gradient(140deg,#c79bff,#6b4fd8)">🌀</i><b data-i="t8d">Spacetime Rift</b><span>23:00</span></div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap">
+      <div class="band-head" style="padding-bottom:28px"><h2 data-i="specH">Light on your PC.</h2></div>
+      <div class="specs">
+        <div class="spec"><b>0 €</b><span data-i="s1">free, for good</span></div>
+        <div class="spec"><b>~0.2 %</b><span data-i="s2">CPU while idle</span></div>
+        <div class="spec"><b>65 MB</b><span data-i="s3">memory</span></div>
+        <div class="spec"><b>9</b><span data-i="s4">languages</span></div>
+        <div class="spec"><b>5</b><span data-i="s5">regions: EU, NA East, NA West, Korea, Taiwan</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="install">
+    <div class="wrap">
+      <div class="band-head"><h2 data-i="instH">Up and running in two minutes.</h2></div>
+      <div class="steps">
+        <div class="step"><p class="num">1</p><h3 data-i="i1h">Download and unzip</h3><p data-i="i1p">Right-click the ZIP → “Extract All”. Don't start it from inside the ZIP.</p></div>
+        <div class="step"><p class="num">2</p><h3 data-i="i2h">Run the installer</h3><p data-i="i2p">Double-click “PeakMeter installieren.cmd”. If Windows warns you: “More info” → “Run anyway”.</p></div>
+        <div class="step"><p class="num">3</p><h3 data-i="i3h">Install Npcap if asked</h3><p data-i="i3p">Its download page opens by itself. The default settings are fine.</p></div>
+        <div class="step"><p class="num">4</p><h3 data-i="i4h">Start before you log in</h3><p data-i="i4p">Then PeakMeter knows names, pets and energy from the first second.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="trust">
+    <div class="wrap">
+      <h2 data-i="trH">Reads. Never touches.</h2>
+      <p data-i="trP">PeakMeter only reads your own game's network traffic. No memory access, nothing is sent to the game, and it updates itself from GitHub. Third-party tools may still be against the terms of service, so use it at your own risk.</p>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="wrap">
+      <h2 data-i="fiH">Free.<br>And it stays that way.</h2>
+      <p data-i="fiP">If it helps you, a coffee keeps it going.</p>
+      <div class="ctas">
+        <a class="pill dl" href="https://github.com/Peakmeter/PeakMeter/releases/latest" data-i="dl2">Download for free</a>
+        <a class="pill ghost" href="https://ko-fi.com/peakmeter" data-i="kofi">Support on Ko-fi</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fl"><a href="/ranking" data-i="fRank">Ranking</a><a href="https://github.com/Peakmeter/PeakMeter">GitHub</a><a href="https://ko-fi.com/peakmeter">Ko-fi</a><a href="https://github.com/Peakmeter/PeakMeter/blob/main/LICENSE" data-i="fLic">License (GPL-3.0)</a></div>
+    <p data-i="fDis">PeakMeter is not an official product and is not affiliated with NCSOFT. AION is a trademark of NCSOFT Corporation. Names in the pictures are made up.</p>
   </div>
+</footer>
 
-  <h2 data-t="installH"></h2>
-  <div class="card"><ol id="steps"></ol></div>
-
-  <footer data-t="foot"></footer>
-</div>
 <script>
 const de = (navigator.language || "").toLowerCase().startsWith("de");
-const T = de ? {
-  tag: "Kostenloser DPS-Meter für AION 2 · EU · NA · Korea · Taiwan",
-  intro: "Live-DPS, Heilung und Stagger deiner Gruppe, Boss-HP mit Kill-Zeit, jeder Kampf gespeichert – und eine Rangliste pro Dungeon-Boss.",
-  dl: "Kostenlos herunterladen", small: "Windows 10/11 · aktualisiert sich selbst", rank: "🏆 Rangliste", kofi: "☕ Unterstützen",
-  online: n => n === 1 ? "1 Spieler gerade im Spiel" : n + " Spieler gerade im Spiel",
-  whatH: "Was es kann", shotsH: "Bilder", installH: "Installieren (2 Minuten)",
-  features: [
-    ["Live-DPS", "Allein nur du, in der Gruppe nur deine Gruppe – mit Kampfkraft und Server."],
-    ["Boss-HP & Kill-Zeit", "Wie lange der Boss noch steht, aus dem Tempo der letzten 20 Sekunden."],
-    ["Vergleich mit dir selbst", "Live: wie weit du über oder unter deinem besten Kill liegst."],
-    ["Todes-Analyse", "Welche Treffer dich in den letzten Sekunden umgehauen haben."],
-    ["Leerlauf", "Wie viele Sekunden du nichts gemacht hast – oft der größte DPS-Verlust."],
-    ["Logs", "Jeder Kampf gespeichert, mit Top-Skills und Buff-Uptime der ganzen Gruppe."],
-    ["Rangliste", "Freiwillig: dein bester Kill pro Dungeon-Boss, gesamt, pro Klasse und pro Woche."],
-    ["Für Discord", "Ein Klick kopiert ein Bild vom Kampf zum Einfügen in Discord."],
-    ["Event-Timer", "Shugo-Festival, Luftangriff, Riss, Belagerung, Weltbosse – mit sanftem Ton."],
-    ["Pets & Energie", "Welche Pet-Seelen noch fehlen und wie viel Odyle-Energie du hast."],
-  ],
-  steps: [
-    ["ZIP herunterladen und entpacken", "Rechtsklick → „Alle extrahieren“. Nicht direkt aus der ZIP starten."],
-    ["„PeakMeter installieren.cmd“ doppelklicken", "Meldet Windows „Der Computer wurde geschützt“: „Weitere Informationen“ → „Trotzdem ausführen“."],
-    ["Npcap installieren, falls gefragt", "Die Download-Seite öffnet sich von selbst – Standard-Einstellungen reichen."],
-    ["PeakMeter starten, bevor du dich einloggst", "Dann kennt es Namen, Pets und Energie von Anfang an."],
-  ],
-  foot: "PeakMeter liest nur den Netzwerkverkehr deines eigenen Spiels – kein Speicherzugriff, nichts wird ans Spiel gesendet. Tools von Drittanbietern können trotzdem gegen die Nutzungsbedingungen verstoßen: Nutzung auf eigenes Risiko. Kein offizielles Produkt, nicht mit NCSOFT verbunden. Lizenz GPL-3.0.",
-} : {
-  tag: "Free DPS meter for AION 2 · EU · NA · Korea · Taiwan",
-  intro: "Live DPS, healing and stagger of your party, boss HP with kill time, every fight saved – and a ranking per dungeon boss.",
-  dl: "Download for free", small: "Windows 10/11 · updates itself", rank: "🏆 Ranking", kofi: "☕ Support",
-  online: n => n === 1 ? "1 player in game right now" : n + " players in game right now",
-  whatH: "What it does", shotsH: "Pictures", installH: "Install (2 minutes)",
-  features: [
-    ["Live DPS", "Solo only you, in a party only your party – with combat power and server."],
-    ["Boss HP & kill time", "How long the boss has left, from the pace of the last 20 seconds."],
-    ["You against yourself", "Live: how far above or below your best kill you are."],
-    ["Death recap", "Which hits took you down in the last seconds."],
-    ["Idle time", "How many seconds you did nothing – often the biggest DPS loss."],
-    ["Logs", "Every fight saved, with top skills and buff uptime of the whole party."],
-    ["Ranking", "Opt-in: your best kill per dungeon boss, overall, per class and per week."],
-    ["For Discord", "One click copies a picture of the fight to paste into Discord."],
-    ["Event timers", "Shugo festival, air raid, rift, siege, world bosses – with a soft chime."],
-    ["Pets & energy", "Which pet souls are still missing and how much Odyle energy you have."],
-  ],
-  steps: [
-    ["Download the ZIP and unzip it", "Right-click → “Extract All”. Do not start it from inside the ZIP."],
-    ["Double-click “PeakMeter installieren.cmd”", "If Windows says “Windows protected your PC”: “More info” → “Run anyway”."],
-    ["Install Npcap if asked", "Its download page opens by itself – the default settings are fine."],
-    ["Start PeakMeter before you log in", "Then it knows names, pets and energy from the start."],
-  ],
-  foot: "PeakMeter only reads your own game's network traffic – no memory access, nothing is sent to the game. Third-party tools may still be against the terms of service: use at your own risk. Not an official product, not affiliated with NCSOFT. License GPL-3.0.",
+const DE = {
+  navFeatures: "Funktionen", navRanking: "Rangliste", navInstall: "Installieren", navDl: "Laden",
+  eyebrow: "Kostenloser DPS-Meter für AION 2",
+  h1: 'Jeder Treffer.<br><span class="grad">Gezählt.</span>',
+  lead: "Schaden, Heilung und Stagger deiner Gruppe, live. Und was es braucht, um besser zu werden.",
+  dl: "Kostenlos laden", dl2: "Kostenlos laden", seeRanking: "Zur Rangliste", meta: "Windows 10 &amp; 11 · aktualisiert sich selbst",
+  mFoot: "Shugo-Festival in 18 Min",
+  toastT: "Ranking: Platz 4 von 37", toastS: "Ultimate Berk · DPS 702K · Neuer Bestwert! · Woche: Platz 2",
+  featH: "Gemacht, damit du besser wirst.", featP: "Zahlen sind der Anfang. PeakMeter zeigt auch, wo der Schaden verloren geht.",
+  t1k: "Live-Vergleich", t1h: "Besser als dein Bestwert?", t1p: "Schon während des Pulls vergleicht der Meter deine DPS mit deinem besten Kill dieses Bosses. Rauf oder runter, in Prozent.",
+  t1l: "über deinem besten Kill (630K DPS)",
+  t2k: "Leerlauf", t2h: "Wo die Sekunden bleiben.", t2p: "Jede Pause über 2,5 Sekunden ohne eigenen Treffer zählt mit. Oft der größte DPS-Verlust, jetzt auf einen Blick.",
+  t2b: "12 s", t2s: "Leerlauf · 8 % des Kampfs",
+  t3k: "Todes-Analyse", t3h: "Was dich umgehauen hat.", t3p: "Klick auf einen Namen mit ☠ und du siehst die stärksten Treffer der letzten acht Sekunden vor dem Tod.", t3sum: "52K in 3 s",
+  t4k: "Teilen", t4h: "Ein Klick. Ab in Discord.", t4p: "Der Bild-Knopf kopiert eine saubere Karte vom Kampf. In den Gilden-Chat mit Strg+V.", t4time: "Heute um 21:47", t4msg: "first try 😎",
+  t5k: "Rangliste · freiwillig", t5h: "Eine Liste pro Boss. Pro Klasse. Pro Woche.",
+  t5p: "Schalte „Am Ranking teilnehmen“ ein und deine besten Dungeon-Boss-Kills zählen. Direkt nach dem Kill sagt dir der Meter deinen Platz. Gesendet werden nur deine eigenen Werte, nie die anderer Spieler.",
+  t5a: "Rangliste öffnen", t5heal: "Heilung", t5week: "Diese Woche",
+  t6k: "Logs", t6h: "Jeder Kampf, gespeichert.", t6p: "Jeder Skill mit Treffern, Krits und Max-Hit. Die Top-Skills der ganzen Gruppe. Jeder Buff mit Uptime und DPS mit und ohne. Deine besten Kills sind markiert.",
+  t7k: "Pets", t7h: "Welche Seelen noch fehlen.", t7p: "Hau ein Monster an und der Meter zeigt, für welches Pet es Seelen gibt und wie weit es ist. Kein Pet-Menü mehr.",
+  t8k: "Timer", t8h: "Nie wieder einen Spawn verpassen.", t8p: "Shugo-Festival, Luftangriff, Riss, Belagerung und alle Weltbosse, mit sanftem Ton eine Minute vorher.",
+  t8a: "Shugo-Festival", t8an: "in 1 Min", t8b: "Luftangriff", t8cn: "in 2 Std 14 Min", t8d: "Raumzeit-Riss",
+  specH: "Leicht für deinen PC.", s1: "kostenlos, für immer", s2: "CPU im Leerlauf", s3: "Arbeitsspeicher", s4: "Sprachen", s5: "Regionen: EU, NA-Ost, NA-West, Korea, Taiwan",
+  instH: "In zwei Minuten startklar.",
+  i1h: "Laden und entpacken", i1p: "Rechtsklick auf die ZIP → „Alle extrahieren“. Nicht direkt aus der ZIP starten.",
+  i2h: "Installer starten", i2p: "„PeakMeter installieren.cmd“ doppelklicken. Warnt Windows: „Weitere Informationen“ → „Trotzdem ausführen“.",
+  i3h: "Npcap, falls gefragt", i3p: "Die Download-Seite öffnet sich von selbst. Die Standard-Einstellungen reichen.",
+  i4h: "Vor dem Einloggen starten", i4p: "Dann kennt PeakMeter Namen, Pets und Energie ab der ersten Sekunde.",
+  trH: "Liest nur. Fasst nichts an.",
+  trP: "PeakMeter liest nur den Netzwerkverkehr deines eigenen Spiels. Kein Speicherzugriff, nichts wird ans Spiel gesendet, und Updates kommen von GitHub. Tools von Drittanbietern können trotzdem gegen die Nutzungsbedingungen verstoßen – Nutzung auf eigenes Risiko.",
+  fiH: "Kostenlos.<br>Und das bleibt so.", fiP: "Wenn er dir hilft, hält ein Kaffee ihn am Laufen.", kofi: "Auf Ko-fi unterstützen",
+  fRank: "Rangliste", fLic: "Lizenz (GPL-3.0)",
+  fDis: "PeakMeter ist kein offizielles Produkt und nicht mit NCSOFT verbunden. AION ist eine Marke der NCSOFT Corporation. Die Namen in den Bildern sind erfunden.",
 };
-document.documentElement.lang = de ? "de" : "en";
-document.querySelectorAll("[data-t]").forEach(el => { const v = T[el.dataset.t]; if (typeof v === "string") el.textContent = v; });
-const esc = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
-document.getElementById("features").innerHTML = T.features.map(([a, b]) => '<div class="card"><b>' + esc(a) + "</b><span>" + esc(b) + "</span></div>").join("");
-document.getElementById("steps").innerHTML = T.steps.map(([a, b]) => "<li><b>" + esc(a) + "</b><br><span>" + esc(b) + "</span></li>").join("");
-const dl = document.getElementById("dl");
-dl.textContent = T.dl;
+if (de) {
+  document.documentElement.lang = "de";
+  document.querySelectorAll("[data-i]").forEach(el => { const v = DE[el.dataset.i]; if (v) el.innerHTML = v; });
+}
+const T = de
+  ? { online: n => n === 1 ? "1 Spieler gerade im Spiel" : n + " Spieler gerade im Spiel", meta: v => v + " · Windows 10 &amp; 11 · aktualisiert sich selbst",
+      live: "LIVE · Gruppe", players: "5 Spieler", kill: "Kill in ~", down: "Gelegt in ", above: "über deinem Bestwert", below: "unter deinem Bestwert", dead: "tot" }
+  : { online: n => n === 1 ? "1 player in game right now" : n + " players in game right now", meta: v => v + " · Windows 10 &amp; 11 · updates itself",
+      live: "LIVE · Party", players: "5 players", kill: "Kill in ~", down: "Down in ", above: "above your best", below: "below your best", dead: "dead" };
 
-// The newest release's ZIP, so the button downloads straight away (falls back to the release page).
+// Newest release: the buttons download its ZIP straight away (falls back to the release page).
 fetch("https://api.github.com/repos/Peakmeter/PeakMeter/releases/latest").then(r => r.ok ? r.json() : null).then(j => {
   if (!j) return;
   const zip = (j.assets || []).find(a => /\.zip$/i.test(a.name));
-  if (zip) dl.href = zip.browser_download_url;
-  if (j.tag_name) document.getElementById("ver").textContent = j.tag_name + " · " + T.small;
+  if (zip) document.querySelectorAll("a.dl").forEach(a => a.href = zip.browser_download_url);
+  if (j.tag_name) document.getElementById("ver").innerHTML = T.meta(j.tag_name);
 }).catch(() => {});
 
-// Players in game right now: the anonymous counter the meter raises every 10 minutes (current or last slot).
+// Players in game right now (the meter's anonymous counter, current or last 10-minute slot).
 const pad = n => String(n).padStart(2, "0");
 const slot = d => "o-" + d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()) + "-" + pad(d.getUTCHours()) + Math.floor(d.getUTCMinutes() / 10) + "0";
-const get = k => fetch("https://abacus.jasoncameron.dev/get/peakmeter-live/" + k, { cache: "no-store" }).then(r => r.ok ? r.json() : { value: 0 }).then(j => j.value || 0).catch(() => 0);
+const count = k => fetch("https://abacus.jasoncameron.dev/get/peakmeter-live/" + k, { cache: "no-store" }).then(r => r.ok ? r.json() : { value: 0 }).then(j => j.value || 0).catch(() => 0);
 const now = new Date();
-Promise.all([get(slot(now)), get(slot(new Date(now - 600000)))]).then(([a, b]) => {
+Promise.all([count(slot(now)), count(slot(new Date(now - 600000)))]).then(([a, b]) => {
   const n = Math.max(a, b);
   if (n > 0) { document.getElementById("liveText").textContent = T.online(n); document.getElementById("live").hidden = false; }
 });
+
+// ---------------- the live meter in the hero (a demo fight that loops)
+const ICON = c => "https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/src/PeakMeter/Assets/Classes/" + c + ".png";
+const party = [
+  { n: "Borgrim", c: "gladiator", col: "var(--c-gla)", dps: 848e3, stg: 58 },
+  { n: "Ilvane", c: "elementalist", col: "var(--c-ele)", dps: 668e3, stg: 42, me: true },
+  { n: "Talwyn", c: "ranger", col: "var(--c-ran)", dps: 650e3 },
+  { n: "Celesta", c: "cleric", col: "var(--c-cle)", dps: 610e3 },
+  { n: "Hymnar", c: "chanter", col: "var(--c-cha)", dps: 410e3, dead: 1 },
+];
+const fmt = v => v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : (v / 1e3).toFixed(v >= 1e5 ? 0 : 1) + "K";
+const clock = s => Math.floor(s / 60) + ":" + pad(Math.floor(s % 60));
+const rowsEl = document.getElementById("rows");
+rowsEl.innerHTML = party.map(p =>
+  '<div class="row' + (p.me ? " me" : "") + '"><i class="bar" style="background:' + p.col + '"></i><span class="n"></span><img src="' + ICON(p.c) + '" alt="">' +
+  '<span class="who">' + p.n + (p.dead ? ' <span class="ded">☠ 1</span>' : "") + '</span>' + (p.stg ? '<span class="stg">⚡ ' + p.stg + '%</span>' : "") +
+  '<span class="v"></span><span class="s"></span></div>').join("");
+const rowEls = [...rowsEl.children];
+const maxHp = 156e6, best = 630e3;
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let t = 34, hold = 0, wob = party.map(() => 1);
+
+function draw() {
+  const sum = party.reduce((a, p, i) => a + p.dps * wob[i], 0);
+  const lost = Math.min(maxHp, sum * t * 1.06);
+  const hp = maxHp - lost, f = hp / maxHp;
+  document.getElementById("mClock").textContent = clock(t);
+  document.getElementById("mFill").style.width = (f * 100).toFixed(1) + "%";
+  document.getElementById("mPct").textContent = hp <= 0 ? T.dead : Math.ceil(f * 100) + "%";
+  document.getElementById("mHp").textContent = fmt(Math.max(0, hp)) + " / 156M HP";
+  document.getElementById("mKill").textContent = hp <= 0 ? T.down + clock(t) : T.kill + clock(hp / (sum * 1.06));
+  document.getElementById("mSub").textContent = T.live + " " + fmt(sum) + " DPS · " + T.players;
+  const order = party.map((p, i) => ({ p, i, v: p.dps * wob[i] })).sort((a, b) => b.v - a.v);
+  const top = order[0].v;
+  order.forEach((o, rank) => {
+    const el = rowEls[o.i];
+    el.style.order = rank;
+    el.querySelector(".n").textContent = rank + 1;
+    el.querySelector(".bar").style.width = (o.v / top * 100).toFixed(1) + "%";
+    el.querySelector(".v").textContent = fmt(o.v);
+    el.querySelector(".s").textContent = (o.v / sum * 100).toFixed(1) + "%";
+  });
+  const mine = party[1].dps * wob[1];
+  const diff = mine / best - 1, up = diff >= 0, pct = Math.abs(Math.round(diff * 100));
+  document.getElementById("mArrow").textContent = up ? "▲" : "▼";
+  document.getElementById("mArrow").style.color = up ? "var(--up)" : "var(--down)";
+  document.getElementById("mCmp").textContent = pct + "% " + (up ? T.above : T.below) + " (630K)";
+  return hp <= 0;
+}
+draw();
+if (!still) {
+  const toast = document.getElementById("toast");
+  setInterval(() => {
+    if (hold > 0) { if (--hold === 0) { toast.classList.add("off"); t = 0; wob = party.map(() => 1); draw(); } return; }
+    wob = wob.map(w => Math.min(1.12, Math.max(.9, w + (Math.random() - .5) * .06)));
+    t += 1;
+    if (draw()) { toast.classList.remove("off"); hold = 5; } // the kill stays on screen with the ranking card
+  }, 1000);
+  // the big number in the first tile counts up once it comes into view
+  const big = document.getElementById("bigPct");
+  new IntersectionObserver((es, ob) => es.forEach(e => {
+    if (!e.isIntersecting) return; ob.disconnect();
+    let n = 0; const step = () => { big.textContent = n; if (n++ < 6) setTimeout(step, 90); }; step();
+  }), { threshold: .6 }).observe(big);
+
+  // reveal: only what starts below the first screen, so nothing is hidden at rest
+  const els = document.querySelectorAll(".tile, .step, .spec, .band-head, .trust h2, .trust p");
+  const fold = innerHeight;
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
+  els.forEach(el => { if (el.getBoundingClientRect().top > fold) { el.classList.add("pre"); io.observe(el); } });
+}
 </script>
 </body>
 </html>
