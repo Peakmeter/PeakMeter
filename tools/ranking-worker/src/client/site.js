@@ -10,6 +10,9 @@
   window.PM = window.PM || {};
   var savedLang = null;
   try { savedLang = localStorage.getItem("pm-lang"); } catch (e) {}
+  // A link with ?lang=de / ?lang=en (also what search engines are given) wins and is remembered.
+  var urlLang = (location.search.match(/[?&]lang=(de|en)\b/) || [])[1];
+  if (urlLang) { savedLang = urlLang; try { localStorage.setItem("pm-lang", urlLang); } catch (e) {} }
   PM.lang = savedLang === "de" || savedLang === "en" ? savedLang : ((navigator.language || "").toLowerCase().indexOf("de") === 0 ? "de" : "en");
   PM.de = PM.lang === "de";
   if (PM.de) root.lang = "de";

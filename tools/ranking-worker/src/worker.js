@@ -42,8 +42,11 @@ export default {
     try {
       if (url.pathname === "/" || url.pathname === "/index.html") {
         if (url.searchParams.has("region")) return Response.redirect(url.origin + "/ranking" + url.search, 302);
-        return html(landing);
+        return html(url.searchParams.get("lang") === "de" ? landingDe() : landing);
       }
+      if (url.pathname === "/robots.txt") return text(`User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: ${url.origin}/sitemap.xml\n`);
+      if (url.pathname === "/sitemap.xml") return await sitemap(url, env);
+      if (url.pathname === `/${INDEXNOW_KEY}.txt`) return text(INDEXNOW_KEY);
       if (url.pathname === "/site.css") return asset(siteCss, "text/css; charset=utf-8");
       if (url.pathname === "/site.js") return asset(siteJs, "text/javascript; charset=utf-8");
       if (url.pathname === "/ranking" || url.pathname === "/ranking/") return html(isBot(req) ? await rankingCard(url, env, page) : page);
@@ -63,6 +66,7 @@ export default {
   },
 };
 
+const text = (body) => new Response(body, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "public, max-age=3600" } });
 const html = (body) =>
   new Response(body, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" } });
 const asset = (body, type) => new Response(body, { headers: { "content-type": type, "cache-control": "public, max-age=300" } });
@@ -370,6 +374,47 @@ async function charProfile(url, env, ctx) {
   return res;
 }
 
+// ---------------------------------------------------------------- search engines
+const INDEXNOW_KEY = "4f3905cb2dd980f3ed3ec5815bf7828d";
+
+// The German home page: the same page, told it is German (the page then shows its German texts).
+function landingDe() {
+  return landing
+    .replace('<html lang="en">', '<html lang="de">')
+    .replace(/<title>[^<]*<\/title>/, "<title>PeakMeter – Kostenloser AION 2 DPS-Meter</title>")
+    .replace(/<meta name="description" content="[^"]*">/, '<meta name="description" content="PeakMeter ist ein kostenloser DPS-Meter (Damage Meter) für AION 2: Live-DPS, Heilung und Stagger, Boss-HP und Kill-Zeit, Leerlauf und Todes-Analyse, Kampf-Logs, eine Rangliste pro Dungeon-Boss und Spieler-Profile. Für Windows · EU, NA, KR, TW.">')
+    .replace(/<link rel="canonical" href="([^"]*)">/, '<link rel="canonical" href="$1?lang=de">')
+    .replace(/<meta property="og:title" content="[^"]*">/, '<meta property="og:title" content="PeakMeter – Kostenloser AION 2 DPS-Meter">');
+}
+
+const xml = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+// Every page worth finding: home (both languages), ranking, search, duel, each boss list and each ranked player.
+async function sitemap(url, env) {
+  const o = url.origin;
+  const day = (ms) => new Date(ms).toISOString().slice(0, 10);
+  const rows = [
+    `<url><loc>${o}/</loc><xhtml:link rel="alternate" hreflang="en" href="${o}/"/><xhtml:link rel="alternate" hreflang="de" href="${o}/?lang=de"/><changefreq>weekly</changefreq><priority>1.0</priority></url>`,
+    `<url><loc>${o}/?lang=de</loc><xhtml:link rel="alternate" hreflang="en" href="${o}/"/><xhtml:link rel="alternate" hreflang="de" href="${o}/?lang=de"/><changefreq>weekly</changefreq><priority>0.9</priority></url>`,
+    `<url><loc>${o}/ranking</loc><changefreq>daily</changefreq><priority>0.8</priority></url>`,
+    `<url><loc>${o}/player</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>`,
+    `<url><loc>${o}/compare</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>`,
+  ];
+  try {
+    const { results: bosses } = await env.DB.prepare(
+      "SELECT region, boss, MAX(at) AS at FROM best GROUP BY region, boss ORDER BY region, boss LIMIT 1000").all();
+    for (const b of bosses)
+      rows.push(`<url><loc>${xml(`${o}/ranking?region=${b.region}&boss=${b.boss}&metric=dps`)}</loc><lastmod>${day(b.at)}</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>`);
+    const { results: players } = await env.DB.prepare(
+      `SELECT region, server_name AS server, name, MAX(at) AS at FROM best WHERE server_name IS NOT NULL AND server_name != ''
+       GROUP BY region, server_name, name ORDER BY at DESC LIMIT 20000`).all();
+    for (const p of players)
+      rows.push(`<url><loc>${xml(`${o}/player/${p.region}/${encodeURIComponent(p.server)}/${encodeURIComponent(p.name)}`)}</loc><lastmod>${day(p.at)}</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url>`);
+  } catch { /* the fixed pages still go out */ }
+  const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${rows.join("\n")}\n</urlset>\n`;
+  return new Response(body, { headers: { "content-type": "application/xml; charset=utf-8", "cache-control": "public, max-age=3600" } });
+}
+
 // ---------------------------------------------------------------- link previews
 // Discord, WhatsApp, Reddit, X … read og: tags when a link is posted. Only their fetchers get the filled-in page,
 // so ordinary visits never cost an extra call to NCSOFT.
@@ -394,6 +439,7 @@ function withCard(page, url, m) {
     `<meta name="twitter:description" content="${attr(m.desc)}">`,
     `<meta name="twitter:image" content="${attr(m.image || LOGO)}">`,
     `<meta name="description" content="${attr(m.desc)}">`,
+    `<link rel="canonical" href="${attr(url.origin + url.pathname + (url.pathname.startsWith("/player/") ? "" : url.search))}">`,
   ].join("\n");
   return page.replace(/<title>[\s\S]*?<\/title>/, `<title>${attr(m.title)}</title>`).replace(/<meta name="description"[^>]*>/, "").replace("</head>", tags + "\n</head>");
 }

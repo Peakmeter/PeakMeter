@@ -5,12 +5,13 @@
 <h1 align="center">PeakMeter</h1>
 
 <p align="center">
-  <b>A free, clean and lightweight DPS meter for AION 2 (EU / NA / Korea).</b><br>
+  <b>A free, clean and lightweight DPS meter for AION 2 (EU / NA / Korea / Taiwan) – the AION 2 damage meter.</b><br>
   Live damage, healing and tanking · stagger · deaths · buffs · pet souls · fight logs · event &amp; world boss timers · Odyle energy · 9 languages · updates itself.
 </p>
 
 <p align="center">
   <a href="https://github.com/Peakmeter/PeakMeter/releases/latest"><img alt="Download" src="https://img.shields.io/github/v/release/Peakmeter/PeakMeter?label=download&amp;color=7fd8f2&amp;style=for-the-badge"></a>
+  <a href="https://peakmeter-ranking.peakmeter.workers.dev/"><img alt="Website: ranking, player profiles, duel" src="https://img.shields.io/badge/website-ranking%20%C2%B7%20profiles%20%C2%B7%20duel-f2c26b?style=for-the-badge"></a>
   <a href="https://ko-fi.com/peakmeter"><img alt="Support on Ko-fi" src="https://img.shields.io/badge/Ko--fi-support%20PeakMeter-ff5e5b?logo=ko-fi&amp;logoColor=white&amp;style=for-the-badge"></a>
   <img alt="Windows 10 / 11" src="https://img.shields.io/badge/Windows-10%20%2F%2011-1e2440?style=for-the-badge">
   <img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-3fd18b?style=for-the-badge">
@@ -21,6 +22,8 @@
   &nbsp;
   <img src="docs/screenshot-pet-line.png" width="430" alt="After the kill: the pet soul you just got (demo)">
 </p>
+
+<p align="center"><b><a href="https://peakmeter-ranking.peakmeter.workers.dev/">PeakMeter website</a></b> – download, AION 2 ranking per dungeon boss, player profiles with gear, Daevanion and titles, and the player duel.</p>
 
 <p align="center"><b>English</b> · <a href="#deutsch">Deutsch</a></p>
 
