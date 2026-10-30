@@ -1,0 +1,68 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{width:1200px;height:630px;overflow:hidden;background:#06080e}
+body{position:relative;font-family:Sora,sans-serif;color:#e8ecf4}
+.sky{position:absolute;inset:0;background:
+ radial-gradient(700px 420px at 18% 30%,rgba(127,216,255,.22),transparent 70%),
+ radial-gradient(620px 460px at 92% 85%,rgba(176,124,255,.20),transparent 70%),
+ radial-gradient(400px 260px at 60% 0%,rgba(227,194,122,.10),transparent 70%),
+ linear-gradient(180deg,#0a0d17,#05060b)}
+.dots{position:absolute;inset:0;background-image:radial-gradient(rgba(127,216,255,.55) 1px,transparent 1.5px);background-size:46px 46px;opacity:.10}
+.frame{position:absolute;inset:18px;border:1px solid rgba(227,194,122,.28);border-radius:14px}
+.frame:before,.frame:after{content:"";position:absolute;width:26px;height:26px;border:2px solid #e3c27a}
+.frame:before{top:-2px;left:-2px;border-right:0;border-bottom:0;border-radius:14px 0 0 0}
+.frame:after{bottom:-2px;right:-2px;border-left:0;border-top:0;border-radius:0 0 14px 0}
+.left{position:absolute;left:70px;top:78px;width:600px}
+.brand{display:flex;align-items:center;gap:18px}
+.brand img{width:76px;height:76px;border-radius:18px;box-shadow:0 0 40px rgba(127,216,255,.35)}
+.brand span{font:600 16px/1 "Chakra Petch";letter-spacing:.32em;color:#e3c27a}
+h1{margin-top:26px;font:400 90px/0.95 "Marcellus SC",serif;letter-spacing:.02em;
+ background:linear-gradient(180deg,#ffffff 10%,#bfeaff 55%,#7fd8ff);-webkit-background-clip:text;color:transparent;
+ filter:drop-shadow(0 0 26px rgba(127,216,255,.35))}
+.tag{margin-top:18px;font:600 30px/1.25 Sora;color:#fff}
+.tag b{color:#e3c27a;font-weight:600}
+.chips{margin-top:26px;display:flex;flex-wrap:wrap;gap:10px;width:540px}
+.chips i{font:600 15px/1 "Chakra Petch";letter-spacing:.06em;font-style:normal;padding:9px 13px;border-radius:6px;
+ border:1px solid rgba(127,216,255,.35);background:rgba(127,216,255,.08);color:#cfefff}
+.url{position:absolute;left:70px;bottom:52px;font:600 18px/1 "Chakra Petch";letter-spacing:.05em;color:#8d98b3}
+.url b{color:#e3c27a;font-weight:600}
+.meter{position:absolute;right:62px;top:96px;width:450px;border-radius:12px;padding:18px 18px 16px;
+ background:rgba(14,17,27,.88);border:1px solid rgba(255,255,255,.10);box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(127,216,255,.08)}
+.mh{display:flex;justify-content:space-between;align-items:baseline}
+.mh div{font:600 17px/1.2 Sora}
+.mh small{display:block;font:500 12px/1.4 "Chakra Petch";color:#ff6b7f;letter-spacing:.08em;margin-top:3px}
+.mh em{font:700 26px/1 "Chakra Petch";font-style:normal}
+.hp{height:7px;border-radius:4px;background:rgba(255,255,255,.08);margin:14px 0 14px;overflow:hidden}
+.hp i{display:block;height:100%;width:34%;background:linear-gradient(90deg,#ff4d6d,#ff8a5b)}
+.row{position:relative;height:40px;margin-top:7px;border-radius:6px;background:rgba(255,255,255,.04);overflow:hidden;display:flex;align-items:center;padding:0 12px;gap:10px}
+.row .bar{position:absolute;left:0;top:0;bottom:0;opacity:.42}
+.row>*{position:relative}
+.row .n{font:500 15px/1 Sora;flex:1}
+.row .v{font:700 17px/1 "Chakra Petch"}
+.row .p{font:500 13px/1 "Chakra Petch";color:#9aa4bd;width:46px;text-align:right}
+.row .r{font:600 12px/1 "Chakra Petch";color:#8d98b3;width:10px}
+.foot{margin-top:14px;font:500 12px/1 "Chakra Petch";color:#8d98b3;letter-spacing:.05em}
+.badge{position:absolute;right:46px;top:52px;font:700 14px/1 "Chakra Petch";letter-spacing:.18em;color:#06080e;background:#e3c27a;padding:8px 12px;border-radius:5px;transform:rotate(3deg);box-shadow:0 8px 24px rgba(227,194,122,.35)}
+</style></head><body>
+<div class="sky"></div><div class="dots"></div><div class="frame"></div>
+<div class="left">
+  <div class="brand"><img src="logo.png"><span>AION 2 · DPS METER</span></div>
+  <h1>PEAKMETER</h1>
+  <p class="tag">Know your damage. <b>Climb the ranking.</b></p>
+  <div class="chips"><i>LIVE DPS · HEAL · STAGGER</i><i>BOSS RANKING</i><i>PLAYER PROFILES</i><i>DUEL</i><i>WORLD BOSS TIMERS</i></div>
+</div>
+<div class="url"><b>peakmeter-ranking.peakmeter.workers.dev</b> · free download</div>
+<div class="meter">
+  <div class="mh"><div>Ultimate Berk<small>● LIVE · 3.19M DPS · 5 PLAYERS</small></div><em>0:34</em></div>
+  <div class="hp"><i></i></div>
+  <div class="row"><span class="bar" style="width:96%;background:#d9a441"></span><span class="r">1</span><span class="n">Borgrim</span><span class="v">848K</span><span class="p">26.6%</span></div>
+  <div class="row"><span class="bar" style="width:78%;background:#d0479a"></span><span class="r">2</span><span class="n">Ilvane</span><span class="v">667.5K</span><span class="p">21.0%</span></div>
+  <div class="row"><span class="bar" style="width:76%;background:#3fbf8a"></span><span class="r">3</span><span class="n">Talwyn</span><span class="v">650.1K</span><span class="p">20.7%</span></div>
+  <div class="row"><span class="bar" style="width:71%;background:#c9a23a"></span><span class="r">4</span><span class="n">Celesta</span><span class="v">610.1K</span><span class="p">19.0%</span></div>
+  <div class="row"><span class="bar" style="width:48%;background:#4aa3c9"></span><span class="r">5</span><span class="n">Hymnar</span><span class="v">410.1K</span><span class="p">12.7%</span></div>
+  <div class="foot">KILL IN ~0:14 · SHUGO FESTIVAL IN 18 MIN</div>
+</div>
+<div class="badge">FREE</div>
+</body></html>

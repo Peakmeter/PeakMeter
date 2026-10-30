@@ -19,6 +19,7 @@ import compare from "./compare.html";
 import timers from "./timers.html";
 import siteCss from "./client/site.css";
 import siteJs from "./client/site.js";
+import ogPng from "./og.png";
 
 const REGIONS = new Set(["eu", "na", "nae", "naw", "kr", "tw"]);
 const METRICS = ["dps", "hps", "stagger"];
@@ -52,6 +53,7 @@ export default {
       if (url.pathname === `/${INDEXNOW_KEY}.txt`) return text(INDEXNOW_KEY);
       // Google Search Console ownership file
       if (url.pathname === "/google4f18a70ffc7e17f1.html") return html("google-site-verification: google4f18a70ffc7e17f1.html");
+      if (url.pathname === "/og.png") return new Response(ogPng, { headers: { "content-type": "image/png", "cache-control": "public, max-age=86400" } });
       if (url.pathname === "/site.css") return asset(siteCss, "text/css; charset=utf-8");
       if (url.pathname === "/site.js") return asset(siteJs, "text/javascript; charset=utf-8");
       if (url.pathname === "/ranking" || url.pathname === "/ranking/") return html(isBot(req) ? await rankingCard(url, env, page) : page);
@@ -465,7 +467,8 @@ const attr = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;
 const short = (v) => (v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e4 ? (v / 1e3).toFixed(1) + "K" : String(Math.round(v)));
 const group = (v) => Number(v || 0).toLocaleString("en-US");
 const CLASS_EN = { gladiator: "Gladiator", templar: "Templar", ranger: "Ranger", assassin: "Assassin", sorcerer: "Sorcerer", elementalist: "Spiritmaster", cleric: "Cleric", chanter: "Chanter" };
-const LOGO = "https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png";
+// Link preview card (1200×630); bump ?v= when the picture changes so Discord fetches it again.
+const OG_IMAGE = "https://peakmeter-ranking.peakmeter.workers.dev/og.png?v=1";
 
 function withCard(page, url, m) {
   const tags = [
@@ -474,11 +477,11 @@ function withCard(page, url, m) {
     `<meta property="og:url" content="${attr(url.href)}">`,
     `<meta property="og:title" content="${attr(m.title)}">`,
     `<meta property="og:description" content="${attr(m.desc)}">`,
-    `<meta property="og:image" content="${attr(m.image || LOGO)}">`,
-    `<meta name="twitter:card" content="${m.large ? "summary_large_image" : "summary"}">`,
+    `<meta property="og:image" content="${attr(m.image || OG_IMAGE)}">`,
+    `<meta name="twitter:card" content="${m.image && !m.large ? "summary" : "summary_large_image"}">`,
     `<meta name="twitter:title" content="${attr(m.title)}">`,
     `<meta name="twitter:description" content="${attr(m.desc)}">`,
-    `<meta name="twitter:image" content="${attr(m.image || LOGO)}">`,
+    `<meta name="twitter:image" content="${attr(m.image || OG_IMAGE)}">`,
     `<meta name="description" content="${attr(m.desc)}">`,
     `<link rel="canonical" href="${attr(url.origin + url.pathname + (url.pathname.startsWith("/player/") ? "" : url.search))}">`,
   ].join("\n");
