@@ -38,6 +38,9 @@ public static class SkillIcons
 
     private static readonly string[] ClassCodes = ["GL", "TE", "AS", "RA", "SO", "EL", "CL", "CH", "GT"];
 
+    /// <summary>The icon's file name on the game's image server, or null (basic attacks, unknown skills).</summary>
+    public static string? IconName(int skillCode) => NameOf(skillCode);
+
     /// <summary>The icon's file name, or null for basic attacks and unknown skills.</summary>
     private static string? NameOf(int skillCode)
     {

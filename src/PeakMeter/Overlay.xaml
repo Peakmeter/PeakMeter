@@ -72,6 +72,7 @@
                             <Button Style="{StaticResource IconButton}" Content="&#xE76C;" Click="Newer_Click" ToolTip="{local:T De='Neuerer Kampf / Live', En='Newer fight / live'}" />
                             <Button Style="{StaticResource IconButton}" Content="&#xE8C8;" Click="Copy_Click" ToolTip="{local:T De='Ergebnis für den Chat kopieren', En='Copy result for the chat'}" />
                             <Button Style="{StaticResource IconButton}" Content="&#xE722;" Click="CopyImage_Click" ToolTip="{local:T De='Bild für Discord kopieren (dort Strg+V)', En='Copy picture for Discord (paste with Ctrl+V)'}" />
+                            <Button Style="{StaticResource IconButton}" Content="&#xE71B;" Click="ShareLink_Click" ToolTip="{local:T De='Kampf als Link teilen (Seite mit allen Spielern, Skills und Verlauf)', En='Share the fight as a link (page with every player, skill and the timeline)'}" />
                             <Button Style="{StaticResource IconButton}" Content="&#xE72C;" Click="Reset_Click" ToolTip="{local:T De='Zurücksetzen (Strg+Shift+R)', En='Reset'}" />
                             <Button x:Name="LockButton" Style="{StaticResource IconButton}" Content="&#xE785;" Click="Lock_Click" ToolTip="{local:T De='Position sperren', En='Lock position'}" />
                             <Button Style="{StaticResource IconButton}" Content="&#xE711;" Click="Hide_Click" ToolTip="{local:T De='Verstecken (Strg+Shift+D)', En='Hide'}" />

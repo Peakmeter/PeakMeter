@@ -988,6 +988,27 @@ public partial class Overlay : Window
         _bannerUntil = Environment.TickCount64 + 4_000;
     }
 
+    private async void ShareLink_Click(object sender, RoutedEventArgs e)
+    {
+        // A finished fight only: the one opened from the logs, or the one that just ended.
+        var record = _savedRecord ?? (_meter.LastFight is { } f && _last is { IsActive: false } s && f.Summary.Id == s.Id ? f : null);
+        if (record is null)
+        {
+            ShowAlert(_last is { IsActive: true }
+                ? L.S("Teilen geht, sobald der Kampf vorbei ist", "Sharing works once the fight is over")
+                : L.S("Diesen Kampf in den Logs öffnen, um ihn zu teilen", "Open this fight in the logs to share it"));
+            _bannerUntil = Environment.TickCount64 + 4_000;
+            return;
+        }
+        ShowAlert(L.S("Link wird erstellt …", "Creating the link …"));
+        var (url, error) = await ReportShare.Share(record, _meter.Data, _settings);
+        var ok = false;
+        if (url is not null) { try { Clipboard.SetText(url); ok = true; } catch { } }
+        if (ok) ShowAction(L.S("Link kopiert – in Discord mit Strg+V einfügen. Hier klicken zum Öffnen.", "Link copied – paste it in Discord with Ctrl+V. Click here to open it."), () => { try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url!) { UseShellExecute = true }); } catch { } });
+        else ShowAlert(error ?? L.S("Kopieren hat nicht geklappt, bitte nochmal", "Copying did not work, please try again"));
+        _bannerUntil = Environment.TickCount64 + (ok ? 8_000 : 5_000);
+    }
+
     private void Reset_Click(object sender, RoutedEventArgs e)
     {
         _meter.Reset();

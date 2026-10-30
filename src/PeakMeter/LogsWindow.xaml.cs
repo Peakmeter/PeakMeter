@@ -337,6 +337,22 @@ public partial class LogsWindow : Window
         }
     }
 
+    /// <summary>The fight as a page on the website; the link goes to the clipboard.</summary>
+    private async void ShareLink_Click(object sender, RoutedEventArgs e)
+    {
+        if (_record is not { } r) return;
+        var label = sender is System.Windows.Controls.Button { Content: System.Windows.Controls.StackPanel { Children: [_, System.Windows.Controls.TextBlock l] } } ? l : null;
+        if (label is not null) label.Text = "…";
+        var (url, error) = await ReportShare.Share(r, _meter.Data, _meter.Settings);
+        var ok = false;
+        if (url is not null) { try { Clipboard.SetText(url); ok = true; } catch { } }
+        if (label is null) return;
+        label.Text = ok ? L.S("Link kopiert ✓", "Link copied ✓") : error ?? L.S("Nochmal versuchen", "Try again");
+        var t = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(ok ? 3 : 5) };
+        t.Tick += (_, _) => { t.Stop(); label.Text = "Link"; };
+        t.Start();
+    }
+
     private void Delete_Click(object sender, RoutedEventArgs e)
     {
         if (List.SelectedItem is not FightItem item) return;

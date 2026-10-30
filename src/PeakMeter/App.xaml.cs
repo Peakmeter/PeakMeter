@@ -502,6 +502,9 @@ public sealed class Meter : IDisposable
     }
     /// <summary>Raised on a worker thread after a fight was written to the logs.</summary>
     public event Action? FightSaved;
+
+    /// <summary>The fight that just finished, for "share as link" from the meter.</summary>
+    public FightRecord? LastFight { get; private set; }
     private readonly bool _demoOnly;
     private IEventSource? _capture;
 
@@ -644,6 +647,9 @@ public sealed class Meter : IDisposable
     }
 
     public GameData Data { get; }
+
+    /// <summary>The settings, for windows that need them (share link, logs).</summary>
+    public Settings Settings => _settings;
     public CombatTracker Tracker { get; }
 
     /// <summary>German boss name, or "Feldboss #slot" for a list slot whose boss is not known yet.</summary>
@@ -925,6 +931,7 @@ public sealed class Meter : IDisposable
     private void OnFightFinished(FightRecord record)
     {
         var s = record.Summary;
+        if (s.Combatants.Count > 0) LastFight = record;
         if (((_demoOnly || DemoRunning) && !_saveDemo) || s.Combatants.Count == 0) return;
         if (s.Boss is null && s.CombatMs < _settings.LogMinSeconds * 1000L) return;
         if (_disposing) Save();

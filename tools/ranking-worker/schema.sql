@@ -78,3 +78,15 @@ CREATE TABLE IF NOT EXISTS hits (
   n INTEGER NOT NULL,
   PRIMARY KEY (ip, hour)
 );
+
+-- Shared fight reports ("share as link" in the meter): one fight per row, the page lives at /r/<id>.
+CREATE TABLE IF NOT EXISTS reports (
+  id TEXT PRIMARY KEY,
+  region TEXT,
+  boss INTEGER,
+  title TEXT,
+  at INTEGER,
+  created INTEGER NOT NULL,
+  data TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS reports_created ON reports (created);

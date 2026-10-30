@@ -139,6 +139,13 @@
                                             <TextBlock Text="{local:T De='Bild', En='Picture'}" />
                                         </StackPanel>
                                     </Button>
+                                    <Button Style="{StaticResource Chip}" Height="24" Click="ShareLink_Click" Margin="0,0,4,0"
+                                            ToolTip="{local:T De='Kampf als Link teilen: eine Seite mit allen Spielern, Skills und Verlauf', En='Share the fight as a link: a page with every player, skill and the timeline'}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE71B;" FontFamily="{StaticResource IconFont}" Margin="0,1,6,0" />
+                                            <TextBlock Text="Link" />
+                                        </StackPanel>
+                                    </Button>
                                     <Button Style="{StaticResource Chip}" Height="24" Click="Delete_Click" ToolTip="{local:T De='Kampf löschen', En='Delete fight'}">
                                         <TextBlock Text="&#xE74D;" FontFamily="{StaticResource IconFont}" />
                                     </Button>

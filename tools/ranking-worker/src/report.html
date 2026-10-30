@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AION 2 Fight Report · PeakMeter</title>
+<meta name="description" content="An AION 2 fight measured with PeakMeter: every player's damage, skills, the damage over time and the deaths.">
+<meta name="theme-color" content="#05060a">
+<meta name="robots" content="noindex">
+<link rel="icon" href="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/site.css?v=11">
+<script src="/site.js?v=11"></script>
+<style>
+  /* A fight report: the boss as a banner, the party as meter bars (click one to open the skills), the damage over
+     time as lines, and the deaths with the hits that caused them. */
+  .rep-head { text-align: center; padding-block: 48px 22px; }
+  .rep-head .orn { max-width: 240px; margin: 0 auto 14px; }
+  .rep-head .kick { font: 600 12px/1 var(--hud); letter-spacing: .26em; color: var(--fb); text-transform: uppercase; }
+  .rep-head h1 { font-size: clamp(36px, 6vw, 70px); line-height: 1.02; margin-top: 12px; overflow-wrap: anywhere; }
+  .rep-head .meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; margin-top: 14px; color: var(--dim); font: 600 13px/1.3 var(--hud); letter-spacing: .05em; }
+  .badge { display: inline-block; padding: 4px 9px; border-radius: 4px; font: 700 12px/1 var(--hud); letter-spacing: .14em; }
+  .badge.kill { background: color-mix(in srgb, var(--up) 18%, transparent); color: var(--up); box-shadow: 0 0 0 1px color-mix(in srgb, var(--up) 45%, transparent) inset; }
+  .badge.wipe { background: rgba(255,95,126,.14); color: #ff6b7f; box-shadow: 0 0 0 1px rgba(255,95,126,.45) inset; }
+  .badge.other { background: rgba(255,255,255,.06); color: var(--dim); }
+  .hp { max-width: 560px; margin: 18px auto 0; }
+  .hp .bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,.07); overflow: hidden; }
+  .hp .bar i { display: block; height: 100%; background: linear-gradient(90deg, #ff4d6d, #ff8a5b); }
+  .hp .lbl { display: flex; justify-content: space-between; color: var(--mute); font: 600 11.5px/1 var(--hud); margin-top: 6px; letter-spacing: .05em; }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 8px; }
+  .kpi { padding: 14px 16px; }
+  .kpi small { display: block; color: var(--mute); font: 600 11px/1 var(--hud); letter-spacing: .14em; text-transform: uppercase; }
+  .kpi b { display: block; font: 700 clamp(22px, 2.6vw, 30px)/1 var(--hud); margin-top: 8px; font-variant-numeric: tabular-nums; }
+  @media (max-width: 720px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .tabs button { background: rgba(0,0,0,.35); color: var(--dim); border: 1px solid var(--line-2); border-radius: 4px; padding: 8px 12px; cursor: pointer;
+    font: 600 12px/1 var(--hud); letter-spacing: .08em; text-transform: uppercase; }
+  .tabs button.on { color: var(--fb); border-color: var(--fb); }
+
+  .rows { padding: 10px; }
+  .row { position: relative; display: grid; grid-template-columns: 22px 30px minmax(0, 1fr) auto auto; align-items: center; gap: 10px; min-height: 44px;
+    padding: 0 12px; border-radius: 6px; background: rgba(255,255,255,.03); overflow: hidden; cursor: pointer; margin-top: 5px; }
+  .row:first-child { margin-top: 0; }
+  .row .fill { position: absolute; inset: 0 auto 0 0; opacity: .3; pointer-events: none; }
+  .row > :not(.fill) { position: relative; }
+  .row .rk { font: 600 12px/1 var(--hud); color: var(--mute); text-align: right; }
+  .row img.em { width: 26px; height: 26px; }
+  .row .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .row .nm small { color: var(--mute); font: 500 11.5px/1 var(--hud); margin-left: 6px; }
+  .row .nm .dead { color: #ff6b7f; font: 600 12px/1 var(--hud); margin-left: 6px; }
+  .row .nm .me { color: var(--fb); font: 700 10px/1 var(--hud); letter-spacing: .12em; margin-left: 6px; }
+  .row .v { font: 700 16px/1 var(--hud); font-variant-numeric: tabular-nums; }
+  .row .p { font: 500 12.5px/1 var(--hud); color: var(--dim); width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+  .row.open { box-shadow: 0 0 0 1px var(--fb) inset; }
+
+  .detail { margin: 6px 0 12px; padding: 16px; border-radius: 8px; background: rgba(0,0,0,.28); border: 1px solid var(--line); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips span { padding: 7px 10px; border-radius: 5px; background: rgba(255,255,255,.04); border: 1px solid var(--line); font: 600 12px/1 var(--hud); color: var(--dim); }
+  .chips span b { color: var(--text); margin-left: 5px; }
+  .chips a { color: var(--fa); }
+  table.sk { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13.5px; }
+  table.sk th { text-align: right; color: var(--mute); font: 600 11px/1 var(--hud); letter-spacing: .1em; text-transform: uppercase; padding: 6px 8px; }
+  table.sk th:first-child, table.sk td:first-child { text-align: left; }
+  table.sk td { padding: 6px 8px; border-top: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
+  table.sk td:first-child { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  table.sk img { width: 24px; height: 24px; border-radius: 4px; background: #11131d; flex: none; }
+  table.sk .bar { height: 3px; border-radius: 2px; background: var(--fb); opacity: .7; margin-top: 4px; }
+  @media (max-width: 620px) { table.sk .hide-s { display: none; } }
+  .deaths { margin-top: 14px; }
+  .deaths h4 { font: 600 12px/1 var(--hud); color: #ff6b7f; letter-spacing: .1em; text-transform: uppercase; margin: 12px 0 6px; }
+  .deaths li { list-style: none; display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; gap: 10px; padding: 4px 0; color: var(--dim); font-size: 13px; border-top: 1px dashed var(--line); }
+  .deaths li b { color: var(--text); font-weight: 500; }
+  .deaths li span:last-child { font-family: var(--hud); color: var(--text); }
+
+  .chart { padding: 16px; }
+  .chart svg { width: 100%; height: auto; display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font: 600 12px/1 var(--hud); color: var(--dim); }
+  .legend i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+
+  .note { color: var(--mute); font-size: 13px; margin-top: 12px; }
+  .warn { margin-top: 16px; padding: 12px 14px; border-radius: 8px; border: 1px solid rgba(255,174,85,.4); background: rgba(255,174,85,.08); color: #ffcf96; font-size: 13.5px; }
+  .cta { text-align: center; padding: 26px 18px; margin-top: 8px; }
+  .cta p { color: var(--dim); margin: 0 0 14px; }
+  .missing { text-align: center; padding: 80px 0; color: var(--dim); }
+</style>
+</head>
+<body>
+<nav class="top" data-page="report" aria-label="Main"></nav>
+
+<main class="wrap" id="app">
+  <p class="missing" data-i="loading">Loading the fight …</p>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="fl"><a href="/ranking" data-i="fRank">Ranking</a><a href="/player" data-i="fPl">Players</a><a href="/">PeakMeter</a><a href="https://github.com/Peakmeter/PeakMeter">GitHub</a></div>
+    <p data-i="fSrc">Shared from the PeakMeter DPS meter by a player of this fight. Not affiliated with NCSOFT.</p>
+  </div>
+</footer>
+
+<script>
+PM.translate({
+  loading: "Kampf wird geladen …", fRank: "Rangliste", fPl: "Spieler",
+  fSrc: "Geteilt aus dem PeakMeter-DPS-Meter von einem Spieler dieses Kampfs. Nicht mit NCSOFT verbunden.",
+});
+const de = PM.de, $ = id => document.getElementById(id);
+const T = de ? {
+  kick: "Kampfbericht", kill: "KILL", wipe: "WIPE", other: "KAMPF", players: "Spieler", partyDps: "Gruppen-DPS", total: "Gesamtschaden", time: "Kampfzeit",
+  deaths: "Tode", dps: "Schaden", heal: "Heilung", taken: "Erlitten", stag: "Stagger", perSec: "/s", skills: "Skill", hits: "Treffer", share: "Anteil",
+  crit: "Krit", max: "Max", adps: "aDPS", cp: "Kampfkraft", gs: "Gearscore", profile: "Profil", chart: "Schaden über die Zeit", chartNote: "DPS, über 5 Sekunden geglättet.",
+  deathsH: "Tod bei", by: "von", hpLeft: "übrig", counted: "gezählt ab", partial: "Bei diesem Kampf hat der Server nicht allen Schaden an den Meter geschickt (viele Spieler an einem Weltboss). Die Werte der anderen Spieler sind deshalb nur ein Teil.",
+  missing: "Diesen Kampf gibt es nicht (mehr).", noSkills: "Für diesen Spieler wurden keine Skills gespeichert.",
+  ctaP: "Deine eigenen Kämpfe so teilen? Ein Klick im PeakMeter: „Link“.", ctaB: "PeakMeter laden", region: "Region", seconds: "s",
+} : {
+  kick: "Fight report", kill: "KILL", wipe: "WIPE", other: "FIGHT", players: "players", partyDps: "Party DPS", total: "Total damage", time: "Fight time",
+  deaths: "deaths", dps: "Damage", heal: "Healing", taken: "Taken", stag: "Stagger", perSec: "/s", skills: "Skill", hits: "Hits", share: "Share",
+  crit: "Crit", max: "Max", adps: "aDPS", cp: "Combat power", gs: "Gear score", profile: "Profile", chart: "Damage over time", chartNote: "DPS, smoothed over 5 seconds.",
+  deathsH: "Death at", by: "by", hpLeft: "left", counted: "counted from", partial: "In this fight the server did not send all damage to the meter (many players at a world boss), so the other players' values are only part of it.",
+  missing: "This fight does not exist (any more).", noSkills: "No skills were saved for this player.",
+  ctaP: "Share your own fights like this? One click in PeakMeter: “Link”.", ctaB: "Get PeakMeter", region: "Region", seconds: "s",
+};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const nf = new Intl.NumberFormat(de ? "de-DE" : "en-US");
+const short = v => v >= 1e9 ? (v / 1e9).toFixed(2) + "B" : v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e4 ? (v / 1e3).toFixed(1) + "K" : nf.format(Math.round(v));
+const clock = ms => Math.floor(ms / 60000) + ":" + String(Math.floor(ms / 1000) % 60).padStart(2, "0");
+const pct = v => (v * 100).toFixed(1) + " %";
+const ICON = n => "https://assets.playnccdn.com/static-aion2-gamedata/resources/" + n + ".png";
+const id = location.pathname.split("/")[2] || "";
+let R = null, view = "dps", open = null;
+
+const VIEWS = {
+  dps: { label: () => T.dps, value: p => p.dps, sort: p => p.dmg, total: () => R.players.reduce((a, p) => a + p.dmg, 0), part: p => p.dmg, fmt: v => short(v) },
+  heal: { label: () => T.heal, value: p => p.hps, sort: p => p.heal, total: () => R.players.reduce((a, p) => a + p.heal, 0), part: p => p.heal, fmt: v => short(v) },
+  taken: { label: () => T.taken, value: p => p.taken, sort: p => p.taken, total: () => R.players.reduce((a, p) => a + p.taken, 0), part: p => p.taken, fmt: v => short(v) },
+  stag: { label: () => T.stag, value: p => p.stag, sort: p => p.stag, total: () => R.players.reduce((a, p) => a + p.stag, 0), part: p => p.stag, fmt: v => short(v) },
+};
+
+function head() {
+  const b = R.boss, date = new Date(R.at);
+  const hp = b && b.known && b.maxHp > 0 ? Math.max(0, Math.min(1, b.hp / b.maxHp)) : null;
+  return '<header class="rep-head"><div class="orn"><i></i></div><div class="kick">' + esc(T.kick) + "</div>" +
+    '<h1 class="metal">' + esc(R.title) + "</h1>" +
+    '<div class="meta"><span class="badge ' + R.reason + '">' + T[R.reason] + "</span>" +
+    (R.zone && R.zone !== R.title ? "<span>" + esc(R.zone) + "</span>" : "") +
+    "<span>" + clock(R.ms) + "</span><span>" + R.players.length + " " + esc(T.players) + "</span>" +
+    "<span>" + esc(date.toLocaleString(de ? "de-DE" : "en-US", { dateStyle: "medium", timeStyle: "short" })) + "</span>" +
+    "<span>" + esc(R.region.toUpperCase()) + "</span></div>" +
+    (hp != null ? '<div class="hp"><div class="bar"><i style="width:' + (hp * 100).toFixed(1) + '%"></i></div><div class="lbl"><span>' +
+      short(b.hp) + " / " + short(b.maxHp) + " HP</span><span>" + (hp * 100).toFixed(1) + " % " + esc(T.hpLeft) + "</span></div></div>" : "") +
+    "</header>";
+}
+
+function kpis() {
+  const deaths = R.players.reduce((a, p) => a + p.deaths, 0);
+  const k = (l, v) => '<div class="kpi win"><small>' + esc(l) + "</small><b>" + v + "</b></div>";
+  return '<div class="kpis">' + k(T.partyDps, short(R.partyDps)) + k(T.total, short(R.total)) + k(T.time, clock(R.ms)) +
+    k(de ? "Tode" : "Deaths", deaths ? '<span style="color:#ff6b7f">☠ ' + deaths + "</span>" : "0") + "</div>";
+}
+
+function rows() {
+  const V = VIEWS[view], tot = V.total() || 1;
+  const list = R.players.map((p, i) => ({ p, i })).filter(x => V.sort(x.p) > 0).sort((a, b) => V.sort(b.p) - V.sort(a.p));
+  const top = list.length ? V.sort(list[0].p) : 1;
+  return list.map(({ p, i }, n) => {
+    const col = PM.classColor(p.c), ic = PM.classIcon(p.c);
+    const r = '<div class="row' + (open === i ? " open" : "") + '" data-i="' + i + '" role="button" tabindex="0">' +
+      '<span class="fill" style="width:' + (V.sort(p) / top * 100).toFixed(1) + "%;background:" + col + '"></span>' +
+      '<span class="rk">' + (n + 1) + "</span>" + (ic ? '<img class="em" src="' + ic + '" alt="">' : "<span></span>") +
+      '<span class="nm">' + esc(p.n) + (p.self ? '<span class="me">' + (de ? "ICH" : "ME") + "</span>" : "") +
+      (p.s ? "<small>" + esc(p.s) + "</small>" : "") + (p.deaths ? '<span class="dead">☠ ' + p.deaths + "</span>" : "") + "</span>" +
+      '<span class="v">' + V.fmt(V.value(p)) + (view === "dps" || view === "heal" ? "" : "") + "</span>" +
+      '<span class="p">' + pct(V.part(p) / tot) + "</span></div>";
+    return r + (open === i ? detail(p) : "");
+  }).join("");
+}
+
+function detail(p) {
+  const chip = (l, v) => "<span>" + esc(l) + "<b>" + v + "</b></span>";
+  const prof = p.s && !p.s.match(/^\d+$/) && ["eu", "nae", "naw", "kr"].includes(R.region)
+    ? '<span><a href="/player/' + R.region + "/" + encodeURIComponent(p.s) + "/" + encodeURIComponent(p.n) + '">' + esc(T.profile) + " →</a></span>" : "";
+  const chips = '<div class="chips">' + chip("DPS", short(p.dps)) + chip(T.adps, short(p.adps)) + chip(T.crit, pct(p.crit)) + chip(T.max, short(p.max)) +
+    chip(T.hits, nf.format(p.hits)) + (p.heal ? chip(T.heal, short(p.heal)) : "") + (p.stag ? chip(T.stag, short(p.stag)) : "") +
+    (p.cp ? chip(T.cp, nf.format(p.cp)) : "") + (p.gs ? chip(T.gs, nf.format(p.gs)) : "") + prof + "</div>";
+  const topSk = p.skills.length ? p.skills[0].d || 1 : 1;
+  const skills = p.skills.length
+    ? '<table class="sk"><thead><tr><th>' + esc(T.skills) + "</th><th>" + esc(T.dps) + '</th><th class="hide-s">' + esc(T.hits) +
+      '</th><th class="hide-s">' + esc(T.crit) + '</th><th class="hide-s">' + esc(T.max) + "</th><th>" + esc(T.share) + "</th></tr></thead><tbody>" +
+      p.skills.map(k => "<tr><td>" + (k.i ? '<img src="' + ICON(k.i) + '" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">' : "<img alt=\"\">") +
+        '<div style="min-width:0;flex:1"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(k.n) + '</div><div class="bar" style="width:' +
+        (k.d / topSk * 100).toFixed(1) + '%"></div></div></td><td>' + short(k.d) + '</td><td class="hide-s">' + nf.format(k.h) + '</td><td class="hide-s">' +
+        (k.crit == null ? "–" : pct(k.crit)) + '</td><td class="hide-s">' + short(k.max) + "</td><td>" + pct(k.share) + "</td></tr>").join("") + "</tbody></table>"
+    : '<p class="note">' + esc(T.noSkills) + "</p>";
+  const deaths = p.deathList.length ? '<div class="deaths">' + p.deathList.map(d => "<h4>☠ " + esc(T.deathsH) + " " + clock(d.t) + "</h4><ul>" +
+    d.hits.map(h => "<li><span>" + clock(h.t) + "</span><span><b>" + esc(h.sk) + "</b> " + esc(T.by) + " " + esc(h.src) + "</span><span>" + short(h.d) + "</span></li>").join("") +
+    "</ul>").join("") + "</div>" : "";
+  return '<div class="detail">' + chips + skills + deaths + "</div>";
+}
+
+function chart() {
+  const list = R.players.filter(p => p.ps.length > 1).sort((a, b) => b.dmg - a.dmg).slice(0, 6);
+  if (!list.length) return "";
+  const W = 900, H = 260, padL = 52, padB = 26, padT = 10;
+  const series = list.map(p => {
+    const per = p.ps.map(v => v / p.step); // damage per second within each bucket
+    const win = Math.max(1, Math.round(5 / p.step));
+    return { p, pts: per.map((_, i) => { let s = 0, n = 0; for (let j = Math.max(0, i - win + 1); j <= i; j++) { s += per[j]; n++; } return s / n; }) };
+  });
+  const maxT = Math.max(...series.map(s => s.pts.length * s.p.step)), maxV = Math.max(1, ...series.flatMap(s => s.pts));
+  const x = t => padL + (t / maxT) * (W - padL - 8), y = v => padT + (1 - v / maxV) * (H - padT - padB);
+  let grid = "";
+  for (let i = 0; i <= 4; i++) {
+    const v = maxV * i / 4;
+    grid += '<line x1="' + padL + '" x2="' + (W - 8) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="rgba(255,255,255,.07)"/>' +
+      '<text x="' + (padL - 8) + '" y="' + (y(v) + 4) + '" fill="var(--mute)" font-size="11" text-anchor="end" font-family="Chakra Petch">' + short(v) + "</text>";
+  }
+  const ticks = Math.min(6, Math.max(2, Math.floor(maxT / 30)));
+  for (let i = 0; i <= ticks; i++) {
+    const t = maxT * i / ticks;
+    grid += '<text x="' + x(t) + '" y="' + (H - 6) + '" fill="var(--mute)" font-size="11" text-anchor="middle" font-family="Chakra Petch">' + clock(t * 1000) + "</text>";
+  }
+  const lines = series.map(s => '<polyline fill="none" stroke="' + PM.classColor(s.p.c) + '" stroke-width="' + (s.p.self ? 2.6 : 1.7) + '" stroke-linejoin="round" opacity="' + (s.p.self ? 1 : .85) + '" points="' +
+    s.pts.map((v, i) => x((i + 1) * s.p.step).toFixed(1) + "," + y(v).toFixed(1)).join(" ") + '"/>').join("");
+  return '<section class="s"><div class="s-head"><h2>' + esc(T.chart) + '</h2><span class="rule"></span><p>' + esc(T.chartNote) + '</p></div><div class="chart win">' +
+    '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(T.chart) + '">' + grid + lines + "</svg>" +
+    '<div class="legend">' + series.map(s => '<span><i style="background:' + PM.classColor(s.p.c) + '"></i>' + esc(s.p.n) + "</span>").join("") + "</div></div></section>";
+}
+
+function draw() {
+  const tabs = Object.keys(VIEWS).filter(k => k === "dps" || R.players.some(p => VIEWS[k].sort(p) > 0));
+  $("app").innerHTML = head() + kpis() +
+    (R.partial ? '<div class="warn">' + esc(T.partial) + "</div>" : "") +
+    '<section class="s"><div class="tabs" id="tabs">' + tabs.map(k => '<button data-v="' + k + '"' + (k === view ? ' class="on"' : "") + ">" + esc(VIEWS[k].label()) + "</button>").join("") +
+    '</div><div class="rows win" id="rows">' + rows() + "</div></section>" + chart() +
+    '<div id="rShare" style="justify-content:center;margin-top:26px"></div>' +
+    '<div class="cta win" style="margin-top:22px"><p>' + esc(T.ctaP) + '</p><a class="btn" href="/">' + esc(T.ctaB) + "</a></div>";
+  $("tabs").onclick = e => { const b = e.target.closest("button"); if (!b) return; view = b.dataset.v; open = null; draw(); };
+  const toggle = e => { const r = e.target.closest(".row"); if (!r) return; const i = Number(r.dataset.i); open = open === i ? null : i; $("rows").innerHTML = rows(); };
+  $("rows").onclick = toggle;
+  $("rows").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(e); } };
+  const what = R.reason === "kill" ? "Kill" : R.reason === "wipe" ? "Wipe" : (de ? "Kampf" : "Fight");
+  PM.share("rShare", { url: location.origin + "/r/" + id, text: R.title + " · " + what + " " + clock(R.ms) + " · " + short(R.partyDps) + " DPS – PeakMeter" });
+}
+
+(async () => {
+  try {
+    const r = await fetch("/api/report?id=" + encodeURIComponent(id));
+    if (!r.ok) throw 0;
+    R = await r.json();
+    document.title = R.title + " · " + clock(R.ms) + " · PeakMeter";
+    draw();
+  } catch {
+    $("app").innerHTML = '<p class="missing">' + esc(T.missing) + "</p>";
+  }
+})();
+</script>
+</body>
+</html>

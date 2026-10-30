@@ -11,6 +11,8 @@
 // GET  /api/updates      every version with its note (from the meter's own changelog) and release date
 // GET  /api/char/search  NCSOFT's official character search, trimmed
 // GET  /api/char         one character: official profile, gear, skills (NCSOFT) + PeakMeter bests
+// POST /api/report       a fight shared from the meter ("share as link"); GET /api/report?id= reads it back
+// GET  /r/<id>           the fight report page
 // POST /discord          Discord slash commands (/boss /player /rank /peakmeter); GET /discord = add the bot
 // GET  /api/char/board   one Daevanion board of a character: every node with its place, grade, effect and state
 import page from "./page.html";
@@ -18,6 +20,7 @@ import landing from "./landing.html";
 import player from "./player.html";
 import compare from "./compare.html";
 import timers from "./timers.html";
+import report from "./report.html";
 import siteCss from "./client/site.css";
 import siteJs from "./client/site.js";
 import ogPng from "./og.png";
@@ -61,6 +64,9 @@ export default {
       if (url.pathname === "/ranking" || url.pathname === "/ranking/") return html(isBot(req) ? await rankingCard(url, env, page) : page);
       if (url.pathname === "/player" || url.pathname.startsWith("/player/")) return html(isBot(req) ? await playerCard(url, env, ctx, player) : player);
       if (url.pathname === "/timers" || url.pathname === "/timers/") return html(timers);
+      if (url.pathname.startsWith("/r/")) return html(isBot(req) ? await reportCard(url, env, report) : report);
+      if (url.pathname === "/api/report" && req.method === "POST") return await reportSave(req, env, url);
+      if (url.pathname === "/api/report") return await reportGet(url, env);
       if (url.pathname === "/compare" || url.pathname === "/compare/") return html(isBot(req) ? await duelCard(url, env, ctx, compare) : compare);
       if (url.pathname === "/discord") return await bot()(req, env, ctx);
       if (url.pathname === "/api/char/search") return await charSearch(url);
@@ -675,6 +681,94 @@ const bot = () => (botHandler ??= discordBot({
   json, REGIONS, METRICS, source, short, group, CLASS_EN, OG_IMAGE, timersHtml: timers,
   ncSearchUrl, ncJson, strip, charData,
 }));
+
+// ---------------------------------------------------------------- shared fight reports
+// The meter sends one finished fight when the player clicks "share as link". Only the fields below are kept, each
+// checked and trimmed; the page renders them as text. Reports stay 180 days.
+const REPORT_PER_HOUR = 30;
+const REPORT_DAYS = 180;
+const REPORT_CLASSES = new Set(["gladiator", "templar", "ranger", "assassin", "sorcerer", "elementalist", "cleric", "chanter", "brawler"]);
+const num = (v, max = 1e15) => (typeof v === "number" && Number.isFinite(v) && v >= 0 ? Math.min(v, max) : 0);
+const str = (v, max) => (typeof v === "string" ? v.replace(/[\u0000-\u001f\u007f]/g, "").slice(0, max) : "");
+
+function cleanReport(b) {
+  if (!b || typeof b !== "object" || !Array.isArray(b.players) || !b.players.length) return null;
+  const region = typeof b.region === "string" && REGIONS.has(b.region) ? b.region : "eu";
+  const players = b.players.slice(0, 24).map((p) => ({
+    n: str(p?.n, 32) || "?",
+    c: REPORT_CLASSES.has(p?.c) ? p.c : null,
+    s: str(p?.s, 30) || null,
+    self: p?.self === true,
+    dmg: num(p?.dmg), dps: num(p?.dps), adps: num(p?.adps), share: num(p?.share, 1), hits: num(p?.hits, 1e7),
+    crit: num(p?.crit, 1), max: num(p?.max), heal: num(p?.heal), hps: num(p?.hps), stag: num(p?.stag), taken: num(p?.taken),
+    deaths: num(p?.deaths, 999), cp: num(p?.cp, 1e9), gs: num(p?.gs, 1e7),
+    skills: Array.isArray(p?.skills) ? p.skills.slice(0, 16).map((k) => ({
+      n: str(k?.n, 48) || "?", i: /^[A-Za-z0-9_]{1,64}$/.test(k?.i || "") ? k.i : null, h: num(k?.h, 1e7), d: num(k?.d),
+      share: num(k?.share, 1), crit: k?.crit == null ? null : num(k.crit, 1), max: num(k?.max),
+    })) : [],
+    step: Math.max(1, Math.min(600, Math.round(num(p?.step, 600)) || 1)),
+    ps: Array.isArray(p?.ps) ? p.ps.slice(0, 300).map((v) => num(v)) : [],
+    deathList: Array.isArray(p?.deathList) ? p.deathList.slice(0, 5).map((d) => ({
+      t: num(d?.t, 1e8),
+      hits: Array.isArray(d?.hits) ? d.hits.slice(0, 8).map((h) => ({ t: num(h?.t, 1e8), src: str(h?.src, 40), sk: str(h?.sk, 48), d: num(h?.d) })) : [],
+    })) : [],
+  }));
+  const boss = b.boss && typeof b.boss === "object" ? {
+    code: Math.round(num(b.boss.code, 1e9)), name: str(b.boss.name, 60), maxHp: num(b.boss.maxHp), hp: num(b.boss.hp), known: b.boss.known === true,
+  } : null;
+  return {
+    v: 1, region, lang: b.lang === "de" ? "de" : "en",
+    title: str(b.title, 80) || boss?.name || "Fight", zone: str(b.zone, 60) || null,
+    reason: ["kill", "wipe"].includes(b.reason) ? b.reason : "other",
+    at: num(b.at, 4e12), ms: num(b.ms, 6 * 3600_000), total: num(b.total), partyDps: num(b.partyDps), partial: b.partial === true,
+    boss, players,
+  };
+}
+
+async function reportSave(req, env, url) {
+  const raw = await req.text();
+  if (raw.length > 400_000) return json({ error: "too big" }, 413);
+  let r;
+  try { r = cleanReport(JSON.parse(raw)); } catch { return json({ error: "bad json" }, 400); }
+  if (!r || !(r.ms >= 1000)) return json({ error: "invalid" }, 400);
+  const ip = await hash("r:" + (req.headers.get("cf-connecting-ip") || "?"));
+  const hour = Math.floor(Date.now() / 3600_000);
+  const row = await env.DB.prepare(
+    "INSERT INTO hits (ip, hour, n) VALUES (?1, ?2, 1) ON CONFLICT(ip, hour) DO UPDATE SET n = n + 1 RETURNING n"
+  ).bind(ip, hour).first();
+  if (row && row.n > REPORT_PER_HOUR) return json({ error: "slow down" }, 429);
+  const abc = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  const id = [...bytes].map((x) => abc[x % abc.length]).join("");
+  const now = Date.now();
+  await env.DB.prepare("INSERT INTO reports (id, region, boss, title, at, created, data) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)")
+    .bind(id, r.region, r.boss?.code || 0, r.title, r.at, now, JSON.stringify(r)).run();
+  if (row && row.n === 1) await env.DB.prepare("DELETE FROM reports WHERE created < ?1").bind(now - REPORT_DAYS * DAY).run();
+  return json({ id, url: `${url.origin}/r/${id}` });
+}
+
+async function loadReport(env, id) {
+  if (!/^[A-Za-z0-9]{6,12}$/.test(id || "")) return null;
+  const row = await env.DB.prepare("SELECT data FROM reports WHERE id = ?1").bind(id).first();
+  return row ? JSON.parse(row.data) : null;
+}
+
+async function reportGet(url, env) {
+  const r = await loadReport(env, url.searchParams.get("id"));
+  return r ? json(r, 200, { "cache-control": "public, max-age=86400" }) : json({ error: "not found" }, 404);
+}
+
+const clock = (ms) => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}`;
+async function reportCard(url, env, page) {
+  const r = await loadReport(env, url.pathname.split("/")[2]);
+  if (!r) return withCard(page, url, { title: "PeakMeter · Fight report", desc: "An AION 2 fight measured with PeakMeter." });
+  const what = r.reason === "kill" ? "Kill" : r.reason === "wipe" ? "Wipe" : "Fight";
+  const top = r.players.slice(0, 3).map((p, i) => `${i + 1}. ${p.n} ${short(p.dps)}`).join(" · ");
+  return withCard(page, url, {
+    title: `${r.title} · ${what} in ${clock(r.ms)} · ${short(r.partyDps)} DPS`,
+    desc: `${top} — ${r.players.length} players${r.zone ? " · " + r.zone : ""}. Fight report from PeakMeter.`,
+  });
+}
 
 async function hash(s) {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("pm-rank:" + s));
