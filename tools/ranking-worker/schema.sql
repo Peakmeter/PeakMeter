@@ -90,3 +90,17 @@ CREATE TABLE IF NOT EXISTS reports (
   data TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS reports_created ON reports (created);
+
+-- Census: players seen in fights by meters with "Count me anonymously" on. No names: k is a one-way fingerprint.
+CREATE TABLE IF NOT EXISTS census (
+  region TEXT NOT NULL,
+  k TEXT NOT NULL,
+  server INTEGER NOT NULL,
+  server_name TEXT,
+  cls TEXT NOT NULL,
+  cp INTEGER,
+  gs INTEGER,
+  seen INTEGER NOT NULL,
+  PRIMARY KEY (region, k)
+);
+CREATE INDEX IF NOT EXISTS census_seen ON census (region, seen);

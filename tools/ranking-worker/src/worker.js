@@ -13,6 +13,7 @@
 // GET  /api/char         one character: official profile, gear, skills (NCSOFT) + PeakMeter bests
 // POST /api/report       a fight shared from the meter ("share as link"); GET /api/report?id= reads it back
 // GET  /r/<id>           the fight report page
+// POST /api/census       players seen in fights (no names); GET /api/census, /census = the census page
 // POST /discord          Discord slash commands (/boss /player /rank /peakmeter); GET /discord = add the bot
 // GET  /api/char/board   one Daevanion board of a character: every node with its place, grade, effect and state
 import page from "./page.html";
@@ -21,6 +22,7 @@ import player from "./player.html";
 import compare from "./compare.html";
 import timers from "./timers.html";
 import report from "./report.html";
+import census from "./census.html";
 import siteCss from "./client/site.css";
 import siteJs from "./client/site.js";
 import ogPng from "./og.png";
@@ -64,6 +66,9 @@ export default {
       if (url.pathname === "/ranking" || url.pathname === "/ranking/") return html(isBot(req) ? await rankingCard(url, env, page) : page);
       if (url.pathname === "/player" || url.pathname.startsWith("/player/")) return html(isBot(req) ? await playerCard(url, env, ctx, player) : player);
       if (url.pathname === "/timers" || url.pathname === "/timers/") return html(timers);
+      if (url.pathname === "/census" || url.pathname === "/census/") return html(census);
+      if (url.pathname === "/api/census" && req.method === "POST") return await censusSave(req, env);
+      if (url.pathname === "/api/census") return await censusGet(url, env);
       if (url.pathname.startsWith("/r/")) return html(isBot(req) ? await reportCard(url, env, report) : report);
       if (url.pathname === "/api/report" && req.method === "POST") return await reportSave(req, env, url);
       if (url.pathname === "/api/report") return await reportGet(url, env);
@@ -768,6 +773,55 @@ async function reportCard(url, env, page) {
     title: `${r.title} · ${what} in ${clock(r.ms)} · ${short(r.partyDps)} DPS`,
     desc: `${top} — ${r.players.length} players${r.zone ? " · " + r.zone : ""}. Fight report from PeakMeter.`,
   });
+}
+
+// ---------------------------------------------------------------- census
+// Meters send the players they saw in fights: fingerprint, class, server, combat power, gear score. Never a name.
+const CENSUS_PER_HOUR = 120;
+async function censusSave(req, env) {
+  let b;
+  try { b = await req.json(); } catch { return json({ error: "bad json" }, 400); }
+  const region = typeof b?.region === "string" ? b.region.toLowerCase() : "";
+  const list = Array.isArray(b?.players) ? b.players.slice(0, 50) : [];
+  if (!REGIONS.has(region) || !list.length) return json({ error: "invalid" }, 400);
+  const ip = await hash("c:" + (req.headers.get("cf-connecting-ip") || "?"));
+  const hour = Math.floor(Date.now() / 3600_000);
+  const row = await env.DB.prepare(
+    "INSERT INTO hits (ip, hour, n) VALUES (?1, ?2, 1) ON CONFLICT(ip, hour) DO UPDATE SET n = n + 1 RETURNING n"
+  ).bind(ip, hour).first();
+  if (row && row.n > CENSUS_PER_HOUR) return json({ error: "slow down" }, 429);
+  const now = Date.now();
+  const stmts = [];
+  for (const p of list) {
+    const k = typeof p?.k === "string" && /^[0-9a-f]{16}$/.test(p.k) ? p.k : null;
+    const server = int(p?.server);
+    if (!k || !REPORT_CLASSES.has(p?.cls) || !(server > 0 && server < 100000)) continue;
+    const cp = Number.isInteger(p.cp) && p.cp > 0 && p.cp < 10_000_000 ? p.cp : null;
+    const gs = Number.isInteger(p.gs) && p.gs > 0 && p.gs < 1_000_000 ? p.gs : null;
+    stmts.push(env.DB.prepare(
+      `INSERT INTO census (region, k, server, server_name, cls, cp, gs, seen) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+       ON CONFLICT(region, k) DO UPDATE SET server_name = COALESCE(excluded.server_name, census.server_name), cls = excluded.cls,
+         cp = COALESCE(excluded.cp, census.cp), gs = COALESCE(excluded.gs, census.gs), seen = excluded.seen`
+    ).bind(region, k, server, cleanText(p.serverName, 30), p.cls, cp, gs, now));
+  }
+  if (stmts.length) await env.DB.batch(stmts);
+  return json({ ok: true, taken: stmts.length });
+}
+
+async function censusGet(url, env) {
+  const region = (url.searchParams.get("region") || "eu").toLowerCase();
+  if (!REGIONS.has(region)) return json({ error: "invalid" }, 400);
+  const days = [7, 30, 90].includes(Number(url.searchParams.get("days"))) ? Number(url.searchParams.get("days")) : 30;
+  const server = Number(url.searchParams.get("server")) || 0;
+  const since = Date.now() - days * DAY;
+  const where = "region = ?1 AND seen > ?2 AND (?3 = 0 OR server = ?3)";
+  const [classes, servers, buckets] = await env.DB.batch([
+    env.DB.prepare(`SELECT cls, COUNT(*) AS n, AVG(cp) AS cp, MAX(cp) AS cpMax, AVG(gs) AS gs FROM census WHERE ${where} GROUP BY cls ORDER BY n DESC`).bind(region, since, server),
+    env.DB.prepare(`SELECT server, MAX(server_name) AS name, COUNT(*) AS n, AVG(cp) AS cp FROM census WHERE region = ?1 AND seen > ?2 GROUP BY server ORDER BY n DESC LIMIT 80`).bind(region, since),
+    env.DB.prepare(`SELECT CAST(cp / 10000 AS INTEGER) * 10000 AS b, COUNT(*) AS n FROM census WHERE ${where} AND cp > 0 GROUP BY b ORDER BY b`).bind(region, since, server),
+  ]);
+  const total = classes.results.reduce((a, r) => a + r.n, 0);
+  return json({ region, days, server, total, classes: classes.results, servers: servers.results, cp: buckets.results }, 200, { "cache-control": "public, max-age=300" });
 }
 
 async function hash(s) {

@@ -554,6 +554,7 @@ public sealed class Meter : IDisposable
 
     private readonly OnlineCounter? _online;
     private BossShare? _bossShare;
+    private CensusShare? _census;
 
     public Meter(Settings settings, bool demo, bool saveDemo = false)
     {
@@ -643,6 +644,8 @@ public sealed class Meter : IDisposable
         Tracker.SelfIdentified += _ => Bosses.SetCurrentServer(Tracker.SelfServerId);
         // Live world boss countdowns on the website: this server's timers, anonymously (follows "Count me anonymously").
         if (!demo) _bossShare = new BossShare(settings, Bosses, Data, Log, () => _demoOnly || DemoRunning);
+        // The census on the website: class, server and combat power of the players seen, without names (same setting).
+        if (!demo) _census = new CensusShare(settings, Data, Log);
         _savedVersion = Tracker.CacheVersion;
     }
 
@@ -932,6 +935,7 @@ public sealed class Meter : IDisposable
     {
         var s = record.Summary;
         if (s.Combatants.Count > 0) LastFight = record;
+        if (!_demoOnly && !DemoRunning && !_disposing) _census?.Add(record);
         if (((_demoOnly || DemoRunning) && !_saveDemo) || s.Combatants.Count == 0) return;
         if (s.Boss is null && s.CombatMs < _settings.LogMinSeconds * 1000L) return;
         if (_disposing) Save();
@@ -962,6 +966,7 @@ public sealed class Meter : IDisposable
         _disposing = true;
         _capture?.Dispose();
         _bossShare?.Dispose();
+        _census?.Dispose();
         if (!_demoOnly) Tracker.Reset(); // closing mid-fight keeps the fight so far
         _demo?.Dispose();
         if (!_demoOnly) try { _names.Save(Tracker.ExportCache()); } catch { }

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AION 2 Census – Classes, Servers and Combat Power · PeakMeter</title>
+<meta name="description" content="Which classes play AION 2 on which server, and with what combat power: a live census from the players seen by PeakMeter.">
+<meta name="theme-color" content="#05060a">
+<link rel="icon" href="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/site.css?v=12">
+<script src="/site.js?v=12"></script>
+<style>
+  /* The census: who plays what, where. Classes as banners sized by their share, combat power as a histogram,
+     servers as a ledger you can click to narrow everything to one server. */
+  .c-head { text-align: center; padding-block: 52px 20px; }
+  .c-head .orn { max-width: 240px; margin: 0 auto 16px; }
+  .c-head h1 { font-size: clamp(42px, 6.4vw, 76px); line-height: 1; }
+  .c-head p { color: var(--dim); margin-top: 12px; max-width: 640px; margin-inline: auto; }
+  .bar-opts { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px; }
+  .seg { display: inline-flex; gap: 4px; }
+  .seg button { background: rgba(0,0,0,.35); color: var(--dim); border: 1px solid var(--line-2); border-radius: 4px; padding: 8px 12px; cursor: pointer;
+    font: 600 12px/1 var(--hud); letter-spacing: .08em; }
+  .seg button.on { color: var(--fb); border-color: var(--fb); }
+  select.srv { background: rgba(0,0,0,.4); color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; font: 600 12px/1 var(--hud); letter-spacing: .04em; }
+  select.srv option { background: var(--panel-solid); }
+
+  .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .kpi { padding: 14px 16px; }
+  .kpi small { display: block; color: var(--mute); font: 600 11px/1 var(--hud); letter-spacing: .14em; text-transform: uppercase; }
+  .kpi b { display: block; font: 700 clamp(22px, 2.6vw, 30px)/1 var(--hud); margin-top: 8px; font-variant-numeric: tabular-nums; }
+  @media (max-width: 620px) { .kpis { grid-template-columns: 1fr; } }
+
+  .cls { padding: 10px; }
+  .cl { position: relative; display: grid; grid-template-columns: 34px minmax(0, 1fr) 70px 90px 90px; align-items: center; gap: 12px; min-height: 48px;
+    padding: 0 14px; border-radius: 6px; background: rgba(255,255,255,.03); overflow: hidden; margin-top: 5px; }
+  .cl:first-child { margin-top: 0; }
+  .cl .fill { position: absolute; inset: 0 auto 0 0; opacity: .28; }
+  .cl > :not(.fill) { position: relative; }
+  .cl img { width: 30px; height: 30px; }
+  .cl .nm { font-weight: 500; }
+  .cl .nm small { color: var(--mute); font: 500 12px/1 var(--hud); margin-left: 8px; }
+  .cl .pc { font: 700 17px/1 var(--hud); text-align: right; font-variant-numeric: tabular-nums; }
+  .cl .av { font: 600 13px/1.2 var(--hud); color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
+  .cl .av small { display: block; font-size: 10px; color: var(--mute); letter-spacing: .1em; text-transform: uppercase; }
+  .cl.hd { background: none; min-height: 26px; color: var(--mute); font: 600 10.5px/1 var(--hud); letter-spacing: .12em; text-transform: uppercase; }
+  .cl.hd span { text-align: right; }
+  @media (max-width: 620px) { .cl { grid-template-columns: 30px minmax(0, 1fr) 62px 80px; } .cl .gs { display: none; } }
+
+  .hist { padding: 16px; }
+  .hist svg { width: 100%; height: auto; display: block; }
+
+  table.srvs { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.srvs th { text-align: right; color: var(--mute); font: 600 11px/1 var(--hud); letter-spacing: .1em; text-transform: uppercase; padding: 10px 12px; }
+  table.srvs th:first-child, table.srvs td:first-child { text-align: left; }
+  table.srvs td { padding: 9px 12px; border-top: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
+  table.srvs tr { cursor: pointer; }
+  table.srvs tbody tr:hover td { background: rgba(255,255,255,.03); }
+  table.srvs tr.on td { color: var(--fb); }
+  table.srvs .bar { display: inline-block; height: 6px; border-radius: 3px; background: var(--fa); opacity: .55; vertical-align: middle; margin-right: 8px; }
+
+  .empty { text-align: center; padding: 50px 20px; color: var(--dim); }
+  .note { color: var(--mute); font-size: 13px; margin-top: 14px; }
+</style>
+</head>
+<body>
+<nav class="top" data-page="census" aria-label="Main"></nav>
+
+<main class="wrap">
+  <header class="c-head">
+    <div class="orn"><i></i></div>
+    <h1 class="metal" data-i="h1">The Census</h1>
+    <p data-i="lead">Which classes play on which server, and how strong they are – counted from the players PeakMeter sees in fights.</p>
+    <div class="bar-opts">
+      <div class="seg" id="region"></div>
+      <div class="seg" id="days"></div>
+      <select class="srv" id="srv" aria-label="Server"></select>
+    </div>
+  </header>
+  <div id="out"></div>
+  <p class="note" data-i="src">Counted only from meters with “Count me anonymously” on: class, server, combat power and gear score of the players seen in their fights – never a name. A sample, not every player of the game.</p>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="fl"><a href="/ranking" data-i="fRank">Ranking</a><a href="/player" data-i="fPl">Players</a><a href="/timers">Timers</a><a href="https://github.com/Peakmeter/PeakMeter">GitHub</a></div>
+    <p data-i="fSrc">PeakMeter is not affiliated with NCSOFT.</p>
+  </div>
+</footer>
+
+<script>
+PM.translate({
+  h1: "Der Zensus", lead: "Welche Klassen auf welchem Server spielen und wie stark sie sind – gezählt aus den Spielern, die PeakMeter in Kämpfen sieht.",
+  src: "Gezählt nur von Metern mit „Anonym mitzählen“: Klasse, Server, Kampfkraft und Gearscore der Spieler aus ihren Kämpfen – nie ein Name. Eine Stichprobe, nicht jeder Spieler des Spiels.",
+  fRank: "Rangliste", fPl: "Spieler", fSrc: "PeakMeter ist nicht mit NCSOFT verbunden.",
+});
+const de = PM.de, $ = id => document.getElementById(id);
+const T = de ? {
+  chars: "Charaktere gezählt", servers: "Server", avgCp: "Ø Kampfkraft", classes: "Klassen", cpH: "Kampfkraft", cpP: "Wie viele Charaktere in welchem Bereich.",
+  srvH: "Server", srvP: "Klick auf einen Server, um nur ihn zu sehen.", all: "Alle Server", share: "Anteil", cp: "Ø KK", gs: "Ø GS", n: "Charaktere", days: d => d + " Tage",
+  empty: "Für diese Auswahl wurde noch niemand gezählt. Sobald Spieler mit PeakMeter (ab v1.39) hier kämpfen, füllt sich der Zensus.", region: "Region",
+  names: { gladiator: "Gladiator", templar: "Templer", ranger: "Waldläufer", assassin: "Assassine", sorcerer: "Magier", elementalist: "Beschwörer", cleric: "Kleriker", chanter: "Kantor", brawler: "Faustkämpfer" },
+} : {
+  chars: "Characters counted", servers: "Servers", avgCp: "Avg combat power", classes: "Classes", cpH: "Combat power", cpP: "How many characters in each range.",
+  srvH: "Servers", srvP: "Click a server to see only that one.", all: "All servers", share: "Share", cp: "Avg CP", gs: "Avg GS", n: "Characters", days: d => d + " days",
+  empty: "Nobody was counted for this choice yet. As soon as players with PeakMeter (v1.39 or newer) fight here, the census fills up.", region: "Region",
+  names: { gladiator: "Gladiator", templar: "Templar", ranger: "Ranger", assassin: "Assassin", sorcerer: "Sorcerer", elementalist: "Spiritmaster", cleric: "Cleric", chanter: "Chanter", brawler: "Brawler" },
+};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const nf = new Intl.NumberFormat(de ? "de-DE" : "en-US");
+const short = v => v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e4 ? (v / 1e3).toFixed(0) + "K" : nf.format(Math.round(v || 0));
+const REGIONS = [["eu", "EU"], ["nae", "NA East"], ["naw", "NA West"], ["kr", "KR"], ["tw", "TW"]];
+const q = new URLSearchParams(location.search);
+let region = REGIONS.some(r => r[0] === q.get("region")) ? q.get("region") : (localStorage.getItem("pm-region") || "eu");
+let days = [7, 30, 90].includes(Number(q.get("days"))) ? Number(q.get("days")) : 30;
+let server = Number(q.get("server")) || 0;
+let servers = [];
+
+const seg = (host, items, cur, on) => {
+  $(host).innerHTML = items.map(([v, l]) => '<button data-v="' + v + '"' + (String(v) === String(cur) ? ' class="on"' : "") + ">" + esc(l) + "</button>").join("");
+  $(host).onclick = e => { const b = e.target.closest("button"); if (b) on(b.dataset.v); };
+};
+function controls() {
+  seg("region", REGIONS, region, v => { region = v; server = 0; load(); });
+  seg("days", [7, 30, 90].map(d => [d, T.days(d)]), days, v => { days = Number(v); load(); });
+}
+function remember() {
+  const p = new URLSearchParams({ region, days });
+  if (server) p.set("server", server);
+  history.replaceState(null, "", "/census?" + p);
+}
+
+function draw(d) {
+  servers = d.servers;
+  $("srv").innerHTML = '<option value="0">' + esc(T.all) + "</option>" + d.servers.map(s => '<option value="' + s.server + '"' + (s.server === server ? " selected" : "") + ">" +
+    esc(s.name || "Server " + s.server) + " · " + nf.format(s.n) + "</option>").join("");
+  $("srv").onchange = () => { server = Number($("srv").value); load(); };
+  if (!d.total) { $("out").innerHTML = '<div class="win empty">' + esc(T.empty) + "</div>"; return; }
+
+  const cpAll = d.classes.reduce((a, c) => a + (c.cp || 0) * c.n, 0) / Math.max(1, d.classes.reduce((a, c) => a + (c.cp ? c.n : 0), 0));
+  const kpi = (l, v) => '<div class="kpi win"><small>' + esc(l) + "</small><b>" + v + "</b></div>";
+  const kpis = '<div class="kpis">' + kpi(T.chars, nf.format(d.total)) + kpi(T.servers, server ? esc((servers.find(s => s.server === server) || {}).name || server) : nf.format(d.servers.length)) +
+    kpi(T.avgCp, cpAll ? nf.format(Math.round(cpAll)) : "–") + "</div>";
+
+  const top = d.classes.length ? d.classes[0].n : 1;
+  const cls = '<section class="s"><div class="s-head"><h2>' + esc(T.classes) + '</h2><span class="rule"></span></div><div class="cls win">' +
+    '<div class="cl hd"><span></span><span style="text-align:left"></span><span>' + esc(T.share) + "</span><span>" + esc(T.cp) + '</span><span class="gs">' + esc(T.gs) + "</span></div>" +
+    d.classes.map(c => {
+      const ic = PM.classIcon(c.cls);
+      return '<div class="cl"><span class="fill" style="width:' + (c.n / top * 100).toFixed(1) + "%;background:" + PM.classColor(c.cls) + '"></span>' +
+        (ic ? '<img src="' + ic + '" alt="">' : "<span></span>") + '<span class="nm">' + esc(T.names[c.cls] || c.cls) + "<small>" + nf.format(c.n) + "</small></span>" +
+        '<span class="pc">' + (c.n / d.total * 100).toFixed(1) + " %</span>" + '<span class="av">' + (c.cp ? nf.format(Math.round(c.cp)) : "–") + "</span>" +
+        '<span class="av gs">' + (c.gs ? nf.format(Math.round(c.gs)) : "–") + "</span></div>";
+    }).join("") + "</div></section>";
+
+  let hist = "";
+  if (d.cp.length > 1) {
+    const W = 900, H = 220, padB = 26, padT = 10, maxN = Math.max(...d.cp.map(b => b.n));
+    const lo = d.cp[0].b, hi = d.cp[d.cp.length - 1].b, steps = (hi - lo) / 10000 + 1, bw = (W - 20) / steps;
+    const bars = d.cp.map(b => {
+      const i = (b.b - lo) / 10000, h = (b.n / maxN) * (H - padT - padB);
+      return '<rect x="' + (10 + i * bw + 2).toFixed(1) + '" y="' + (H - padB - h).toFixed(1) + '" width="' + Math.max(1, bw - 4).toFixed(1) + '" height="' + h.toFixed(1) +
+        '" rx="3" fill="var(--fa)" opacity=".75"><title>' + short(b.b) + "–" + short(b.b + 9999) + ": " + nf.format(b.n) + "</title></rect>";
+    }).join("");
+    const every = Math.max(1, Math.ceil(steps / 8));
+    let labels = "";
+    for (let i = 0; i < steps; i += every)
+      labels += '<text x="' + (10 + i * bw + bw / 2).toFixed(1) + '" y="' + (H - 6) + '" fill="var(--mute)" font-size="11" text-anchor="middle" font-family="Chakra Petch">' + short(lo + i * 10000) + "</text>";
+    hist = '<section class="s"><div class="s-head"><h2>' + esc(T.cpH) + '</h2><span class="rule"></span><p>' + esc(T.cpP) + '</p></div><div class="hist win"><svg viewBox="0 0 ' + W + " " + H +
+      '" role="img" aria-label="' + esc(T.cpH) + '">' + bars + labels + "</svg></div></section>";
+  }
+
+  const smax = d.servers.length ? d.servers[0].n : 1;
+  const srv = '<section class="s"><div class="s-head"><h2>' + esc(T.srvH) + '</h2><span class="rule"></span><p>' + esc(T.srvP) + '</p></div><div class="win" style="padding:6px 4px">' +
+    '<table class="srvs"><thead><tr><th>Server</th><th>' + esc(T.n) + "</th><th>" + esc(T.cp) + "</th></tr></thead><tbody>" +
+    d.servers.map(s => '<tr data-s="' + s.server + '"' + (s.server === server ? ' class="on"' : "") + "><td>" + esc(s.name || "Server " + s.server) + '</td><td><span class="bar" style="width:' +
+      Math.round(s.n / smax * 80) + 'px"></span>' + nf.format(s.n) + "</td><td>" + (s.cp ? nf.format(Math.round(s.cp)) : "–") + "</td></tr>").join("") + "</tbody></table></div></section>";
+
+  $("out").innerHTML = kpis + cls + hist + srv;
+  $("out").querySelector("table.srvs").onclick = e => { const tr = e.target.closest("tr[data-s]"); if (!tr) return; const s = Number(tr.dataset.s); server = server === s ? 0 : s; load(); };
+}
+
+async function load() {
+  controls();
+  remember();
+  try { localStorage.setItem("pm-region", region); } catch {}
+  $("out").innerHTML = '<div class="win empty">…</div>';
+  try {
+    const r = await fetch("/api/census?region=" + region + "&days=" + days + (server ? "&server=" + server : ""));
+    draw(await r.json());
+  } catch {
+    $("out").innerHTML = '<div class="win empty">' + esc(T.empty) + "</div>";
+  }
+}
+load();
+</script>
+</body>
+</html>
