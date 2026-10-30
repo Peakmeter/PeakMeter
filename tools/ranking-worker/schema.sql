@@ -104,3 +104,21 @@ CREATE TABLE IF NOT EXISTS census (
   PRIMARY KEY (region, k)
 );
 CREATE INDEX IF NOT EXISTS census_seen ON census (region, seen);
+
+-- World boss alerts: one Discord channel webhook each (id = webhook id), and what was already posted.
+CREATE TABLE IF NOT EXISTS alerts (
+  id TEXT PRIMARY KEY,
+  token TEXT NOT NULL,
+  region TEXT NOT NULL,
+  server INTEGER NOT NULL,
+  lead INTEGER NOT NULL,
+  lang TEXT,
+  created INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS alert_sent (
+  id TEXT NOT NULL,
+  boss INTEGER NOT NULL,
+  k TEXT NOT NULL,
+  at INTEGER NOT NULL,
+  PRIMARY KEY (id, boss, k)
+);

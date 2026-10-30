@@ -101,6 +101,18 @@
   .botcard p { color: var(--dim); font-size: 14px; margin: 0; }
   .botcard p b { color: var(--text); }
   .botcard code { font: 600 13px/1 var(--hud); color: var(--fa); }
+  .alertcard { margin-top: 12px; padding: 18px; border-radius: 10px; border: 1px solid var(--line); background: rgba(0,0,0,.25); }
+  .alertcard h3 { font: 600 15px/1.2 var(--body); margin: 0 0 6px; }
+  .alertcard p { color: var(--dim); font-size: 13.5px; margin: 0 0 12px; }
+  .alertcard .frm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .alertcard input, .alertcard select { background: rgba(0,0,0,.4); color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 9px 12px; font: 500 13px/1 var(--hud); }
+  .alertcard input { flex: 1 1 320px; min-width: 0; }
+  .alertcard select option { background: var(--panel-solid); }
+  .alertcard button.off { background: none; border: 1px solid var(--line-2); color: var(--dim); border-radius: 4px; padding: 9px 12px; cursor: pointer; font: 600 12px/1 var(--hud); letter-spacing: .08em; }
+  .alertcard .msg { margin-top: 10px; font: 600 13px/1.4 var(--hud); }
+  .alertcard .msg.ok { color: var(--up); } .alertcard .msg.err { color: #ff6b7f; }
+  .alertcard details { margin-top: 10px; color: var(--mute); font-size: 13px; }
+  .alertcard summary { cursor: pointer; color: var(--dim); }
   .note a { color: var(--fa); }
 </style>
 </head>
@@ -131,6 +143,18 @@
     <div class="srvbar" id="srvbar"></div>
     <div class="wb" id="wb"></div>
     <div class="botcard"><p data-i="botP"><b>Timers in your Discord:</b> type <code>/boss</code> in your guild and see who is up and what comes next.</p><a class="btn sm" href="/discord" data-i="botB">Add the bot</a></div>
+    <div class="alertcard" id="alertcard">
+      <h3 data-i="alH">🔔 Boss alerts in your Discord channel</h3>
+      <p data-i="alP">PeakMeter posts in your channel a few minutes before a world boss of the server picked above appears, and when it is up.</p>
+      <div class="frm">
+        <input id="alHook" type="url" autocomplete="off" spellcheck="false" placeholder="https://discord.com/api/webhooks/…" aria-label="Webhook URL">
+        <select id="alLead" aria-label="Minutes ahead"><option value="1">1 min</option><option value="3">3 min</option><option value="5" selected>5 min</option><option value="10">10 min</option><option value="15">15 min</option></select>
+        <button class="btn sm" id="alOn" type="button" data-i="alOn">Turn on</button>
+        <button class="off" id="alOff" type="button" data-i="alOff">Turn off</button>
+      </div>
+      <div class="msg" id="alMsg" role="status"></div>
+      <details><summary data-i="alHow">Where do I get the webhook URL?</summary><p data-i="alSteps" style="margin:8px 0 0">In Discord: channel settings (gear) → Integrations → Webhooks → New Webhook → Copy Webhook URL. Only you and other admins of the channel can see it.</p></details>
+    </div>
     <p class="note" data-i="wbNote">Every server runs its own world bosses. Players with PeakMeter share their server's timers anonymously (only the boss and when it comes back) – the more play with it, the more servers show up here. <a href="/">Get the meter</a>.</p>
   </section>
 </main>
@@ -146,6 +170,9 @@
 PM.translate({
   h1: "Der Glockenturm", lead: "Jedes AION-2-Event, heruntergezählt in deiner eigenen Uhrzeit.", h24: "Die nächsten 24 Stunden",
   allH: "Alle Events", allP: "Sortiert nach dem, was als Nächstes kommt.", wbH: "Weltbosse", wbP: "Live pro Server, von den Metern, die dort spielen.",
+  alH: '🔔 Boss-Alarme in deinem Discord-Kanal', alP: 'PeakMeter schreibt in deinen Kanal ein paar Minuten bevor ein Weltboss des oben gewählten Servers erscheint, und wenn er lebt.',
+  alOn: 'Einschalten', alOff: 'Ausschalten', alHow: 'Woher bekomme ich die Webhook-URL?',
+  alSteps: 'In Discord: Kanal-Einstellungen (Zahnrad) → Integrationen → Webhooks → Neuer Webhook → Webhook-URL kopieren. Nur du und andere Admins des Kanals sehen sie.',
   botP: '<b>Timer in deinem Discord:</b> tippe <code>/boss</code> in deiner Gilde und sieh, wer lebt und was als Nächstes kommt.', botB: 'Bot hinzufügen',
   wbNote: 'Jeder Server hat seine eigenen Weltbosse. Spieler mit PeakMeter teilen die Timer ihres Servers anonym (nur Boss und wann er zurückkommt) – je mehr mitspielen, desto mehr Server erscheinen hier. <a href="/">Meter laden</a>.',
   fRank: "Rangliste", fPl: "Spieler", fSrc: "Zeiten nach Angaben der Community; NCSOFT veröffentlicht keine offiziellen Zeiten. Nicht mit NCSOFT verbunden.",
@@ -283,6 +310,27 @@ const BOSSES = [[2100050, "Kernon of the West", "Kernon des Westens", 30, "Verte
 const AREA = (code, reg) => reg || (code >= 2400000 ? "Altgard" : "Verteron");
 const BY_CODE = new Map(BOSSES.map(([code, en, dn, min, reg]) => [code, { code, name: de ? dn : en, min, area: AREA(code, reg) }]));
 let live = new Map(), liveServer = null, liveServers = [];
+// Boss alerts: the webhook of a Discord channel, for the server picked in the bar above.
+async function alertSet(on) {
+  const msg = $("alMsg"), hook = $("alHook").value.trim();
+  const say = (t, ok) => { msg.textContent = t; msg.className = "msg " + (ok ? "ok" : "err"); };
+  if (!/^https:\/\/(ptb\.|canary\.)?discord(app)?\.com\/api\/(v\d+\/)?webhooks\/\d+\/[\w-]+$/.test(hook))
+    return say(de ? "Das ist keine Discord-Webhook-URL." : "That is not a Discord webhook URL.", false);
+  if (on && liveServer == null) return say(de ? "Oben ist noch kein Server mit Live-Timern – erst wenn dort jemand mit PeakMeter spielt." : "No server with live timers above yet – only once someone plays there with PeakMeter.", false);
+  msg.className = "msg"; msg.textContent = "…";
+  try {
+    const r = await fetch("/api/alerts", { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ webhook: hook, region, server: liveServer, lead: Number($("alLead").value), lang: de ? "de" : "en", on }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) return say(j.error === "discord" ? (de ? "Discord hat die Testnachricht nicht angenommen – stimmt die URL?" : "Discord did not take the test message – is the URL right?")
+      : j.error === "slow down" ? (de ? "Zu viele Versuche – bitte später." : "Too many tries – please later.") : (de ? "Das hat nicht geklappt." : "That did not work."), false);
+    $("alHook").value = "";
+    say(on ? (de ? `An ✓ – schau in deinen Kanal: ${j.server}, ${j.lead} Min vorher.` : `On ✓ – check your channel: ${j.server}, ${j.lead} min ahead.`)
+           : (de ? "Aus ✓" : "Off ✓"), true);
+  } catch { say(de ? "Webseite nicht erreichbar." : "Website not reachable.", false); }
+}
+$("alOn").onclick = () => alertSet(true);
+$("alOff").onclick = () => alertSet(false);
 const ago = ms => { const m = Math.round((Date.now() - ms) / 60000); return m < 1 ? (de ? "gerade eben" : "just now") : m < 60 ? (de ? "vor " + m + " min" : m + " min ago") : (de ? "vor " + Math.round(m / 60) + " h" : Math.round(m / 60) + " h ago"); };
 const dur = min => min >= 60 ? (min / 60) + " h" : min + " min";
 

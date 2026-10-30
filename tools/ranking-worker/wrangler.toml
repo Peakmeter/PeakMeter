@@ -11,6 +11,10 @@ binding = "DB"
 database_name = "peakmeter-ranking"
 database_id = "d1061b39-26ae-4dab-8d4e-490f4ebabb87"
 
+# World boss alerts into Discord webhooks, every minute.
+[triggers]
+crons = ["* * * * *"]
+
 # Discord bot (public values from the Discord developer portal: Application ID and Public Key). Empty = bot off.
 [vars]
 DISCORD_APP_ID = "1565554825637273734"

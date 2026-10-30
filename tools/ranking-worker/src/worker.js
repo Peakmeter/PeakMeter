@@ -13,6 +13,7 @@
 // GET  /api/char         one character: official profile, gear, skills (NCSOFT) + PeakMeter bests
 // POST /api/report       a fight shared from the meter ("share as link"); GET /api/report?id= reads it back
 // GET  /r/<id>           the fight report page
+// POST /api/alerts       world boss alerts into a Discord channel webhook (cron posts them every minute)
 // POST /api/census       players seen in fights (no names); GET /api/census, /census = the census page
 // POST /discord          Discord slash commands (/boss /player /rank /peakmeter); GET /discord = add the bot
 // GET  /api/char/board   one Daevanion board of a character: every node with its place, grade, effect and state
@@ -27,6 +28,7 @@ import siteCss from "./client/site.css";
 import siteJs from "./client/site.js";
 import ogPng from "./og.png";
 import { discordBot } from "./discord.mjs";
+import { alerts } from "./alerts.mjs";
 
 const REGIONS = new Set(["eu", "na", "nae", "naw", "kr", "tw"]);
 const METRICS = ["dps", "hps", "stagger"];
@@ -66,6 +68,7 @@ export default {
       if (url.pathname === "/ranking" || url.pathname === "/ranking/") return html(isBot(req) ? await rankingCard(url, env, page) : page);
       if (url.pathname === "/player" || url.pathname.startsWith("/player/")) return html(isBot(req) ? await playerCard(url, env, ctx, player) : player);
       if (url.pathname === "/timers" || url.pathname === "/timers/") return html(timers);
+      if (url.pathname === "/api/alerts" && req.method === "POST") return await alertsMod().save(req, env);
       if (url.pathname === "/census" || url.pathname === "/census/") return html(census);
       if (url.pathname === "/api/census" && req.method === "POST") return await censusSave(req, env);
       if (url.pathname === "/api/census") return await censusGet(url, env);
@@ -87,6 +90,10 @@ export default {
     } catch (e) {
       return json({ error: "server error" }, 500);
     }
+  },
+  // Every minute (wrangler.toml [triggers]): world boss alerts.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(alertsMod().tick(env));
   },
 };
 
@@ -681,7 +688,8 @@ async function updates(url, ctx) {
 }
 
 // Built on first use: the bot shares the worker's own lookups.
-let botHandler = null;
+let botHandler = null, alertsHandler = null;
+const alertsMod = () => (alertsHandler ??= alerts({ json, REGIONS, hash, timersHtml: timers }));
 const bot = () => (botHandler ??= discordBot({
   json, REGIONS, METRICS, source, short, group, CLASS_EN, OG_IMAGE, timersHtml: timers,
   ncSearchUrl, ncJson, strip, charData,
