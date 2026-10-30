@@ -10,3 +10,8 @@ rules = [
 binding = "DB"
 database_name = "peakmeter-ranking"
 database_id = "d1061b39-26ae-4dab-8d4e-490f4ebabb87"
+
+# Discord bot (public values from the Discord developer portal: Application ID and Public Key). Empty = bot off.
+[vars]
+DISCORD_APP_ID = ""
+DISCORD_PUBLIC_KEY = ""

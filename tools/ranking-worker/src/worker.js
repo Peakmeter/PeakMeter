@@ -11,6 +11,7 @@
 // GET  /api/updates      every version with its note (from the meter's own changelog) and release date
 // GET  /api/char/search  NCSOFT's official character search, trimmed
 // GET  /api/char         one character: official profile, gear, skills (NCSOFT) + PeakMeter bests
+// POST /discord          Discord slash commands (/boss /player /rank /peakmeter); GET /discord = add the bot
 // GET  /api/char/board   one Daevanion board of a character: every node with its place, grade, effect and state
 import page from "./page.html";
 import landing from "./landing.html";
@@ -20,6 +21,7 @@ import timers from "./timers.html";
 import siteCss from "./client/site.css";
 import siteJs from "./client/site.js";
 import ogPng from "./og.png";
+import { discordBot } from "./discord.mjs";
 
 const REGIONS = new Set(["eu", "na", "nae", "naw", "kr", "tw"]);
 const METRICS = ["dps", "hps", "stagger"];
@@ -60,6 +62,7 @@ export default {
       if (url.pathname === "/player" || url.pathname.startsWith("/player/")) return html(isBot(req) ? await playerCard(url, env, ctx, player) : player);
       if (url.pathname === "/timers" || url.pathname === "/timers/") return html(timers);
       if (url.pathname === "/compare" || url.pathname === "/compare/") return html(isBot(req) ? await duelCard(url, env, ctx, compare) : compare);
+      if (url.pathname === "/discord") return await bot()(req, env, ctx);
       if (url.pathname === "/api/char/search") return await charSearch(url);
       if (url.pathname === "/api/char") return await charProfile(url, env, ctx);
       if (url.pathname === "/api/char/board") return await charBoard(url, ctx);
@@ -665,6 +668,13 @@ async function updates(url, ctx) {
   if (list.length) ctx.waitUntil(caches.default.put(key, res.clone()));
   return res;
 }
+
+// Built on first use: the bot shares the worker's own lookups.
+let botHandler = null;
+const bot = () => (botHandler ??= discordBot({
+  json, REGIONS, METRICS, source, short, group, CLASS_EN, OG_IMAGE, timersHtml: timers,
+  ncSearchUrl, ncJson, strip, charData,
+}));
 
 async function hash(s) {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("pm-rank:" + s));
