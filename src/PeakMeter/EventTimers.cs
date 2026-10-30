@@ -22,6 +22,11 @@ public sealed class EventDef
     public bool Alert { get; set; }
     /// <summary>Minutes before the start the chime plays; null = the file's default.</summary>
     public int? LeadMin { get; set; }
+
+    /// <summary>The name to show: a built-in event in the current language (the file keeps whichever language it was
+    /// first written in); a name the user typed stays as it is.</summary>
+    [JsonIgnore]
+    public string DisplayName => EventTimers.BuiltInName(Id, Name) ?? Name;
 }
 
 public sealed class TimersFile
@@ -241,6 +246,27 @@ public sealed class EventTimers
         return TimeZoneInfo.Local;
     }
 
+    /// <summary>German and English name of each built-in event.</summary>
+    private static readonly Dictionary<string, (string De, string En)> Names = new()
+    {
+        ["shugo"] = ("Shugo-Festival", "Shugo Festival"),
+        ["invasion"] = ("Luftangriff / Dimensionsinvasion", "Air raid / Dimensional invasion"),
+        ["rift"] = ("Raumzeit-Riss", "Spacetime Rift"),
+        ["kaira"] = ("Wächterin Kaira", "Watcher Kaira"),
+        ["battlefield"] = ("Schlachtfeld", "Battlefield"),
+        ["siege"] = ("Artefakt-Belagerung", "Artifact Siege"),
+        ["siegebosses"] = ("Belagerungs-Bosse", "Siege bosses"),
+        ["nahma"] = ("Wächterfürst Nahma", "Guardian Lord Nahma"),
+        ["daily"] = ("Täglicher Reset", "Daily reset"),
+        ["weekly"] = ("Wöchentlicher Reset", "Weekly reset"),
+    };
+
+    /// <summary>The built-in name in the current language, or null when the user renamed the event.</summary>
+    public static string? BuiltInName(string id, string stored) =>
+        Names.TryGetValue(id, out var n) && (stored == n.De || stored == n.En || stored.Length == 0) ? L.S(n.De, n.En) : null;
+
+    private static string N(string id) => L.S(Names[id].De, Names[id].En);
+
     /// <summary>EU schedule as reported by the community (shugo.gg, 2026-10). NCSOFT publishes no official times.</summary>
     private static TimersFile Defaults() => new()
     {
@@ -252,17 +278,17 @@ public sealed class EventTimers
         LeadMin = 1,
         Events =
         [
-            new() { Id = "shugo", Name = L.S("Shugo-Festival", "Shugo Festival"), HourlyAt = 0, DurationMin = 10, Alert = true },
+            new() { Id = "shugo", Name = N("shugo"), HourlyAt = 0, DurationMin = 10, Alert = true },
             // One of three invasions picked each half hour: Beritra air raid, Accursed Sword, Incursion of the Spirits.
-            new() { Id = "invasion", Name = L.S("Luftangriff / Dimensionsinvasion", "Air raid / Dimensional invasion"), HourlyAt = 30, DurationMin = 10, Alert = true },
-            new() { Id = "rift", Name = L.S("Raumzeit-Riss", "Spacetime Rift"), Times = ["02:00", "05:00", "08:00", "11:00", "14:00", "17:00", "20:00", "23:00"], DurationMin = 10, Alert = true, LeadMin = 2 },
-            new() { Id = "kaira", Name = L.S("Wächterin Kaira", "Watcher Kaira"), Times = ["01:00", "04:00", "07:00", "10:00", "13:00", "16:00", "19:00", "22:00"], DurationMin = 30 },
-            new() { Id = "battlefield", Name = L.S("Schlachtfeld", "Battlefield"), Times = ["11:00", "19:00"], DurationMin = 120 },
-            new() { Id = "siege", Name = L.S("Artefakt-Belagerung", "Artifact Siege"), Days = ["Mon", "Thu", "Sat"], Times = ["21:00"], DurationMin = 30, Alert = true, LeadMin = 5 },
-            new() { Id = "siegebosses", Name = L.S("Belagerungs-Bosse", "Siege bosses"), Days = ["Mon", "Thu", "Sat"], Times = ["21:30"], DurationMin = 30 },
-            new() { Id = "nahma", Name = L.S("Wächterfürst Nahma", "Guardian Lord Nahma"), Days = ["Fri", "Sun"], Times = ["21:00"], DurationMin = 30, Alert = true, LeadMin = 5 },
-            new() { Id = "daily", Name = L.S("Täglicher Reset", "Daily reset"), Times = ["07:00"], TimeZone = "UTC", DurationMin = 1 },
-            new() { Id = "weekly", Name = L.S("Wöchentlicher Reset", "Weekly reset"), Days = ["Wed"], Times = ["07:00"], TimeZone = "UTC", DurationMin = 1 },
+            new() { Id = "invasion", Name = N("invasion"), HourlyAt = 30, DurationMin = 10, Alert = true },
+            new() { Id = "rift", Name = N("rift"), Times = ["02:00", "05:00", "08:00", "11:00", "14:00", "17:00", "20:00", "23:00"], DurationMin = 10, Alert = true, LeadMin = 2 },
+            new() { Id = "kaira", Name = N("kaira"), Times = ["01:00", "04:00", "07:00", "10:00", "13:00", "16:00", "19:00", "22:00"], DurationMin = 30 },
+            new() { Id = "battlefield", Name = N("battlefield"), Times = ["11:00", "19:00"], DurationMin = 120 },
+            new() { Id = "siege", Name = N("siege"), Days = ["Mon", "Thu", "Sat"], Times = ["21:00"], DurationMin = 30, Alert = true, LeadMin = 5 },
+            new() { Id = "siegebosses", Name = N("siegebosses"), Days = ["Mon", "Thu", "Sat"], Times = ["21:30"], DurationMin = 30 },
+            new() { Id = "nahma", Name = N("nahma"), Days = ["Fri", "Sun"], Times = ["21:00"], DurationMin = 30, Alert = true, LeadMin = 5 },
+            new() { Id = "daily", Name = N("daily"), Times = ["07:00"], TimeZone = "UTC", DurationMin = 1 },
+            new() { Id = "weekly", Name = N("weekly"), Days = ["Wed"], Times = ["07:00"], TimeZone = "UTC", DurationMin = 1 },
         ],
     };
 }

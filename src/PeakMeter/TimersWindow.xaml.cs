@@ -237,7 +237,7 @@ public partial class TimersWindow : Window
         private bool _running, _alert;
 
         public EventState State { get; } = state;
-        public string Name => State.Def.Name;
+        public string Name => State.Def.DisplayName;
         public System.Windows.Media.ImageSource Icon => EventIcons.Get(EventIcons.ForEvent(State.Def.Id));
         public string Schedule => Describe(State.Def);
         public string Countdown { get => _countdown; private set => Set(ref _countdown, value); }

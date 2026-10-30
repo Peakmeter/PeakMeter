@@ -810,8 +810,8 @@ public partial class Overlay : Window
         }
         var running = next.Running(now);
         var text = running
-            ? L.S($"{next.Def.Name} läuft · noch {Coarse(next.End - now)}", $"{next.Def.Name} running · {Coarse(next.End - now)} left")
-            : $"{next.Def.Name} in {Coarse(next.Start - now)}";
+            ? L.S($"{next.Def.DisplayName} läuft · noch {Coarse(next.End - now)}", $"{next.Def.DisplayName} running · {Coarse(next.End - now)} left")
+            : $"{next.Def.DisplayName} in {Coarse(next.Start - now)}";
         // Only touch the text when it really changes: every redraw costs CPU, and minutes change rarely.
         if (NextText.Text != text) NextText.Text = text;
         var soon = running || next.Start - now <= TimeSpan.FromMinutes(5);

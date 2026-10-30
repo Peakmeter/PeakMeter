@@ -206,7 +206,7 @@ public partial class App : Application
     private long _lastAlert = -10_000;
 
     private void OnEventAlert(EventState e, int minutes) =>
-        Notify(e.Def.Name, minutes <= 0 ? L.S("startet jetzt", "starts now") : L.S($"startet in {minutes} Min", $"starts in {minutes} min"), EventIcons.ForEvent(e.Def.Id));
+        Notify(e.Def.DisplayName, minutes <= 0 ? L.S("startet jetzt", "starts now") : L.S($"startet in {minutes} Min", $"starts in {minutes} min"), EventIcons.ForEvent(e.Def.Id));
 
     /// <summary>Watched world bosses about to respawn (called once a second by the overlay's clock).</summary>
     public void CheckBossAlerts()
