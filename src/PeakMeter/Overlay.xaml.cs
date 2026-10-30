@@ -33,6 +33,8 @@ public partial class Overlay : Window
     private bool Browsing => _segment is not null || _savedRecord is not null;
     private uint? _selected;         // player whose skills are shown
     private EncounterSnapshot? _last;
+    /// <summary>The last fight with you or your party in it, shown while strangers fight nearby.</summary>
+    private Guid? _lastOwnFight;
     private long _lastTopmost;
     private long _lastIdleCheck = Environment.TickCount64;
 
@@ -173,9 +175,19 @@ public partial class Overlay : Window
             return;
         }
 
+        var shown = Visible(snap);
+        // "Only me / my party": a fight of strangers only (nobody of yours in it) is not shown; your last own fight stays.
+        if (shown.Filtered && !Browsing && shown.List.Count == 0)
+        {
+            var own = _lastOwnFight is { } id && id != snap.Id ? _meter.Tracker.Snapshot(id, now) : null;
+            if (own is null) { ShowEmpty(); return; }
+            snap = own;
+            _last = own;
+            shown = Visible(snap);
+        }
+        else if (!Browsing && shown.List.Count > 0) _lastOwnFight = snap.Id;
         var zone = _meter.Tracker.ZoneName is { Length: > 0 } z && snap.Boss is not null && !snap.Title.Contains(z) ? z : null;
         TitleText.Text = zone is null ? snap.Title : $"{zone}  ▸  {snap.Title}";
-        var shown = Visible(snap);
         var players = shown.List.Count(c => !c.IsUnknownSummons);
         var tag = !Browsing ? (snap.IsActive ? "LIVE" : L.S("Ende", "End")) : L.S("Verlauf", "History");
         var who = shown.Filtered ? (_meter.Roster is null ? "Solo" : L.S("Gruppe", "Party")) : L.S("Alle", "All");
@@ -353,8 +365,10 @@ public partial class Overlay : Window
                     pick = pick.Where(c => c.IsSelf || (!c.IsUnknownSummons && names.Contains(c.Name)));
                 filtered = true;
             }
-            else if (!group && (self is not null || snap.Combatants.Any(c => c.IsSelf)))
+            else if (!group)
             {
+                // Solo in the open world: only you, also before the meter knows who you are (that often comes with
+                // your first hit). Strangers fighting nearby never show.
                 pick = pick.Where(c => c.IsSelf);
                 filtered = true;
             }
