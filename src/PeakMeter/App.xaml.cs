@@ -674,6 +674,7 @@ public sealed class Meter : IDisposable
         // The census on the website: class, server and combat power of the players seen, without names (same setting).
         if (!demo) _census = new CensusShare(settings, Data, Log);
         Gathering = new Gathering(settings, Log);
+        Gathering.LoadNames(Path.Combine(AppContext.BaseDirectory, "data"));
         _savedVersion = Tracker.CacheVersion;
     }
 

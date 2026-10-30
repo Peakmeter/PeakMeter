@@ -193,7 +193,7 @@ async function loadGather() {
   let html = "";
   for (const [kind, h2, p] of [["gather", T.gatH, T.gatP], ["craft", T.crH, T.crP]]) {
     try {
-      const list = await (await fetch("/api/gather?kind=" + kind + "&region=" + region + "&days=" + days)).json();
+      const list = await (await fetch("/api/gather?kind=" + kind + "&region=" + region + "&days=" + days + "&lang=" + (de ? "de" : "en"))).json();
       if (Array.isArray(list) && list.length) html += table(list, h2, p);
     } catch {}
   }
@@ -203,7 +203,8 @@ function table(list, h2, p) {
     const top = list[0].n || 1;
     return '<section class="s"><div class="s-head"><h2>' + esc(h2) + '</h2><span class="rule"></span><p>' + esc(p) + '</p></div><div class="win" style="padding:6px 4px">' +
       '<table class="srvs"><thead><tr><th>' + esc(T.item) + "</th><th>" + esc(T.amount) + "</th></tr></thead><tbody>" +
-      list.map(g => "<tr><td>" + esc(g.name || (de ? "Gegenstand " : "Item ") + g.item) + '</td><td><span class="bar" style="width:' + Math.round(g.n / top * 80) + 'px"></span>' + nf.format(g.n) + "</td></tr>").join("") +
+      list.map(g => "<tr><td>" + (g.icon ? '<img src="https://assets.playnccdn.com/static-aion2-gamedata/resources/' + esc(g.icon) + '.png" alt="" width="26" height="26" loading="lazy" style="vertical-align:middle;margin-right:10px;border-radius:4px;background:#11131d">' : "") +
+        esc(g.name || (de ? "Gegenstand " : "Item ") + g.item) + '</td><td><span class="bar" style="width:' + Math.round(g.n / top * 80) + 'px"></span>' + nf.format(g.n) + "</td></tr>").join("") +
       "</tbody></table></div></section>";
 }
 

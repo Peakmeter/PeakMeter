@@ -9,6 +9,7 @@ open-source meters licensed under GPL-3.0, which is why AionMeter as a whole is 
 | `skills/*.json`, `npcs/*.json`, `dungeons/*.json`, `dot_skill_ids.json`, `servers.json`, `skill_icons.json` | [taengu/A2Tools-DPS-Meter](https://github.com/taengu/A2Tools-DPS-Meter) `src/data`, commit `e32dc5e` (2026-10-05), GPL-3.0 |
 | `healing_skill_ids.json` | [Kuroukihime/AIon2-Dps-Meter](https://github.com/Kuroukihime/AIon2-Dps-Meter) `GameData/Assets`, commit `2e8d67d` (2026-10-01), GPL-3.0 |
 | `src/AionMeter.App/Assets/Classes/*.png` (class emblems; brawler downscaled to 128 px) | same repository, `AionDpsMeter.UI/Assets/Classes`, commit `2e8d67d`, GPL-3.0 |
+| `items.json` (item code → English name and icon file) | built from the item list of [AION 2 Hub's crafting calculator](https://aion2hub.com/tools/crafting-calculator) (2026-10-30). German names of gathering materials added by PeakMeter, as the German client shows them. Icons are not bundled: they load from the game's official image server |
 | `boss_portraits.json` (NPC code → portrait file) | built from [MetaBot.GG's boss list](https://metabot.gg/en/aion-2/bosses) (2026-10-05): each dungeon boss's portrait file, matched to every NPC code with the same English name in `npcs/en.json`. The portraits themselves are not bundled: the app downloads them from MetaBot.GG at runtime (credit: [MetaBot.GG](https://metabot.gg)) |
 
 Skill icons are not bundled either: PeakMeter downloads them at runtime from the game's official image server

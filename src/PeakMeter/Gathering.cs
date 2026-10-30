@@ -16,14 +16,24 @@ public sealed class Gathering
     public static string FilePath => Path.Combine(Settings.Dir, "gathering.json");
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(15) };
 
-    /// <summary>Names of items seen so far (the game sends only codes). More are learned as they are recorded.</summary>
-    private static readonly Dictionary<int, (string De, string En)> KnownNames = new()
+    /// <summary>Item names (data/items.json: English from the AION 2 Hub list, German for gathering materials).</summary>
+    private static Dictionary<int, (string? De, string En)> _names = new();
+
+    public static void LoadNames(string dataDir)
     {
-        [610610013] = ("Od", "Od"),
-        [610680045] = ("Mela", "Mela"),
-        [610710001] = ("Orechalkos-Barren", "Orechalkos-Barren"),
-        [510716012] = ("Gegrillter Cypri des Meisters", "Gegrillter Cypri des Meisters"),
-    };
+        try
+        {
+            var path = Path.Combine(dataDir, "items.json");
+            if (!File.Exists(path)) return;
+            using var doc = JsonDocument.Parse(File.ReadAllText(path));
+            var map = new Dictionary<int, (string?, string)>();
+            foreach (var p in doc.RootElement.EnumerateObject())
+                if (int.TryParse(p.Name, out var id) && p.Value.TryGetProperty("en", out var en))
+                    map[id] = (p.Value.TryGetProperty("de", out var de) ? de.GetString() : null, en.GetString() ?? "");
+            _names = map;
+        }
+        catch { }
+    }
 
     public sealed class Day
     {
@@ -65,7 +75,7 @@ public sealed class Gathering
     public event Action<int>? CraftLevelUp;
 
     public static string NameOf(int item) =>
-        KnownNames.TryGetValue(item, out var n) ? L.S(n.De, n.En) : L.S($"Gegenstand {item}", $"Item {item}");
+        _names.TryGetValue(item, out var n) ? (L.Lang == "de" && n.De is { } de ? de : n.En) : L.S($"Gegenstand {item}", $"Item {item}");
 
     private static string Today => DateTime.Now.ToString("yyyy-MM-dd");
 
@@ -170,8 +180,8 @@ public sealed class Gathering
         {
             ["region"] = _settings.Region,
             ["gathers"] = gathers,
-            ["crafted"] = crafted.Select(kv => new Dictionary<string, object?> { ["item"] = kv.Key, ["n"] = kv.Value, ["name"] = KnownNames.TryGetValue(kv.Key, out var nm) ? nm.De : null }).ToList(),
-            ["items"] = items.Select(kv => new Dictionary<string, object?> { ["item"] = kv.Key, ["n"] = kv.Value, ["name"] = KnownNames.TryGetValue(kv.Key, out var nm) ? nm.De : null }).ToList(),
+            ["crafted"] = crafted.Select(kv => new Dictionary<string, object?> { ["item"] = kv.Key, ["n"] = kv.Value, ["name"] = _names.TryGetValue(kv.Key, out var nm) ? nm.En : null }).ToList(),
+            ["items"] = items.Select(kv => new Dictionary<string, object?> { ["item"] = kv.Key, ["n"] = kv.Value, ["name"] = _names.TryGetValue(kv.Key, out var nm) ? nm.En : null }).ToList(),
         };
         _ = Task.Run(async () =>
         {

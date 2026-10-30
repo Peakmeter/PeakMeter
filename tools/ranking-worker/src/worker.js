@@ -25,6 +25,7 @@ import compare from "./compare.html";
 import timers from "./timers.html";
 import report from "./report.html";
 import census from "./census.html";
+import ITEMS from "./items.json";
 import siteCss from "./client/site.css";
 import siteJs from "./client/site.js";
 import ogPng from "./og.png";
@@ -855,6 +856,12 @@ async function gatherGet(url, env) {
     `SELECT g.item AS item, MAX(nm.name) AS name, SUM(g.n) AS n FROM ${url.searchParams.get("kind") === "craft" ? "craft" : "gather"} g LEFT JOIN gather_names nm ON nm.item = g.item
      WHERE g.region = ?1 AND g.day >= ?2 GROUP BY g.item ORDER BY n DESC LIMIT 40`
   ).bind(region, from).all();
+  // Names and icons from the item list (German where known), else what the meter sent.
+  const de = url.searchParams.get("lang") === "de";
+  for (const r of results) {
+    const it = ITEMS[r.item];
+    if (it) { r.name = (de && it.de) || it.en || r.name; r.icon = it.icon; }
+  }
   return json(results, 200, { "cache-control": "public, max-age=300" });
 }
 
