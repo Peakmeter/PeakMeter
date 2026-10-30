@@ -166,6 +166,12 @@ public sealed record PetListEvent(long TimeMs, IReadOnlyList<(int Pet, int Level
 public sealed record PetSoulEvent(long TimeMs, IReadOnlyList<(int Pet, int Amount)> Souls) : GameEvent(TimeMs);
 
 /// <summary>A pet reached a level (<c>14 90</c>).</summary>
+/// <summary>A finished gather (Opcodes.GatherDone): the item that came out and the gathering spot.</summary>
+public sealed record GatherEvent(long TimeMs, int Item, uint Spot) : GameEvent(TimeMs);
+
+/// <summary>An inventory item's new stack (Opcodes.ItemStack): with a gather it tells how many came out.</summary>
+public sealed record ItemStackEvent(long TimeMs, int Item, long Count) : GameEvent(TimeMs);
+
 public sealed record PetLevelEvent(long TimeMs, int Pet, int Level) : GameEvent(TimeMs);
 
 /// <summary>The stagger gauge broke (<c>05 E0 … 00 03 02</c>).</summary>

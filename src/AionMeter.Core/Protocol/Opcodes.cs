@@ -37,6 +37,8 @@ public static class Opcodes
     public const ushort PetSouls = 0x0D90;       // souls picked up
     public const ushort PetLevel = 0x1490;       // a pet reached a level
     public const ushort StaggerGauge = 0x05E0;   // a monster's stagger gauge (A2Tools-DPS-Meter)
+    public const ushort GatherDone = 0x338D;     // PeakMeter: a finished gather: 00 3A, gathering spot (varint), item u32
+    public const ushort ItemStack = 0x1B56;      // PeakMeter: an inventory item's new stack: item u32 at 11, count u32 at 15
     public const ushort FieldBossList = 0x0191;  // a map's field bosses: alive since / back at (in-game map list)
 
     public static string Name(ushort op) => op switch

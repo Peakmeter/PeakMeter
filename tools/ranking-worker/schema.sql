@@ -122,3 +122,13 @@ CREATE TABLE IF NOT EXISTS alert_sent (
   at INTEGER NOT NULL,
   PRIMARY KEY (id, boss, k)
 );
+
+-- Gathering: items gathered per day and region, summed from meters with "Count me anonymously" on (no player data).
+CREATE TABLE IF NOT EXISTS gather (
+  region TEXT NOT NULL,
+  day TEXT NOT NULL,
+  item INTEGER NOT NULL,
+  n INTEGER NOT NULL,
+  PRIMARY KEY (region, day, item)
+);
+CREATE TABLE IF NOT EXISTS gather_names (item INTEGER PRIMARY KEY, name TEXT NOT NULL);

@@ -98,11 +98,13 @@ PM.translate({
 });
 const de = PM.de, $ = id => document.getElementById(id);
 const T = de ? {
+  gatH: "Gesammelt", gatP: "Was PeakMeter-Spieler in dieser Region gesammelt haben.", item: "Gegenstand", amount: "Menge",
   chars: "Charaktere gezählt", servers: "Server", avgCp: "Ø Kampfkraft", classes: "Klassen", cpH: "Kampfkraft", cpP: "Wie viele Charaktere in welchem Bereich.",
   srvH: "Server", srvP: "Klick auf einen Server, um nur ihn zu sehen.", all: "Alle Server", share: "Anteil", cp: "Ø KK", gs: "Ø GS", n: "Charaktere", days: d => d + " Tage",
   empty: "Für diese Auswahl wurde noch niemand gezählt. Sobald Spieler mit PeakMeter (ab v1.39) hier kämpfen, füllt sich der Zensus.", region: "Region",
   names: { gladiator: "Gladiator", templar: "Templer", ranger: "Waldläufer", assassin: "Assassine", sorcerer: "Magier", elementalist: "Beschwörer", cleric: "Kleriker", chanter: "Kantor", brawler: "Faustkämpfer" },
 } : {
+  gatH: "Gathered", gatP: "What PeakMeter players gathered in this region.", item: "Item", amount: "Amount",
   chars: "Characters counted", servers: "Servers", avgCp: "Avg combat power", classes: "Classes", cpH: "Combat power", cpP: "How many characters in each range.",
   srvH: "Servers", srvP: "Click a server to see only that one.", all: "All servers", share: "Share", cp: "Avg CP", gs: "Avg GS", n: "Characters", days: d => d + " days",
   empty: "Nobody was counted for this choice yet. As soon as players with PeakMeter (v1.39 or newer) fight here, the census fills up.", region: "Region",
@@ -137,7 +139,7 @@ function draw(d) {
   $("srv").innerHTML = '<option value="0">' + esc(T.all) + "</option>" + d.servers.map(s => '<option value="' + s.server + '"' + (s.server === server ? " selected" : "") + ">" +
     esc(s.name || "Server " + s.server) + " · " + nf.format(s.n) + "</option>").join("");
   $("srv").onchange = () => { server = Number($("srv").value); load(); };
-  if (!d.total) { $("out").innerHTML = '<div class="win empty">' + esc(T.empty) + "</div>"; return; }
+  if (!d.total) { $("out").innerHTML = '<div class="win empty">' + esc(T.empty) + '</div><div id="gat"></div>'; loadGather(); return; }
 
   const cpAll = d.classes.reduce((a, c) => a + (c.cp || 0) * c.n, 0) / Math.max(1, d.classes.reduce((a, c) => a + (c.cp ? c.n : 0), 0));
   const kpi = (l, v) => '<div class="kpi win"><small>' + esc(l) + "</small><b>" + v + "</b></div>";
@@ -178,8 +180,21 @@ function draw(d) {
     d.servers.map(s => '<tr data-s="' + s.server + '"' + (s.server === server ? ' class="on"' : "") + "><td>" + esc(s.name || "Server " + s.server) + '</td><td><span class="bar" style="width:' +
       Math.round(s.n / smax * 80) + 'px"></span>' + nf.format(s.n) + "</td><td>" + (s.cp ? nf.format(Math.round(s.cp)) : "–") + "</td></tr>").join("") + "</tbody></table></div></section>";
 
-  $("out").innerHTML = kpis + cls + hist + srv;
+  $("out").innerHTML = kpis + cls + hist + srv + '<div id="gat"></div>';
+  loadGather();
   $("out").querySelector("table.srvs").onclick = e => { const tr = e.target.closest("tr[data-s]"); if (!tr) return; const s = Number(tr.dataset.s); server = server === s ? 0 : s; load(); };
+}
+
+async function loadGather() {
+  try {
+    const list = await (await fetch("/api/gather?region=" + region + "&days=" + days)).json();
+    if (!Array.isArray(list) || !list.length || !$("gat")) return;
+    const top = list[0].n || 1;
+    $("gat").innerHTML = '<section class="s"><div class="s-head"><h2>' + esc(T.gatH) + '</h2><span class="rule"></span><p>' + esc(T.gatP) + '</p></div><div class="win" style="padding:6px 4px">' +
+      '<table class="srvs"><thead><tr><th>' + esc(T.item) + "</th><th>" + esc(T.amount) + "</th></tr></thead><tbody>" +
+      list.map(g => "<tr><td>" + esc(g.name || (de ? "Gegenstand " : "Item ") + g.item) + '</td><td><span class="bar" style="width:' + Math.round(g.n / top * 80) + 'px"></span>' + nf.format(g.n) + "</td></tr>").join("") +
+      "</tbody></table></div></section>";
+  } catch {}
 }
 
 async function load() {

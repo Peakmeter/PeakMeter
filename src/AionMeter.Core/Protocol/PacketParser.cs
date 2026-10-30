@@ -69,6 +69,23 @@ public sealed class PacketParser
         if (opcode != Opcodes.PartyRoster && body.Length >= 42)
             ScanForRoster(body);
 
+        // Gathering (seen on Global, Oct 2026). Handled before the switch so the usual scans still run on these.
+        if (opcode == Opcodes.GatherDone && body.Length >= 7 && body[0] == 0 && body[1] == 0x3A)
+        {
+            var off = 2;
+            if (Wire.TryVarint(body, ref off, out var spot) && off + 4 <= body.Length)
+            {
+                var item = Wire.U32(body, off);
+                if (item is >= 100_000_000 and < 1_000_000_000) Emit(new GatherEvent(TimeMs, (int)item, spot));
+            }
+        }
+        else if (opcode == Opcodes.ItemStack && body.Length >= 19 && body[0] == 1)
+        {
+            var item = Wire.U32(body, 11);
+            var count = Wire.U32(body, 15);
+            if (item is >= 100_000_000 and < 1_000_000_000 && count < 1_000_000) Emit(new ItemStackEvent(TimeMs, (int)item, count));
+        }
+
         switch (opcode)
         {
             case Opcodes.Heartbeat:

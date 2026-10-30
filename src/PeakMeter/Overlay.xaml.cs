@@ -834,6 +834,14 @@ public partial class Overlay : Window
         _bannerUntil = Environment.TickCount64 + 60_000;
     }
 
+    /// <summary>A quiet line in the meter for a few seconds (gathering), unless a longer banner is up.</summary>
+    public void ShowNote(string text, int ms)
+    {
+        if (Banner.Visibility == Visibility.Visible && _bannerUntil - Environment.TickCount64 > ms) return;
+        ShowAlert(text);
+        _bannerUntil = Environment.TickCount64 + ms;
+    }
+
     /// <summary>A short banner in the meter when an event is about to start.</summary>
     public void ShowAlert(string text)
     {

@@ -14,6 +14,7 @@
 // POST /api/report       a fight shared from the meter ("share as link"); GET /api/report?id= reads it back
 // GET  /r/<id>           the fight report page
 // POST /api/alerts       world boss alerts into a Discord channel webhook (cron posts them every minute)
+// POST /api/gather       gathered items (item + count, no player data); GET /api/gather = totals per item
 // POST /api/census       players seen in fights (no names); GET /api/census, /census = the census page
 // POST /discord          Discord slash commands (/boss /player /rank /peakmeter); GET /discord = add the bot
 // GET  /api/char/board   one Daevanion board of a character: every node with its place, grade, effect and state
@@ -70,6 +71,8 @@ export default {
       if (url.pathname === "/timers" || url.pathname === "/timers/") return html(timers);
       if (url.pathname === "/api/alerts" && req.method === "POST") return await alertsMod().save(req, env);
       if (url.pathname === "/census" || url.pathname === "/census/") return html(census);
+      if (url.pathname === "/api/gather" && req.method === "POST") return await gatherSave(req, env);
+      if (url.pathname === "/api/gather") return await gatherGet(url, env);
       if (url.pathname === "/api/census" && req.method === "POST") return await censusSave(req, env);
       if (url.pathname === "/api/census") return await censusGet(url, env);
       if (url.pathname.startsWith("/r/")) return html(isBot(req) ? await reportCard(url, env, report) : report);
@@ -814,6 +817,44 @@ async function censusSave(req, env) {
   }
   if (stmts.length) await env.DB.batch(stmts);
   return json({ ok: true, taken: stmts.length });
+}
+
+async function gatherSave(req, env) {
+  let b;
+  try { b = await req.json(); } catch { return json({ error: "bad json" }, 400); }
+  const region = typeof b?.region === "string" ? b.region.toLowerCase() : "";
+  const items = Array.isArray(b?.items) ? b.items.slice(0, 60) : [];
+  if (!REGIONS.has(region) || !items.length) return json({ error: "invalid" }, 400);
+  const ip = await hash("g:" + (req.headers.get("cf-connecting-ip") || "?"));
+  const hour = Math.floor(Date.now() / 3600_000);
+  const row = await env.DB.prepare(
+    "INSERT INTO hits (ip, hour, n) VALUES (?1, ?2, 1) ON CONFLICT(ip, hour) DO UPDATE SET n = n + 1 RETURNING n"
+  ).bind(ip, hour).first();
+  if (row && row.n > 30) return json({ error: "slow down" }, 429);
+  const day = new Date().toISOString().slice(0, 10);
+  const stmts = [];
+  for (const it of items) {
+    const item = int(it?.item), n = int(it?.n);
+    if (!(item >= 100_000_000 && item < 1_000_000_000) || !(n > 0 && n <= 2000)) continue;
+    stmts.push(env.DB.prepare("INSERT INTO gather (region, day, item, n) VALUES (?1, ?2, ?3, ?4) ON CONFLICT(region, day, item) DO UPDATE SET n = n + excluded.n")
+      .bind(region, day, item, n));
+    const name = cleanText(it?.name, 40);
+    if (name) stmts.push(env.DB.prepare("INSERT OR IGNORE INTO gather_names (item, name) VALUES (?1, ?2)").bind(item, name));
+  }
+  if (stmts.length) await env.DB.batch(stmts);
+  return json({ ok: true });
+}
+
+async function gatherGet(url, env) {
+  const region = (url.searchParams.get("region") || "eu").toLowerCase();
+  if (!REGIONS.has(region)) return json({ error: "invalid" }, 400);
+  const days = [7, 30, 90].includes(Number(url.searchParams.get("days"))) ? Number(url.searchParams.get("days")) : 30;
+  const from = new Date(Date.now() - days * DAY).toISOString().slice(0, 10);
+  const { results } = await env.DB.prepare(
+    `SELECT g.item AS item, MAX(nm.name) AS name, SUM(g.n) AS n FROM gather g LEFT JOIN gather_names nm ON nm.item = g.item
+     WHERE g.region = ?1 AND g.day >= ?2 GROUP BY g.item ORDER BY n DESC LIMIT 40`
+  ).bind(region, from).all();
+  return json(results, 200, { "cache-control": "public, max-age=300" });
 }
 
 async function censusGet(url, env) {

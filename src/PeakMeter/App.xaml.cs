@@ -88,6 +88,11 @@ public partial class App : Application
         Meter = new Meter(Settings, demo: e.Args.Contains("--demo"), saveDemo: e.Args.Contains("--save-demo"));
 
         // After a ranked kill: your place, and a click opens that boss's list.
+        // A short line in the meter after each gather: what came out and today's total of it.
+        Meter.Gathering.Gathered += (item, qty, total) => Dispatcher.BeginInvoke(() =>
+        {
+            if (_overlay is { IsVisible: true }) _overlay.ShowNote($"⛏ {Gathering.NameOf(item)} +{qty} · {L.S("heute", "today")} {total}", 5_000);
+        });
         Meter.RankingPlaced += (p, cls) => Dispatcher.BeginInvoke(() =>
         {
             var (title, detail) = Ranking.Describe(p, cls);
@@ -660,10 +665,14 @@ public sealed class Meter : IDisposable
         if (!demo) _bossShare = new BossShare(settings, Bosses, Data, Log, () => _demoOnly || DemoRunning);
         // The census on the website: class, server and combat power of the players seen, without names (same setting).
         if (!demo) _census = new CensusShare(settings, Data, Log);
+        Gathering = new Gathering(settings, Log);
         _savedVersion = Tracker.CacheVersion;
     }
 
     public GameData Data { get; }
+
+    /// <summary>Gathering counted from the game, per day and item.</summary>
+    public Gathering Gathering { get; private set; } = null!;
 
     /// <summary>The settings, for windows that need them (share link, logs).</summary>
     public Settings Settings => _settings;
@@ -730,6 +739,12 @@ public sealed class Meter : IDisposable
             case PetSoulEvent ps:
                 foreach (var (pet, amount) in ps.Souls) Pets.AddSouls(Tracker.SelfServerId, pet, amount);
                 LastSouls = (ps.Souls, Environment.TickCount64);
+                return;
+            case ItemStackEvent st:
+                Gathering.NoteStack(st.Item, st.Count, st.TimeMs);
+                return;
+            case GatherEvent ge:
+                if (!_demoOnly && !DemoRunning) Gathering.Add(ge.Item, ge.TimeMs);
                 return;
             case PetLevelEvent lv:
                 Pets.SetLevel(Tracker.SelfServerId, lv.Pet, lv.Level);
@@ -981,6 +996,7 @@ public sealed class Meter : IDisposable
         _capture?.Dispose();
         _bossShare?.Dispose();
         _census?.Dispose();
+        try { Gathering?.Upload(); } catch { }
         if (!_demoOnly) Tracker.Reset(); // closing mid-fight keeps the fight so far
         _demo?.Dispose();
         if (!_demoOnly) try { _names.Save(Tracker.ExportCache()); } catch { }
