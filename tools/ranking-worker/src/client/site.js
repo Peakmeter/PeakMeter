@@ -25,6 +25,11 @@
     if (k === "spiritmaster") k = "elementalist";
     return EMBLEMS.indexOf(k) >= 0 ? "https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/src/PeakMeter/Assets/Classes/" + k + ".png" : null;
   };
+  // Gear grade: tier letter, its colour and what it means.
+  PM.gradeColor = function (t) { return ({ M: "var(--r-mythic)", S: "var(--r-unique)", A: "var(--r-legend)", B: "var(--r-epic)", C: "var(--r-rare)", D: "var(--r-common)" })[t] || "var(--r-common)"; };
+  PM.gradeBadge = function (t, size) {
+    return '<span class="gbadge" style="--gc:' + PM.gradeColor(t) + (size ? ";--gs:" + size + "px" : "") + '"><span><i style="transform:rotate(-45deg);font-style:normal">' + t + "</i></span></span>";
+  };
   // Class colours, as in the meter.
   PM.classColor = function (cls) {
     return ({ gladiator: "#e8a84c", templar: "#5e9bf0", ranger: "#6fcf7c", assassin: "#b07cf0", sorcerer: "#47c8f5", elementalist: "#f26ca7",
@@ -93,8 +98,8 @@
   }
 
   var NAV_TEXT = PM.de
-    ? { features: "Funktionen", ranking: "Rangliste", players: "Spieler", compare: "Duell", install: "Installieren", lang: "Sprache", dl: "Laden", elyos: "Elyos", asmo: "Asmodier" }
-    : { features: "Features", ranking: "Ranking", players: "Players", compare: "Duel", install: "Install", lang: "Language", dl: "Download", elyos: "Elyos", asmo: "Asmodian" };
+    ? { features: "Funktionen", ranking: "Rangliste", players: "Spieler", compare: "Duell", timers: "Timer", install: "Installieren", lang: "Sprache", dl: "Laden", elyos: "Elyos", asmo: "Asmodier" }
+    : { features: "Features", ranking: "Ranking", players: "Players", compare: "Duel", timers: "Timers", install: "Install", lang: "Language", dl: "Download", elyos: "Elyos", asmo: "Asmodian" };
   var SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>';
   var MOON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3.2A9 9 0 1 0 20.8 15 7.2 7.2 0 0 1 15.5 3.2z"/></svg>';
 
@@ -106,7 +111,7 @@
     var page = nav.dataset.page || "";
     var a = function (href, key, cls) { return '<a href="' + href + '" class="' + (cls || "") + (page === key ? " on" : "") + '">' + NAV_TEXT[key] + "</a>"; };
     nav.innerHTML = '<div class="wrap"><a class="brand" href="/"><img src="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png" alt=""><span>PeakMeter</span></a>' +
-      '<div class="links">' + a("/#all", "features", "opt") + a("/ranking", "ranking") + a("/player", "players") + a("/compare", "compare", "opt") + "</div>" +
+      '<div class="links">' + a("/#all", "features", "opt") + a("/ranking", "ranking") + a("/player", "players") + a("/timers", "timers", "opt") + a("/compare", "compare", "opt") + "</div>" +
       '<button type="button" class="lang" id="pmLang" title="' + NAV_TEXT.lang + '" aria-label="' + NAV_TEXT.lang + '"><span' + (PM.de ? ' class="on"' : "") + '>DE</span><span' + (PM.de ? "" : ' class="on"') + ">EN</span></button>" +
       '<div class="faction" role="group" aria-label="Faction">' +
       '<button type="button" data-f="elyos" title="' + NAV_TEXT.elyos + '" aria-label="' + NAV_TEXT.elyos + '">' + SUN + "</button>" +

@@ -14,6 +14,7 @@ import page from "./page.html";
 import landing from "./landing.html";
 import player from "./player.html";
 import compare from "./compare.html";
+import timers from "./timers.html";
 import siteCss from "./client/site.css";
 import siteJs from "./client/site.js";
 
@@ -53,6 +54,7 @@ export default {
       if (url.pathname === "/site.js") return asset(siteJs, "text/javascript; charset=utf-8");
       if (url.pathname === "/ranking" || url.pathname === "/ranking/") return html(isBot(req) ? await rankingCard(url, env, page) : page);
       if (url.pathname === "/player" || url.pathname.startsWith("/player/")) return html(isBot(req) ? await playerCard(url, env, ctx, player) : player);
+      if (url.pathname === "/timers" || url.pathname === "/timers/") return html(timers);
       if (url.pathname === "/compare" || url.pathname === "/compare/") return html(isBot(req) ? await duelCard(url, env, ctx, compare) : compare);
       if (url.pathname === "/api/char/search") return await charSearch(url);
       if (url.pathname === "/api/char") return await charProfile(url, env, ctx);
@@ -308,6 +310,37 @@ async function charBoard(url, ctx) {
   return res;
 }
 
+// ---------------------------------------------------------------- gear grade
+// Every profile looked up here adds its item level to a table; a character's grade is the share of others of the
+// same class and level (or within three levels while few are known) whose item level is lower.
+const GRADE_MIN = 10;
+const GRADE_TIERS = [[99, "M"], [95, "S"], [85, "A"], [65, "B"], [40, "C"], [0, "D"]];
+
+async function gearGrade(env, region, serverId, name, p, stats) {
+  const il = (stats || []).find((s) => s.type === "ItemLevel")?.value;
+  if (!p || !p.cls || !p.level || !(il > 0) || !serverId) return null;
+  try {
+    await env.DB.prepare(
+      `INSERT INTO gear (region, server, name, cls, level, il, cp, at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+       ON CONFLICT(region, server, name) DO UPDATE SET cls = excluded.cls, level = excluded.level, il = excluded.il, cp = excluded.cp, at = excluded.at`
+    ).bind(region, serverId, name, p.cls, p.level, il, p.cp || 0, Date.now()).run();
+    const cohort = (lo, hi) => env.DB.prepare(
+      `SELECT COUNT(*) AS n, SUM(CASE WHEN il < ?4 THEN 1 ELSE 0 END) AS below, SUM(CASE WHEN il = ?4 THEN 1 ELSE 0 END) AS same
+       FROM gear WHERE cls = ?1 AND level BETWEEN ?2 AND ?3`
+    ).bind(p.cls, lo, hi, il).first();
+    let lo = p.level, hi = p.level, r = await cohort(lo, hi);
+    if ((r?.n || 0) < GRADE_MIN) { lo = p.level - 3; hi = p.level + 3; r = await cohort(lo, hi); }
+    const n = r?.n || 0;
+    if (n < GRADE_MIN) return { n, need: GRADE_MIN, il };
+    // Among the others (this character counts once in n and once in same): ties count half.
+    const pct = ((r.below || 0) + Math.max(0, (r.same || 1) - 1) / 2) / Math.max(1, n - 1) * 100;
+    const tier = GRADE_TIERS.find(([min]) => pct >= min)[1];
+    return { tier, pct: Math.round(pct), n, il, lo, hi };
+  } catch {
+    return null;
+  }
+}
+
 async function charProfile(url, env, ctx) {
   const region = (url.searchParams.get("region") || "eu").toLowerCase();
   const name = cleanText(url.searchParams.get("name"), 24);
@@ -315,7 +348,7 @@ async function charProfile(url, env, ctx) {
   const lang = url.searchParams.get("lang") === "de" ? "de-DE" : "en-US";
   if (!REGIONS.has(region) || !name || !server) return json({ error: "invalid" }, 400);
 
-  const key = new Request(`https://cache.peakmeter/char/v3/${region}/${encodeURIComponent(server.toLowerCase())}/${encodeURIComponent(name.toLowerCase())}/${lang}`);
+  const key = new Request(`https://cache.peakmeter/char/v4/${region}/${encodeURIComponent(server.toLowerCase())}/${encodeURIComponent(name.toLowerCase())}/${lang}`);
   const cached = await caches.default.match(key);
   if (cached) return cached;
 
@@ -371,6 +404,7 @@ async function charProfile(url, env, ctx) {
     bests,
     at: Date.now(),
   };
+  body.grade = await gearGrade(env, region, serverId, body.name, body.profile, body.stats);
   const res = json(body, 200, { "cache-control": "public, max-age=600" });
   ctx.waitUntil(caches.default.put(key, res.clone()));
   return res;
@@ -400,6 +434,7 @@ async function sitemap(url, env) {
     `<url><loc>${o}/?lang=de</loc><xhtml:link rel="alternate" hreflang="en" href="${o}/"/><xhtml:link rel="alternate" hreflang="de" href="${o}/?lang=de"/><changefreq>weekly</changefreq><priority>0.9</priority></url>`,
     `<url><loc>${o}/ranking</loc><changefreq>daily</changefreq><priority>0.8</priority></url>`,
     `<url><loc>${o}/player</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>`,
+    `<url><loc>${o}/timers</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>`,
     `<url><loc>${o}/compare</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>`,
   ];
   try {

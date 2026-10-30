@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/site.css?v=9">
-<script src="/site.js?v=9"></script>
+<link rel="stylesheet" href="/site.css?v=10">
+<script src="/site.js?v=10"></script>
 <style>
   /* A character's page as an in-game character window: portrait and combat power up top, then PeakMeter's bests,
      gear slots with rarity frames, Daevanion, stats and skills – all in the site's dark glass windows. */
@@ -55,6 +55,12 @@
   .cp b { display: block; font: 700 clamp(46px, 6vw, 72px)/1 var(--hud); letter-spacing: .01em; font-variant-numeric: tabular-nums; }
   .cp span { color: var(--dim); font: 600 12px/1 var(--hud); letter-spacing: .12em; text-transform: uppercase; }
   .cp .il { margin-top: 16px; }
+  .grade { margin-top: 18px; display: inline-block; text-align: left; max-width: 280px; }
+  .grow2 { display: flex; gap: 12px; align-items: center; }
+  .gsub { font: 600 11px/1 var(--hud); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+  .gtxt { font-size: 13px; color: var(--dim); margin-top: 5px; line-height: 1.4; }
+  .cp .gtxt b { display: inline; font: 600 13px/1.4 var(--body); letter-spacing: 0; color: var(--text); background: none; -webkit-text-fill-color: currentColor; }
+  @media (max-width: 800px) { .grade { text-align: center; } .grow2 { justify-content: center; } }
   .cp .il b { font-size: 28px; color: var(--fa); -webkit-text-fill-color: currentColor; background: none; }
   @media (max-width: 800px) {
     .prof .wrap { grid-template-columns: minmax(0, 1fr); text-align: center; gap: 22px; }
@@ -296,7 +302,10 @@ const T = de ? {
   optinH: "Noch keine Ranking-Kills.", optinP: "Im PeakMeter unter Einstellungen „Am Ranking teilnehmen“ einschalten. Nach jedem Dungeon-Boss-Kill erscheinen hier deine Bestwerte mit Platz.",
   dl: "PeakMeter laden", dps: "DPS", hps: "Heilung/s", stagger: "Stagger/s", of: "von", place: "Platz", fight: "Kampf", party: "Gruppe",
   weapons: "Waffen", armor: "Rüstung", acc: "Schmuck", pet: "Pet", wing: "Flügel", active: "Aktiv", passive: "Passiv", dp: "DP", equipped: "ausgerüstet",
-  copied: "Kopiert ✓", titles: (a, b) => `${a} von ${b} Titeln`, all: "Alle Skills →", less: "Weniger ←", lv: "Stufe",
+  copied: "Kopiert ✓", titles: (a, b) => `${a} von ${b} Titeln`,
+  gradeLbl: "Ausrüstungs-Note", gradeBetter: p => `Besser als ${p} %`, gradeOf: (c, lv, n) => `der ${c} (${lv}, ${n} erfasst)`,
+  gradeFew: (n, need, c) => `Noch zu wenige ${c} dieser Stufe erfasst (${n} von ${need}). Jedes aufgerufene Profil zählt mit.`,
+  gradeHow: "Vergleich der Gegenstandsstufe mit allen hier aufgerufenen Charakteren gleicher Klasse und Stufe. M = oberstes 1 %, S = Top 5 %, A = Top 15 %, B = Top 35 %, C = Top 60 %.", all: "Alle Skills →", less: "Weniger ←", lv: "Stufe",
   dv: { pick: "Fahre über einen Knoten oder tippe ihn an.", open: "Freigeschaltet", closed: "Gesperrt", start: "Startpunkt", nodes: "Knoten freigeschaltet", stats: "Freigeschaltete Werte",
     skills: "Fähigkeiten-Stufen", none: "Noch nichts freigeschaltet.", err: "Das Brett ist gerade nicht erreichbar.", loading: "Brett wird geladen …", close: "Schließen" },
   cats: { Attack: "Angriff", Defense: "Verteidigung", Etc: "Sonstiges" }, equipT: "Wirkung angelegt", collectT: "Sammelbonus", ownedT: "gesammelt",
@@ -309,7 +318,10 @@ const T = de ? {
   optinH: "No ranked kills yet.", optinP: "In PeakMeter, turn on Settings → “Join the ranking”. After every dungeon boss kill your best values show up here with your place.",
   dl: "Get PeakMeter", dps: "DPS", hps: "Healing/s", stagger: "Stagger/s", of: "of", place: "Place", fight: "Fight", party: "Party",
   weapons: "Weapons", armor: "Armor", acc: "Accessories", pet: "Pet", wing: "Wings", active: "Active", passive: "Passive", dp: "DP", equipped: "equipped",
-  copied: "Copied ✓", titles: (a, b) => `${a} of ${b} titles`, all: "All skills →", less: "Less ←", lv: "Lv",
+  copied: "Copied ✓", titles: (a, b) => `${a} of ${b} titles`,
+  gradeLbl: "Gear grade", gradeBetter: p => `Better than ${p}%`, gradeOf: (c, lv, n) => `of ${c} (${lv}, ${n} known)`,
+  gradeFew: (n, need, c) => `Not enough ${c} of this level known yet (${n} of ${need}). Every profile looked up counts.`,
+  gradeHow: "Item level compared with every character of the same class and level looked up here. M = top 1%, S = top 5%, A = top 15%, B = top 35%, C = top 60%.", all: "All skills →", less: "Less ←", lv: "Lv",
   dv: { pick: "Hover over a node or tap it.", open: "Unlocked", closed: "Locked", start: "Starting point", nodes: "nodes unlocked", stats: "Unlocked stats",
     skills: "Skill levels", none: "Nothing unlocked yet.", err: "The board is not reachable right now.", loading: "Loading the board …", close: "Close" },
   cats: { Attack: "Attack", Defense: "Defense", Etc: "Other" }, equipT: "Equipped effect", collectT: "Collection bonus", ownedT: "collected",
@@ -397,7 +409,7 @@ async function showProfile(region, server, name) {
   $("pFacts").innerHTML = facts.join("");
   const il = (d.stats || []).find(s => s.type === "ItemLevel");
   $("pCp").innerHTML = (p.cp ? '<b class="metal">' + num(p.cp) + "</b><span>" + T.cp + "</span>" : "") +
-    (il ? '<div class="il"><b>' + num(il.value) + "</b><span>" + T.il + "</span></div>" : "");
+    (il ? '<div class="il"><b>' + num(il.value) + "</b><span>" + T.il + "</span></div>" : "") + gradeBlock(d.grade, p);
   PM.share("pShare", {
     url: location.origin + profileUrl(region, d.server, d.name),
     text: d.name + " – " + (de ? "AION-2-Profil auf PeakMeter" : "AION 2 profile on PeakMeter"),
@@ -416,6 +428,16 @@ async function showProfile(region, server, name) {
   renderBoards(d);
   renderSkills(d);
   $("note").textContent = T.src(new Date(d.at).toLocaleString(de ? "de-DE" : undefined));
+}
+
+// The gear grade: tier, and how many of the same class and level have a lower item level.
+function gradeBlock(g, p) {
+  if (!g) return "";
+  const cls = esc(p.className || "");
+  const lv = g.lo === g.hi ? T.lvl + " " + g.lo : T.lvl + " " + g.lo + "–" + g.hi;
+  if (!g.tier) return '<div class="grade"><p class="gsub">' + T.gradeLbl + '</p><p class="gtxt">' + T.gradeFew(g.n, g.need, cls) + "</p></div>";
+  return '<div class="grade" title="' + esc(T.gradeHow) + '"><div class="grow2">' + PM.gradeBadge(g.tier, 50) + '<div><p class="gsub">' + T.gradeLbl + '</p><p class="gtxt"><b>' +
+    T.gradeBetter(g.pct) + "</b> " + T.gradeOf(cls, lv, g.n) + "</p></div></div></div>";
 }
 
 function notFound(msg) {

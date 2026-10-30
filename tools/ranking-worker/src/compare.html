@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/site.css?v=9">
-<script src="/site.js?v=9"></script>
+<link rel="stylesheet" href="/site.css?v=10">
+<script src="/site.js?v=10"></script>
 <style>
   /* A duel: two fighters facing each other across a VS seal, then every value mirrored around a centre line,
      the stronger side lit in the up colour. */
@@ -170,7 +170,7 @@ const de = PM.de, $ = id => document.getElementById(id);
 const T = de ? {
   pickA: "Herausforderer wählen", pickB: "Gegner wählen", ph: "Charaktername", go: "Suchen", lvl: "Stufe", none: "Keine Charaktere gefunden.",
   err: "Die offizielle Suche antwortet gerade nicht.", notFound: "Charakter nicht gefunden.", change: "Wechseln", profile: "Profil", cp: "Kampfkraft",
-  il: "Gegenstandsstufe", level: "Stufe", titles: "Titel", dvn: "Daevanion-Knoten", skills: "Skill-Stufen gesamt", stronger: "stärker",
+  il: "Gegenstandsstufe", grade: "Ausrüstungs-Note (Perzentil)", level: "Stufe", titles: "Titel", dvn: "Daevanion-Knoten", skills: "Skill-Stufen gesamt", stronger: "stärker",
   noPm: "Keiner der beiden hat Ranking-Kills. Im PeakMeter „Am Ranking teilnehmen“ einschalten.", onlyOne: "nur", dps: "DPS", hps: "Heilung/s", stagger: "Stagger/s",
   noOfficial: "Offizielle Daten gerade nicht erreichbar.", races: { 1: "Elyos", 2: "Asmodier" }, searching: "Suche …", tw: "Für Taiwan gibt es keine öffentliche Suche.",
   slots: { MainHand: "Waffe", SubHand: "Nebenhand", Helmet: "Kopf", Shoulder: "Schulter", Torso: "Brust", Pants: "Beine", Gloves: "Hände", Boots: "Füße",
@@ -178,7 +178,7 @@ const T = de ? {
 } : {
   pickA: "Choose a challenger", pickB: "Choose an opponent", ph: "Character name", go: "Search", lvl: "Lv", none: "No characters found.",
   err: "The official search is not answering right now.", notFound: "Character not found.", change: "Change", profile: "Profile", cp: "Combat power",
-  il: "Item level", level: "Level", titles: "Titles", dvn: "Daevanion nodes", skills: "Total skill levels", stronger: "stronger",
+  il: "Item level", grade: "Gear grade (percentile)", level: "Level", titles: "Titles", dvn: "Daevanion nodes", skills: "Total skill levels", stronger: "stronger",
   noPm: "Neither has ranked kills yet. In PeakMeter, turn on “Join the ranking”.", onlyOne: "only", dps: "DPS", hps: "Healing/s", stagger: "Stagger/s",
   noOfficial: "Official data not reachable right now.", races: { 1: "Elyos", 2: "Asmodian" }, searching: "Searching …", tw: "Taiwan has no public character search.",
   slots: { MainHand: "Weapon", SubHand: "Off-hand", Helmet: "Head", Shoulder: "Shoulder", Torso: "Chest", Pants: "Legs", Gloves: "Hands", Boots: "Feet",
@@ -259,7 +259,7 @@ function drawFighter(i) {
   slotEl(i).innerHTML = '<div class="fighter win' + (i ? " b" : "") + '" id="f' + i + '"><div class="ph" style="--cc:' + cc + '">' +
     (p.img ? '<img class="port" src="' + esc(p.img) + '" alt="">' : '<img class="port" alt="">') + emblem(p.cls) + "</div>" +
     '<h2 class="metal">' + esc(d.name) + '</h2><p class="sub">' + [p.level ? T.lvl + " " + p.level : "", p.className, d.server].filter(Boolean).map(esc).join(" · ") + "</p>" +
-    '<div class="cp num">' + (p.cp ? num(p.cp) : "–") + "<small>" + T.cp + '</small></div><span class="win-tag" hidden>' + T.stronger + "</span>" +
+    '<div class="cp num">' + (p.cp ? num(p.cp) : "–") + "<small>" + T.cp + "</small></div>" + (d.grade?.tier ? PM.gradeBadge(d.grade.tier, 40) : "") + '<span class="win-tag" hidden>' + T.stronger + "</span>" +
     '<div class="acts"><a class="btn sm ghost" href="/player/' + d.region + "/" + encodeURIComponent(d.server) + "/" + encodeURIComponent(d.name) + '">' + T.profile +
     '</a><button class="btn sm ghost" type="button">' + T.change + "</button></div></div>";
   slotEl(i).querySelector("button").onclick = () => { who[i] = null; data[i] = null; syncUrl(); drawPicker(i); renderRows(); };
@@ -305,6 +305,7 @@ function renderRows() {
   $("key").innerHTML = [
     mrow(T.cp, pa.cp, pb.cp, num),
     mrow(T.il, stat(A, "ItemLevel"), stat(B, "ItemLevel"), num),
+    mrow(T.grade, A.grade?.tier ? A.grade.pct : NaN, B.grade?.tier ? B.grade.pct : NaN, v => v + " %"),
     mrow(T.level, pa.level, pb.level, num),
     mrow(T.dvn, A.official ? nodes(A) : NaN, B.official ? nodes(B) : NaN, num),
     mrow(T.skills, A.official ? skillSum(A) : NaN, B.official ? skillSum(B) : NaN, num),

@@ -35,6 +35,20 @@ CREATE TABLE IF NOT EXISTS week_best (
 );
 CREATE INDEX IF NOT EXISTS week_top ON week_best (week, region, boss, metric, value DESC);
 
+-- Item level of every character looked up on the site, for the gear grade (one row per character).
+CREATE TABLE IF NOT EXISTS gear (
+  region TEXT NOT NULL,
+  server INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  cls TEXT NOT NULL,
+  level INTEGER NOT NULL,
+  il INTEGER NOT NULL,
+  cp INTEGER,
+  at INTEGER NOT NULL,
+  PRIMARY KEY (region, server, name)
+);
+CREATE INDEX IF NOT EXISTS gear_cohort ON gear (cls, level, il);
+
 -- Boss names and HP as first reported (the HP check keeps made-up damage out).
 CREATE TABLE IF NOT EXISTS bosses (
   boss INTEGER PRIMARY KEY,

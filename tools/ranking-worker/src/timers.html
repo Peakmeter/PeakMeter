@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AION 2 Event Timers – Shugo, Siege, Rift, Nahma · PeakMeter</title>
+<meta name="description" content="AION 2 event timers for EU, NA, Korea and Taiwan: Shugo Festival, air raid, Spacetime Rift, Watcher Kaira, Artifact Siege, Guardian Lord Nahma, battlefield and resets – live countdowns in your local time, plus every world boss with its respawn time.">
+<meta name="theme-color" content="#05060a">
+<link rel="icon" href="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/site.css?v=10">
+<script src="/site.js?v=10"></script>
+<style>
+  /* The bell tower: the next event as a big countdown, the next 24 hours as lanes, every event below,
+     then the world bosses as a reference table. All times in the viewer's own clock. */
+  .head { text-align: center; padding-block: 52px 22px; }
+  .head .orn { max-width: 240px; margin: 0 auto 16px; }
+  .head h1 { font-size: clamp(42px, 6.4vw, 76px); line-height: 1; }
+  .head p { color: var(--dim); margin-top: 12px; }
+  .region { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 18px; }
+  .region button { background: rgba(0,0,0,.35); color: var(--dim); border: 1px solid var(--line-2); border-radius: 4px; padding: 8px 12px; cursor: pointer;
+    font: 600 12px/1 var(--hud); letter-spacing: .08em; }
+  .region button.on { color: var(--fb); border-color: var(--fb); }
+  .tzline { margin-top: 10px; font: 600 12px/1.4 var(--hud); letter-spacing: .06em; color: var(--mute); }
+
+  .top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 20px; align-items: stretch; }
+  @media (max-width: 900px) { .top { grid-template-columns: minmax(0, 1fr); } }
+  .next { padding: 26px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .next .lbl { font: 600 12px/1 var(--hud); letter-spacing: .12em; text-transform: uppercase; color: var(--fb); }
+  .next .row { display: flex; align-items: center; gap: 14px; }
+  .next .ic { width: 54px; height: 54px; border-radius: 10px; display: grid; place-items: center; background: #15171f; border: 1px solid var(--line); flex: none; }
+  .next .ic svg { width: 32px; height: 32px; }
+  .next h2 { font-size: clamp(26px, 3.2vw, 36px); line-height: 1.05; }
+  .next .when { color: var(--dim); font-size: 14px; }
+  .next .cd { font: 700 clamp(48px, 7vw, 76px)/1 var(--hud); letter-spacing: .02em; font-variant-numeric: tabular-nums; margin-top: 6px; }
+  .next .cd.run { color: var(--up); text-shadow: 0 0 22px rgba(79,224,154,.35); }
+  .next .then { color: var(--dim); font-size: 14px; border-top: 1px solid var(--line-2); padding-top: 12px; margin-top: auto; }
+  .next .then b { color: var(--text); font-weight: 600; }
+
+  /* next 24 hours */
+  .lanes { padding: 20px 20px 14px; min-width: 0; }
+  .lanes h3 { font-size: 20px; margin-bottom: 12px; }
+  .lane { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 10px; align-items: center; height: 26px; }
+  .lane .nm { font-size: 12.5px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+  .lane .nm svg { width: 14px; height: 14px; flex: none; }
+  .track { position: relative; height: 14px; background: rgba(255,255,255,.03); border-radius: 3px; }
+  .track i { position: absolute; top: 0; bottom: 0; min-width: 3px; border-radius: 2px; background: var(--c); opacity: .85; box-shadow: 0 0 8px color-mix(in srgb, var(--c) 60%, transparent); }
+  .axis { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 10px; margin-top: 6px; }
+  .axis div { position: relative; height: 16px; }
+  .axis span { position: absolute; transform: translateX(-50%); font: 600 10.5px/1 var(--hud); color: var(--mute); }
+  .axis span:first-child { transform: none; color: var(--fb); }
+  .axis span:last-child { transform: translateX(-100%); }
+  @media (max-width: 560px) { .lane, .axis { grid-template-columns: 30px minmax(0, 1fr); } .lane .nm span { display: none; } }
+
+  /* every event */
+  section.s { padding-block: 44px 0; }
+  .s-head { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+  .s-head h2 { font-size: clamp(24px, 3vw, 32px); }
+  .s-head .rule { flex: 1; height: 1px; min-width: 40px; background: linear-gradient(90deg, var(--line), transparent); }
+  .s-head p { color: var(--dim); font-size: 14px; }
+  .evs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 760px) { .evs { grid-template-columns: minmax(0, 1fr); } }
+  .ev { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 8px;
+    background: linear-gradient(180deg, rgba(20,22,33,.9), rgba(12,13,20,.9)); border: 1px solid var(--line-2); min-width: 0; }
+  .ev.run { border-color: color-mix(in srgb, var(--up) 55%, transparent); }
+  .ev .ic { width: 44px; height: 44px; border-radius: 8px; display: grid; place-items: center; background: #15171f; border: 1px solid var(--line-2); }
+  .ev .ic svg { width: 26px; height: 26px; }
+  .ev b { display: block; font-weight: 600; font-size: 15px; }
+  .ev .rule2 { color: var(--mute); font-size: 12.5px; margin-top: 2px; }
+  .ev .t { text-align: right; }
+  .ev .t .c { font: 700 19px/1 var(--hud); font-variant-numeric: tabular-nums; }
+  .ev .t .at { font: 600 12px/1 var(--hud); color: var(--dim); margin-top: 5px; display: block; }
+  .ev.run .t .c { color: var(--up); }
+  .ev .tag { font: 700 10px/1 var(--hud); letter-spacing: .1em; text-transform: uppercase; color: #0b0c12; background: var(--up); padding: 3px 6px; border-radius: 3px; vertical-align: 2px; margin-left: 6px; }
+
+  /* world bosses */
+  .wb { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 760px) { .wb { grid-template-columns: minmax(0, 1fr); } }
+  .wb .win { padding: 18px 20px; }
+  .wb h3 { font-size: 22px; margin-bottom: 8px; }
+  .boss { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 8px 0; border-bottom: 1px dotted rgba(255,255,255,.08); font-size: 14px; }
+  .boss:last-child { border-bottom: 0; }
+  .boss span { font: 600 13px/1 var(--hud); color: var(--gold); white-space: nowrap; align-self: center; }
+  .note { color: var(--mute); font-size: 13px; margin-top: 14px; }
+  .note a { color: var(--fa); }
+</style>
+</head>
+<body>
+<nav class="top" data-page="timers" aria-label="Main"></nav>
+
+<main class="wrap">
+  <header class="head">
+    <div class="orn"><i></i></div>
+    <h1 class="metal" data-i="h1">The bell tower</h1>
+    <p data-i="lead">Every AION 2 event, counted down in your own time.</p>
+    <div class="region" id="region"></div>
+    <p class="tzline" id="tzline"></p>
+  </header>
+
+  <div class="top">
+    <div class="win next" id="next"></div>
+    <div class="win lanes"><h3 data-i="h24">The next 24 hours</h3><div id="lanes"></div><div class="axis"><i></i><div id="axis"></div></div></div>
+  </div>
+
+  <section class="s">
+    <div class="s-head"><h2 data-i="allH">All events</h2><span class="rule"></span><p data-i="allP">Sorted by what comes next.</p></div>
+    <div class="evs" id="evs"></div>
+  </section>
+
+  <section class="s">
+    <div class="s-head"><h2 data-i="wbH">World bosses</h2><span class="rule"></span><p data-i="wbP">Respawn after a kill.</p></div>
+    <div class="wb" id="wb"></div>
+    <p class="note" data-i="wbNote">World bosses come back a set time after each kill, so their timers differ per server. PeakMeter counts them down live in the game, with a soft chime: <a href="/">get the meter</a>.</p>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="fl"><a href="/ranking" data-i="fRank">Ranking</a><a href="/player" data-i="fPl">Players</a><a href="https://github.com/Peakmeter/PeakMeter">GitHub</a><a href="https://ko-fi.com/peakmeter">Ko-fi</a></div>
+    <p data-i="fSrc">Schedules as reported by the community; NCSOFT publishes no official times. Not affiliated with NCSOFT.</p>
+  </div>
+</footer>
+
+<script>
+PM.translate({
+  h1: "Der Glockenturm", lead: "Jedes AION-2-Event, heruntergezählt in deiner eigenen Uhrzeit.", h24: "Die nächsten 24 Stunden",
+  allH: "Alle Events", allP: "Sortiert nach dem, was als Nächstes kommt.", wbH: "Weltbosse", wbP: "Respawn nach einem Kill.",
+  wbNote: 'Weltbosse kommen eine feste Zeit nach jedem Kill zurück, ihre Timer sind also pro Server verschieden. PeakMeter zählt sie im Spiel live herunter, mit sanftem Ton: <a href="/">Meter laden</a>.',
+  fRank: "Rangliste", fPl: "Spieler", fSrc: "Zeiten nach Angaben der Community; NCSOFT veröffentlicht keine offiziellen Zeiten. Nicht mit NCSOFT verbunden.",
+});
+const de = PM.de, $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// The meter's own schedule (EventTimers.cs): times in the server's zone, resets in UTC.
+const EVENTS = [
+  { id: "shugo", en: "Shugo Festival", de: "Shugo-Festival", hourly: 0, dur: 10, icon: "shugo" },
+  { id: "invasion", en: "Air raid / Dimensional invasion", de: "Luftangriff / Dimensionsinvasion", hourly: 30, dur: 10, icon: "invasion" },
+  { id: "rift", en: "Spacetime Rift", de: "Raumzeit-Riss", times: ["02:00", "05:00", "08:00", "11:00", "14:00", "17:00", "20:00", "23:00"], dur: 10, icon: "rift" },
+  { id: "kaira", en: "Watcher Kaira", de: "Wächterin Kaira", times: ["01:00", "04:00", "07:00", "10:00", "13:00", "16:00", "19:00", "22:00"], dur: 30, icon: "boss" },
+  { id: "battlefield", en: "Battlefield", de: "Schlachtfeld", times: ["11:00", "19:00"], dur: 120, icon: "battle" },
+  { id: "siege", en: "Artifact Siege", de: "Artefakt-Belagerung", days: [1, 4, 6], times: ["21:00"], dur: 30, icon: "siege" },
+  { id: "siegebosses", en: "Siege bosses", de: "Belagerungs-Bosse", days: [1, 4, 6], times: ["21:30"], dur: 30, icon: "siege" },
+  { id: "nahma", en: "Guardian Lord Nahma", de: "Wächterfürst Nahma", days: [5, 0], times: ["21:00"], dur: 30, icon: "siege" },
+  { id: "daily", en: "Daily reset", de: "Täglicher Reset", times: ["07:00"], tz: "UTC", dur: 1, icon: "reset" },
+  { id: "weekly", en: "Weekly reset", de: "Wöchentlicher Reset", days: [3], times: ["07:00"], tz: "UTC", dur: 1, icon: "reset" },
+];
+const ICON = {
+  shugo: ["M4 11h16v9H4z M3 7h18v4H3z M10.9 7h2.2v13h-2.2z M12 7c-1.5-4-6-4.5-5.5-1.2C6.8 7 9.5 7 12 7z M12 7c1.5-4 6-4.5 5.5-1.2C17.2 7 14.5 7 12 7z", "", "#FFD36E", "#FF8A5B"],
+  invasion: ["M2 15c5-.6 9.5-3.8 12.5-9.5 1.2 4 .3 7-1.6 9.2 3-.9 6.2-.7 9.1 1.2-4 .7-7.3 2.8-9.4 6.1-1.3-3.4-4.7-5.6-10.6-7z", "", "#9AD8FF", "#5B7CFF"],
+  rift: ["", "M12 3a9 9 0 1 1-0.01 0 M12 6.5a5.5 5.5 0 1 1-0.01 0 M12 10a2 2 0 1 1-0.01 0", "#C79BFF", "#6B4FD8"],
+  boss: ["M3 17.5 4.8 7.5l4.7 4.6L12 4.5l2.5 7.6 4.7-4.6L21 17.5z M3 19h18v2.2H3z", "", "#FFE08A", "#FF9F59"],
+  siege: ["M4 21V8h3v3h2V8h2v3h2V8h2v3h2V8h3v13h-6.5v-5a1.5 1.5 0 0 0-3 0v5z", "", "#FFC27A", "#E0703C"],
+  battle: ["", "M4 4l10 10 M20 4L10 14 M6.5 13.5l4 4 M17.5 13.5l-4 4 M5 19l2.5-2.5 M19 19l-2.5-2.5", "#FF8A8A", "#E0445E"],
+  reset: ["", "M19.5 12a7.5 7.5 0 1 1-2.2-5.3 M19.5 4v4.8h-4.8", "#9EF0C8", "#3FD18B"],
+};
+let gid = 0;
+const svg = k => { const [f, s, a, b] = ICON[k]; const id = "ig" + (gid++); return '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + a + '"/><stop offset="1" stop-color="' + b + '"/></linearGradient></defs>' +
+  (f ? '<path d="' + f + '" fill="url(#' + id + ')"/>' : "") + (s ? '<path d="' + s + '" fill="none" stroke="url(#' + id + ')" stroke-width="2.1" stroke-linecap="round"/>' : "") + "</svg>"; };
+const color = k => ICON[k][3];
+
+const REGIONS = [["eu", "EU", "Europe/Berlin"], ["nae", "NA-E", "America/New_York"], ["naw", "NA-W", "America/New_York"], ["kr", "KR", "Asia/Seoul"], ["tw", "TW", "Asia/Taipei"]];
+let region = (() => { try { return localStorage.getItem("pm-region"); } catch { return null; } })() || "eu";
+if (!REGIONS.some(r => r[0] === region)) region = "eu";
+
+// ---------------- time zone arithmetic (wall clock in a zone ↔ UTC)
+const fmtCache = {};
+function parts(ms, tz) {
+  const f = fmtCache[tz] || (fmtCache[tz] = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+  const p = {}; for (const x of f.formatToParts(new Date(ms))) p[x.type] = x.value; return p;
+}
+function offset(ms, tz) { const p = parts(ms, tz); return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second) - Math.floor(ms / 1000) * 1000; }
+function wallToUtc(y, mo, d, h, mi, tz) { const g = Date.UTC(y, mo, d, h, mi); let u = g - offset(g, tz); const o2 = offset(u, tz); if (g - o2 !== u) u = g - o2; return u; }
+// Every start of an event from `from` on, up to `until` (UTC ms).
+function occurrences(ev, tz, from, until) {
+  const zone = ev.tz || tz, p = parts(from, zone), out = [];
+  const times = ev.times ? ev.times.map(t => t.split(":").map(Number)) : Array.from({ length: 24 }, (_, h) => [h, ev.hourly]);
+  for (let dd = -1; dd <= 8; dd++) {
+    const day = new Date(Date.UTC(+p.year, +p.month - 1, +p.day + dd));
+    if (ev.days && !ev.days.includes(day.getUTCDay())) continue;
+    for (const [h, m] of times) {
+      const s = wallToUtc(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), h, m, zone);
+      if (s + ev.dur * 60000 > from && s < until) out.push(s);
+    }
+  }
+  return out.sort((a, b) => a - b);
+}
+
+const loc = de ? "de-DE" : "en-GB";
+const hm = ms => new Date(ms).toLocaleTimeString(loc, { hour: "2-digit", minute: "2-digit" });
+const dayname = ms => {
+  const d = new Date(ms), now = new Date(), tm = new Date(now); tm.setDate(now.getDate() + 1);
+  if (d.toDateString() === now.toDateString()) return de ? "heute" : "today";
+  if (d.toDateString() === tm.toDateString()) return de ? "morgen" : "tomorrow";
+  return d.toLocaleDateString(loc, { weekday: "long" });
+};
+const cd = ms => { ms = Math.max(0, ms); const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, x = s % 60;
+  if (h >= 48) return Math.floor(h / 24) + (de ? " T " : "d ") + (h % 24) + (de ? " Std" : "h");
+  return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(x).padStart(2, "0"); };
+const name = ev => de ? ev.de : ev.en;
+const DAYS = de ? ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"] : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+function ruleText(ev, tz) {
+  const every = ev.hourly != null ? (de ? "jede Stunde zur Minute :" : "every hour at :") + String(ev.hourly).padStart(2, "0")
+    : (ev.days ? ev.days.map(d => DAYS[d]).join(", ") + " · " : (de ? "täglich · " : "daily · ")) + ev.times.join(", ");
+  return every + " " + (ev.tz === "UTC" ? "UTC" : (de ? "Serverzeit" : "server time")) + " · " + ev.dur + " min";
+}
+
+// ---------------- drawing
+$("region").innerHTML = REGIONS.map(r => '<button type="button" data-r="' + r[0] + '">' + r[1] + "</button>").join("");
+$("region").querySelectorAll("button").forEach(b => b.onclick = () => { region = b.dataset.r; try { localStorage.setItem("pm-region", region); } catch {} drawStatic(); tick(); });
+
+let state = [];
+function drawStatic() {
+  $("region").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.r === region));
+  const tz = REGIONS.find(r => r[0] === region)[2];
+  const own = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  $("tzline").textContent = (de ? "Serverzeit " : "Server time ") + tz.split("/").pop().replace("_", " ") + " · " + (de ? "angezeigt in deiner Zeit (" : "shown in your time (") + own.split("/").pop().replace("_", " ") + ")";
+  // 24-hour lanes
+  const now = Date.now(), span = 24 * 3600000;
+  $("lanes").innerHTML = EVENTS.map(ev => {
+    const bars = occurrences(ev, tz, now, now + span).map(s => {
+      const a = Math.max(0, (s - now) / span * 100), w = Math.max(.35, (Math.min(s + ev.dur * 60000, now + span) - Math.max(s, now)) / span * 100);
+      return '<i style="left:' + a + "%;width:" + w + '%" title="' + esc(name(ev)) + " · " + hm(s) + '"></i>';
+    }).join("");
+    return '<div class="lane"><span class="nm">' + svg(ev.icon) + "<span>" + esc(name(ev)) + '</span></span><div class="track" style="--c:' + color(ev.icon) + '">' + bars + "</div></div>";
+  }).join("");
+  const ticks = [0, 6, 12, 18, 24].map(h => '<span style="left:' + (h / 24 * 100) + '%">' + (h === 0 ? (de ? "jetzt" : "now") : hm(now + h * 3600000)) + "</span>").join("");
+  $("axis").innerHTML = ticks;
+  $("evs").innerHTML = EVENTS.map((ev, i) => '<div class="ev" id="ev' + i + '"><span class="ic">' + svg(ev.icon) + '</span><div style="min-width:0"><b>' + esc(name(ev)) +
+    '<span class="tag" hidden>' + (de ? "läuft" : "live") + '</span></b><p class="rule2">' + esc(ruleText(ev, tz)) + '</p></div><div class="t"><span class="c"></span><span class="at"></span></div></div>').join("");
+}
+
+function tick() {
+  const tz = REGIONS.find(r => r[0] === region)[2], now = Date.now();
+  state = EVENTS.map((ev, i) => {
+    const s = occurrences(ev, tz, now, now + 9 * 86400000)[0];
+    return { ev, i, s, e: s + ev.dur * 60000, run: s <= now };
+  }).filter(x => x.s != null).sort((a, b) => (a.run ? 0 : 1) - (b.run ? 0 : 1) || (a.run ? a.e - b.e : a.s - b.s));
+  // big card: the next event that is not a reset, running first
+  const pick = state.find(x => x.ev.icon !== "reset") || state[0];
+  const later = state.filter(x => x !== pick && !x.run && x.ev.icon !== "reset")[0];
+  $("next").innerHTML = '<p class="lbl">' + (pick.run ? (de ? "Läuft gerade" : "Happening now") : (de ? "Als Nächstes" : "Up next")) + '</p><div class="row"><span class="ic">' + svg(pick.ev.icon) +
+    "</span><div><h2>" + esc(name(pick.ev)) + '</h2><p class="when">' + (pick.run ? (de ? "endet um " : "ends at ") + hm(pick.e) : dayname(pick.s) + " · " + hm(pick.s)) +
+    '</p></div></div><div class="cd' + (pick.run ? " run" : "") + '">' + cd(pick.run ? pick.e - now : pick.s - now) + "</div>" +
+    (later ? '<p class="then">' + (de ? "Danach: " : "Then: ") + "<b>" + esc(name(later.ev)) + "</b> · " + dayname(later.s) + " " + hm(later.s) + "</p>" : "");
+  // the list, in order
+  const list = $("evs");
+  state.forEach((x, k) => {
+    const el = $("ev" + x.i); if (!el) return;
+    el.style.order = k;
+    el.classList.toggle("run", x.run);
+    el.querySelector(".tag").hidden = !x.run;
+    el.querySelector(".c").textContent = x.run ? cd(x.e - now) : cd(x.s - now);
+    el.querySelector(".at").textContent = x.run ? (de ? "bis " : "until ") + hm(x.e) : dayname(x.s) + " " + hm(x.s);
+  });
+  list.style.display = "grid";
+}
+
+// world bosses (respawn after a kill)
+const BOSSES = [[2100050, "Kernon of the West", "Kernon des Westens", 30, "Verteron"], [2100003, "Neikel of the East", "Neikel des Ostens", 30, "Verteron"], [2100040, "Rotten Kutar", "Verfaulter Kutar", 30, "Verteron"], [2100141, "Blooming Korin", "Blühender Korin", 60, "Verteron"], [2100079, "Bodyguard Teegant", "Leibgardist Teegant", 90, "Verteron"], [2100076, "Kusan the Mad Gladiator", "Wahnstreiter Kusan", 120, "Verteron"], [2100077, "Ritualist Garshim", "Erzpriester Garshim", 120, "Verteron"], [2100178, "Bloodfang Pnyn", "Blutzahn Pnyn", 180, "Verteron"], [2100177, "Furious Saursus", "Wütende Saursus", 180, "Verteron"], [2100988, "Scholar Aulla", "Gelehrter Aulla", 120, "Verteron"], [2100991, "Chaser Taulo", "Verfolger Taulo", 120, "Verteron"], [2100989, "Forest Warrior Aullamu", "Waldkrieger Aullamu", 120, "Verteron"], [2100582, "Heretic Layla", "Apostatin Layla", 180, "Verteron"], [2100617, "Black Tentacle Lawa", "Schwarztentakel Lawa", 120, "Verteron"], [2100708, "Centurion Demiros", "Zenturio Demiros", 120, "Verteron"], [2100718, "Divine Ansas", "Heiliger Ansas", 360, "Verteron"], [2100876, "Harvest Manager Moshav", "Ernteaufseher Moshav", 180, "Verteron"], [2100877, "Sentinel K'nash", "Überwachungswaffe K'nash", 120, "Verteron"], [2101016, "Researcher Setram", "Forscher Setram", 180, ""], [2100661, "Phantasm Kasia", "Traumtrug Kasia", 360, "Verteron"], [2101120, "Silent Dartan", "Schweigender Dartan", 180, ""], [2101122, "Soul Ruler Kashapa", "Seelenherrscher Kashapa", 360, ""], [2101131, "High Commander Lagta", "Legat Lagta", 360, ""], [2101074, "Eternal Gartua", "Ewiger Gartua", 360, ""], [2400017, "Melted Danar", "Geschmolzener Danar", 30, "Altgard"], [2400074, "Black Warrior Aed", "Dunkelkrieger Aed", 30, "Altgard"], [2400140, "Faithful Rajit", "Treuer Rajit", 30, "Altgard"], [2400141, "Berserker Vargor", "Berserker Vargor", 60, "Altgard"], [2400223, "Blood Warrior Lannar", "Blutkrieger Lannar", 90, "Altgard"], [2400212, "Predator Garsan", "Verschlinger Garsan", 120, "Altgard"], [2400274, "Deceiver Trid", "Täuscherin Trid", 120, "Altgard"], [2400335, "Blue Wave Kelpina", "Blauwelle Kelpina", 120, "Altgard"], [2400358, "Advisor Resana", "Berater Resana", 180, "Altgard"], [2400353, "High Overseer Nutah", "Hauptaufseher Nutah", 120, "Altgard"], [2400419, "Special Operations Leader Linx", "Sondereinsatzhauptmann Linx", 180, "Altgard"], [2400424, "Desecrator Newbold", "Schänder Newbold", 240, "Altgard"], [2400425, "Specter Archon Axios", "Schattenarchon Axios", 240, "Altgard"], [2400474, "Addicted Hardirun", "Vergifteter Hadirun", 180, "Altgard"], [2400504, "Executioner Barthien", "Henker Barthien", 240, "Altgard"], [2400593, "Drakan Battalion Weapon Guruta", "Bataillonswaffe Guruta (Drakan)", 360, "Altgard"], [2400607, "Veteran Shujakan", "Veteran Shujakan", 180, "Altgard"], [2400608, "Visionary Karuka", "Visionärer Karuka", 240, "Altgard"], [2400659, "Dark Shadow Vishwada", "Dunkelschatten Vishwada", 360, "Altgard"], [2400709, "Sharp Shylak", "Scharfer Shylak", 360, "Altgard"], [2400855, "Silent Dartan", "Schweigender Dartan", 360, "Altgard"], [2400854, "Soul Ruler Kashapa", "Seelenherrscher Kashapa", 360, "Altgard"], [2400853, "High Commander Lagta", "Legat Lagta", 720, "Altgard"], [2400800, "Immortal Gartua", "Unsterblicher Gartua", 720, "Altgard"]];
+const byRegion = {};
+for (const [code, en, dn, min, reg] of BOSSES) (byRegion[reg] = byRegion[reg] || []).push({ code, name: de ? dn : en, min });
+$("wb").innerHTML = Object.entries(byRegion).map(([reg, list]) => '<div class="win"><h3>' + esc(reg) + "</h3>" +
+  list.sort((a, b) => a.min - b.min || a.name.localeCompare(b.name)).map(b => '<div class="boss"><b style="font-weight:500">' + esc(b.name) + "</b><span>" +
+    (b.min >= 60 ? (b.min / 60) + " h" : b.min + " min") + "</span></div>").join("") + "</div>").join("");
+
+drawStatic();
+tick();
+setInterval(tick, 1000);
+setInterval(drawStatic, 5 * 60000);
+</script>
+</body>
+</html>
