@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Klick auf die Energie öffnet die Charakter-Übersicht, fremde Charaktere aufgeräumt";
-    private const string WhatsNewEn = "clicking the energy opens the character overview, strangers cleaned up";
+    private const string WhatsNew = "Logs → Buffs zeigt jetzt in Klartext, welcher Buff wie viel Schaden gebracht hat";
+    private const string WhatsNewEn = "Logs → Buffs now says in plain words how much damage each buff added";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -152,6 +152,9 @@ public partial class App : Application
         if (e.Args.Contains("--shots")) // test aid for screenshots: after the demo fight, open the windows worth showing
             new System.Windows.Threading.DispatcherTimer(TimeSpan.FromSeconds(90), System.Windows.Threading.DispatcherPriority.Background,
                 (t, _) => { ((System.Windows.Threading.DispatcherTimer)t!).Stop(); ShowPets(); ShowLogs(); ShowSettings(); }, Dispatcher).Start();
+        if (e.Args.Contains("--buffs")) // test aid: after the demo fight, open the logs on the buff view
+            new System.Windows.Threading.DispatcherTimer(TimeSpan.FromSeconds(90), System.Windows.Threading.DispatcherPriority.Background,
+                (t, _) => { ((System.Windows.Threading.DispatcherTimer)t!).Stop(); ShowLogs(); _logs?.ShowBuffView(); }, Dispatcher).Start();
         if (e.Args.Contains("--open-all"))
         {
             ShowTimers(); ShowLogs(); ShowEnergy(); ShowGearProbe(); ShowTickets(); ShowSettings(); ShowTicketProbe(); ShowServerProbe();

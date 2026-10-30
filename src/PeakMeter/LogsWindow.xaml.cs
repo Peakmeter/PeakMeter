@@ -155,6 +155,7 @@ public partial class LogsWindow : Window
         DeathText.Visibility = Visibility.Collapsed;
         GroupButton.Foreground = (Brush)FindResource(_selected == GroupId ? "Accent" : "Text");
         BuffsButton.Foreground = (Brush)FindResource(_selected == BuffsId ? "Accent" : "Text");
+        Skills.ItemTemplate = (DataTemplate)FindResource(_selected == BuffsId ? "BuffTemplate" : "SkillTemplate");
         if (_selected == BuffsId)
         {
             ShowBuffs(r, width);
@@ -205,6 +206,13 @@ public partial class LogsWindow : Window
     /// <summary>"Player" id of the buff view.</summary>
     private const uint BuffsId = 0xFFFF_FFFD;
 
+    /// <summary>Opens the buff view of the chosen fight.</summary>
+    public void ShowBuffView()
+    {
+        _selected = BuffsId;
+        ShowRecord();
+    }
+
     private void Buffs_Click(object sender, RoutedEventArgs e)
     {
         _selected = _selected == BuffsId ? _record?.Summary.Combatants.FirstOrDefault(c => c.IsSelf)?.ActorId : BuffsId;
@@ -224,26 +232,10 @@ public partial class LogsWindow : Window
         SkillStats.Text = r.Buffs is null
             ? L.S("Keine Buff-Daten: Kämpfe werden erst ab v1.29.0 mit Buffs gespeichert.", "No buff data: fights are saved with buffs from v1.29.0 on.")
             : buffs.Count == 0 ? L.S("In diesem Kampf wurden keine Buffs erkannt.", "No buffs were seen in this fight.")
-            : L.S("Rechts: Uptime · Mitte: DPS mit / ohne", "Right: uptime · middle: DPS with / without");
-        var swidth = Math.Max(0, Skills.ActualWidth > 0 ? Skills.ActualWidth : width);
-        var dim = ClassStyle.Bar(GameClass.Unknown, 0.22);
-        Skills.ItemsSource = buffs.Select(b =>
-        {
-            var who = b.OnTarget ? L.S("Debuff auf dem Boss", "debuff on the boss") : $"{b.Players}/{b.PlayersInFight}";
-            var by = b.CasterName is { Length: > 0 } c && !b.OnTarget ? L.S($" · von {c}", $" · by {c}") : b.OnTarget && b.CasterName is { Length: > 0 } c2 ? L.S($" · von {c2}", $" · by {c2}") : "";
-            var compare = b is { DpsWith: { } w, DpsWithout: { } wo } ? $"{Format.Compact(w)} / {Format.Compact(wo)}" : "–";
-            var gain = b is { DpsWith: { } w2, DpsWithout: { } wo2 } && wo2 > 0 ? $"{(w2 / wo2 - 1) * 100:+0;-0;0}%" : "";
-            return new SkillVm
-            {
-                Name = $"{b.Name}   {who}{by}",
-                Icon = b.Icon is { } icon ? SkillIcons.ByName(icon) : null,
-                Stagger = gain,
-                Damage = compare,
-                Share = Format.Share(b.Uptime),
-                BarWidth = Math.Round(swidth * b.Uptime),
-                BarBrush = b.OnTarget ? ClassStyle.Bar(GameClass.Unknown, 0.30) : dim,
-            };
-        }).ToList();
+            : L.S("Grün = mehr Schaden · Balken = wie lange aktiv", "Green = more damage · bar = how long it was up");
+        // 26 px icon indent and 6 px right margin of the template
+        var swidth = Math.Max(0, (Skills.ActualWidth > 0 ? Skills.ActualWidth : width) - 32);
+        Skills.ItemsSource = buffs.Select(b => BuffVm.From(b, swidth)).ToList();
     }
 
     private void Group_Click(object sender, RoutedEventArgs e)
