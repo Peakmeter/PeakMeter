@@ -11,10 +11,14 @@
 
 const NC = "https://aion2.plaync.com/api/character/";
 const SEARCH = "https://api-search.plaync.com/aion2/search/v2/character";
-const PER_TICK = 20;            // official requests per minute: gentle on NCSOFT's servers
+// Gentle on NCSOFT and on D1's free daily limits (100k rows written, 5M read): about 15k writes a day at most.
+const PER_TICK = 10;            // official requests per minute
 const TOP_PER_CLASS = 50;
 const PAGES_PER_WORD = 5;       // 40 names a page
-const CYCLE_DAYS = 7;
+const MIN_LEVEL = 50;           // Korea's level cap: only those count
+const CYCLE_DAYS = 30;
+// The first cycle went over the write limit on 2026-10-30; this one waits for the daily reset.
+const RESUME_AT = Date.UTC(2026, 9, 31, 0, 5);
 const PC_CLASSES = ["gladiator", "templar", "ranger", "assassin", "elementalist", "sorcerer", "cleric", "chanter"];
 const classOf = (pcId) => (Number.isInteger(pcId) && pcId >= 5 ? PC_CLASSES[Math.floor((pcId - 5) / 4)] || null : null);
 // Common syllables of Korean names: each search finds names containing it.
@@ -27,130 +31,166 @@ const num = (v) => { const n = parseFloat(String(v ?? "").replace(/[^\d.]/g, "")
 
 export function korea(h) {
   const get = async (env, k, d) => (await env.DB.prepare("SELECT v FROM kr_job WHERE k = ?1").bind(k).first())?.v ?? d;
-  const set = (env, k, v) => env.DB.prepare("INSERT INTO kr_job (k, v) VALUES (?1, ?2) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(k, String(v)).run();
+  const setStmt = (env, k, v) => env.DB.prepare("INSERT INTO kr_job (k, v) VALUES (?1, ?2) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(k, String(v));
+  const set = (env, k, v) => setStmt(env, k, v).run();
   const q = (cid, server) => `characterId=${encodeURIComponent(decodeURIComponent(cid))}&serverId=${server}`;
   const fetchJson = async (u) => { const r = await fetch(u); if (!r.ok) throw new Error("http " + r.status); return r.json(); };
 
+  // Once: the item rows keep their lines as JSON (one write per item) and the cycle they belong to.
+  async function migrate(env) {
+    if (await get(env, "v2", null)) return;
+    for (const sql of ["ALTER TABLE kr_items ADD COLUMN lines TEXT", "ALTER TABLE kr_items ADD COLUMN at INTEGER"])
+      try { await env.DB.prepare(sql).run(); } catch {}
+    await set(env, "v2", 1);
+  }
+
   async function tick(env) {
+    if (Date.now() < RESUME_AT && !env.KR_TEST) return;
+    await migrate(env);
     const phase = await get(env, "phase", "discover");
-    let budget = PER_TICK;
+    const started = Number(await get(env, "started", 0)) || Date.now();
+    let budget = Number(env.KR_PER_TICK) || PER_TICK;
     // Local tests only: a small cycle (KR_WORDS words, KR_PAGES pages, KR_TOP players per class).
     const words = env.KR_WORDS ? WORDS.slice(0, Number(env.KR_WORDS)) : WORDS;
     const pages = Number(env.KR_PAGES) || PAGES_PER_WORD, topN = Number(env.KR_TOP) || TOP_PER_CLASS;
+    const minLevel = Number(env.KR_MIN_LEVEL) || MIN_LEVEL;
+
     if (phase === "idle") {
       if (Date.now() < Number(await get(env, "next", 0))) return;
-      await env.DB.batch([env.DB.prepare("DELETE FROM kr_chars"), env.DB.prepare("DELETE FROM kr_items"), env.DB.prepare("DELETE FROM kr_lines")]);
-      await set(env, "word", 0); await set(env, "page", 1); await set(env, "started", Date.now());
-      return set(env, "phase", "discover");
+      // A new cycle: nothing is deleted (that costs a write per row); rows of the old cycle are told apart by time.
+      return env.DB.batch([setStmt(env, "word", 0), setStmt(env, "page", 1), setStmt(env, "started", Date.now()),
+        setStmt(env, "cursor", 0), setStmt(env, "phase", "discover")]);
     }
     if (phase === "discover") {
       let word = Number(await get(env, "word", 0)), page = Number(await get(env, "page", 1));
-      if (!Number(await get(env, "started", 0))) await set(env, "started", Date.now());
+      const stmts = [];
       while (budget-- > 0 && word < words.length) {
         let list = [];
         try { list = (await fetchJson(`${SEARCH}?keyword=${encodeURIComponent(words[word])}&page=${page}&size=40`)).list || []; } catch {}
-        const stmts = list.filter((c) => c.level >= 45 && classOf(c.pcId)).map((c) => env.DB.prepare(
-          "INSERT OR IGNORE INTO kr_chars (cid, server, cls, level) VALUES (?1, ?2, ?3, ?4)").bind(c.characterId, c.serverId, classOf(c.pcId), c.level));
-        if (stmts.length) await env.DB.batch(stmts);
+        for (const c of list)
+          if (c.level >= minLevel && classOf(c.pcId))
+            stmts.push(env.DB.prepare("INSERT OR IGNORE INTO kr_chars (cid, server, cls, level) VALUES (?1, ?2, ?3, ?4)").bind(c.characterId, c.serverId, classOf(c.pcId), c.level));
         if (list.length < 40 || page >= pages) { word++; page = 1; } else page++;
       }
-      await set(env, "word", word); await set(env, "page", page);
-      if (word >= words.length) await set(env, "phase", "info");
-      return;
+      stmts.push(setStmt(env, "word", word), setStmt(env, "page", page), setStmt(env, "started", started));
+      if (word >= words.length) stmts.push(setStmt(env, "phase", "info"), setStmt(env, "cursor", 0));
+      return env.DB.batch(stmts);
     }
     if (phase === "info") {
-      const top = (await env.DB.prepare("SELECT MAX(level) AS m FROM kr_chars").first())?.m || 50;
-      const { results } = await env.DB.prepare("SELECT cid, server FROM kr_chars WHERE level >= ?1 AND info_at IS NULL LIMIT ?2").bind(top, budget).all();
-      if (!results.length) return set(env, "phase", "list");
+      // Walk the table by rowid from a stored cursor: no full scan per tick.
+      const cursor = Number(await get(env, "cursor", 0));
+      const { results } = await env.DB.prepare(
+        "SELECT rowid AS r, cid, server FROM kr_chars WHERE rowid > ?1 AND level >= ?2 AND (info_at IS NULL OR info_at < ?3) ORDER BY rowid LIMIT ?4")
+        .bind(cursor, minLevel, started, budget).all();
+      if (!results.length) return env.DB.batch([setStmt(env, "phase", "pick"), setStmt(env, "cursor", 0)]);
       const stmts = [];
       for (const c of results) {
         let cp = 0;
         try { cp = (await fetchJson(`${NC}info?lang=ko-KR&${q(c.cid, c.server)}`))?.profile?.combatPower || 0; } catch {}
-        stmts.push(env.DB.prepare("UPDATE kr_chars SET cp = ?1, info_at = ?2 WHERE cid = ?3").bind(cp, Date.now(), c.cid));
+        stmts.push(env.DB.prepare("UPDATE kr_chars SET cp = ?1, info_at = ?2 WHERE rowid = ?3").bind(cp, Date.now(), c.r));
       }
-      await env.DB.batch(stmts);
-      return;
+      stmts.push(setStmt(env, "cursor", results[results.length - 1].r));
+      return env.DB.batch(stmts);
+    }
+    if (phase === "pick") {
+      // Once per cycle: the strongest of each class, kept as a list to walk.
+      const { results } = await env.DB.prepare(
+        `SELECT cid, server FROM (SELECT cid, server, ROW_NUMBER() OVER (PARTITION BY cls ORDER BY cp DESC) AS rk FROM kr_chars
+         WHERE cp > 0 AND level >= ?2 AND info_at >= ?3) WHERE rk <= ?1`).bind(topN, minLevel, started).all();
+      return env.DB.batch([setStmt(env, "picked", JSON.stringify(results.map((c) => [c.cid, c.server]))), setStmt(env, "cursor", 0), setStmt(env, "phase", "list")]);
     }
     if (phase === "list") {
-      // The strongest of each class not listed yet.
-      const { results } = await env.DB.prepare(
-        `SELECT cid, server FROM (SELECT cid, server, listed, ROW_NUMBER() OVER (PARTITION BY cls ORDER BY cp DESC) AS rk FROM kr_chars WHERE cp > 0)
-         WHERE rk <= ?1 AND listed IS NULL LIMIT ?2`).bind(topN, budget).all();
-      if (!results.length) return set(env, "phase", "detail");
-      for (const c of results) {
-        const stmts = [env.DB.prepare("UPDATE kr_chars SET listed = 1 WHERE cid = ?1").bind(c.cid)];
+      const picked = JSON.parse(await get(env, "picked", "[]"));
+      let i = Number(await get(env, "cursor", 0));
+      const stmts = [];
+      for (; budget > 0 && i < picked.length; budget--, i++) {
+        const [cid, server] = picked[i];
         try {
-          const eq = await fetchJson(`${NC}equipment?lang=ko-KR&${q(c.cid, c.server)}`);
+          const eq = await fetchJson(`${NC}equipment?lang=ko-KR&${q(cid, server)}`);
           for (const it of eq?.equipment?.equipmentList || []) {
             if (/^(Rune|Amulet)/.test(it.slotPosName || "")) continue; // no lines
-            stmts.push(env.DB.prepare("INSERT OR IGNORE INTO kr_items (cid, slot, item, enchant, slot_pos) VALUES (?1, ?2, ?3, ?4, ?5)")
-              .bind(c.cid, it.slotPosName, it.id, it.enchantLevel || 0, it.slotPos));
+            stmts.push(env.DB.prepare(
+              `INSERT INTO kr_items (cid, slot, item, enchant, slot_pos, done, lines, at) VALUES (?1, ?2, ?3, ?4, ?5, NULL, NULL, ?6)
+               ON CONFLICT(cid, slot) DO UPDATE SET item = excluded.item, enchant = excluded.enchant, slot_pos = excluded.slot_pos, done = NULL, lines = NULL, at = excluded.at`)
+              .bind(cid, it.slotPosName, it.id, it.enchantLevel || 0, it.slotPos, started));
           }
         } catch {}
-        await env.DB.batch(stmts);
       }
+      stmts.push(setStmt(env, "cursor", i));
+      if (i >= picked.length) stmts.push(setStmt(env, "phase", "detail"), setStmt(env, "cursor", 0));
+      for (let k = 0; k < stmts.length; k += 90) await env.DB.batch(stmts.slice(k, k + 90));
       return;
     }
     if (phase === "detail") {
+      const cursor = Number(await get(env, "cursor", 0));
       const { results } = await env.DB.prepare(
-        "SELECT i.cid, i.slot, i.item, i.enchant, i.slot_pos, c.server FROM kr_items i JOIN kr_chars c ON c.cid = i.cid WHERE i.done IS NULL LIMIT ?1").bind(budget).all();
+        `SELECT i.rowid AS r, i.cid, i.slot, i.item, i.enchant, i.slot_pos, c.server FROM kr_items i JOIN kr_chars c ON c.cid = i.cid
+         WHERE i.rowid > ?1 AND i.done IS NULL AND (i.at >= ?2 OR i.at IS NULL) ORDER BY i.rowid LIMIT ?3`).bind(cursor, started, budget).all();
       if (!results.length) return set(env, "phase", "aggregate");
+      const stmts = [];
       for (const it of results) {
-        const stmts = [env.DB.prepare("UPDATE kr_items SET done = 1 WHERE cid = ?1 AND slot = ?2").bind(it.cid, it.slot)];
+        let lines = [];
         try {
           const d = await fetchJson(`${NC}equipment/item?lang=ko-KR&${q(it.cid, it.server)}&id=${it.item}&enchantLevel=${it.enchant}&slotPos=${it.slot_pos}`);
-          for (const s of d.subStats || [])
-            if (s.id) stmts.push(env.DB.prepare("INSERT OR REPLACE INTO kr_lines (cid, slot, kind, line, value) VALUES (?1, ?2, 'stat', ?3, ?4)").bind(it.cid, it.slot, s.id, num(s.value)));
-          for (const s of d.subSkills || [])
-            if (s.id) stmts.push(env.DB.prepare("INSERT OR REPLACE INTO kr_lines (cid, slot, kind, line, value) VALUES (?1, ?2, 'skill', ?3, ?4)").bind(it.cid, it.slot, String(s.id), Number(s.level) || 1));
+          lines = [...(d.subStats || []).filter((s) => s.id).map((s) => ["stat", s.id, num(s.value)]),
+            ...(d.subSkills || []).filter((s) => s.id).map((s) => ["skill", String(s.id), Number(s.level) || 1])];
         } catch {}
-        await env.DB.batch(stmts);
+        stmts.push(env.DB.prepare("UPDATE kr_items SET done = 1, lines = ?1 WHERE rowid = ?2").bind(JSON.stringify(lines), it.r));
       }
-      return;
+      stmts.push(setStmt(env, "cursor", results[results.length - 1].r));
+      return env.DB.batch(stmts);
     }
     if (phase === "aggregate") {
-      await aggregate(env, Number(env.KR_MIN) || 5);
-      await set(env, "built", Date.now());
-      await set(env, "next", Number(await get(env, "started", Date.now())) + CYCLE_DAYS * 86400_000);
-      return set(env, "phase", "idle");
+      await aggregate(env, Number(env.KR_MIN) || 5, started);
+      return env.DB.batch([setStmt(env, "built", Date.now()), setStmt(env, "next", started + CYCLE_DAYS * 86400_000), setStmt(env, "phase", "idle")]);
     }
   }
 
   // Per class and slot: how many of the top players carry each line, and the largest value any of them has.
-  async function aggregate(env, minPlayers) {
-    const { results: lines } = await env.DB.prepare(
-      `SELECT c.cls AS cls, l.slot AS slot, l.kind AS kind, l.line AS line, COUNT(DISTINCT l.cid) AS n, MAX(l.value) AS maxv
-       FROM kr_lines l JOIN kr_chars c ON c.cid = l.cid GROUP BY c.cls, l.slot, l.kind, l.line`).all();
-    const { results: owners } = await env.DB.prepare(
-      `SELECT c.cls AS cls, i.slot AS slot, COUNT(DISTINCT i.cid) AS n FROM kr_items i JOIN kr_chars c ON c.cid = i.cid WHERE i.done = 1 GROUP BY c.cls, i.slot`).all();
-    // Pairs (Earring1/2 …) fold into one slot: a player counts once per slot kind.
-    const own = new Map();
-    for (const o of owners) { const k = o.cls + "|" + slotKey(o.slot); own.set(k, Math.max(own.get(k) || 0, o.n)); }
-    const agg = new Map();
-    for (const l of lines) {
-      const k = l.cls + "|" + slotKey(l.slot) + "|" + l.kind + "|" + l.line;
-      const a = agg.get(k) || { cls: l.cls, slot: slotKey(l.slot), kind: l.kind, line: l.line, n: 0, maxv: 0 };
-      a.n = Math.max(a.n, l.n); a.maxv = Math.max(a.maxv, l.maxv);
-      agg.set(k, a);
+  // Lines come from the item rows (JSON); the very first cycle also kept them as rows in kr_lines.
+  async function aggregate(env, minPlayers, started) {
+    const { results: items } = await env.DB.prepare(
+      `SELECT i.cid AS cid, i.slot AS slot, i.lines AS lines, c.cls AS cls FROM kr_items i JOIN kr_chars c ON c.cid = i.cid
+       WHERE i.done = 1 AND (i.at >= ?1 OR i.at IS NULL)`).bind(started).all();
+    const legacy = new Map();
+    if (items.some((it) => it.lines == null)) {
+      const { results } = await env.DB.prepare("SELECT cid, slot, kind, line, value FROM kr_lines").all();
+      for (const l of results) {
+        const k = l.cid + "|" + l.slot;
+        if (!legacy.has(k)) legacy.set(k, []);
+        legacy.get(k).push([l.kind, l.line, l.value]);
+      }
+    }
+    const owners = new Map(), carry = new Map();
+    for (const it of items) {
+      const slot = slotKey(it.slot), ok = it.cls + "|" + slot;
+      if (!owners.has(ok)) owners.set(ok, new Set());
+      owners.get(ok).add(it.cid);
+      const lines = it.lines != null ? JSON.parse(it.lines) : legacy.get(it.cid + "|" + it.slot) || [];
+      for (const [kind, line, value] of lines) {
+        const k = ok + "|" + kind + "|" + line;
+        const a = carry.get(k) || { cls: it.cls, slot, kind, line, who: new Set(), maxv: 0 };
+        a.who.add(it.cid); a.maxv = Math.max(a.maxv, Number(value) || 0);
+        carry.set(k, a);
+      }
     }
     const stmts = [env.DB.prepare("DELETE FROM kr_share")];
-    for (const a of agg.values()) {
-      const players = own.get(a.cls + "|" + a.slot) || 0;
+    for (const a of carry.values()) {
+      const players = owners.get(a.cls + "|" + a.slot)?.size || 0;
       if (players < minPlayers) continue;
       stmts.push(env.DB.prepare("INSERT INTO kr_share (cls, slot, kind, line, share, maxv, players) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)")
-        .bind(a.cls, a.slot, a.kind, a.line, Math.min(1, a.n / players), a.maxv, players));
+        .bind(a.cls, a.slot, a.kind, a.line, Math.min(1, a.who.size / players), a.maxv, players));
     }
-    for (let i = 0; i < stmts.length; i += 80) await env.DB.batch(stmts.slice(i, i + 80));
+    for (let i = 0; i < stmts.length; i += 90) await env.DB.batch(stmts.slice(i, i + 90));
   }
 
   async function status(env) {
-    const phase = await get(env, "phase", "discover");
-    const [chars, items, built] = await Promise.all([
-      env.DB.prepare("SELECT COUNT(*) AS n, SUM(info_at IS NOT NULL) AS info, SUM(listed = 1) AS listed FROM kr_chars").first(),
-      env.DB.prepare("SELECT COUNT(*) AS n, SUM(done = 1) AS done FROM kr_items").first(),
-      get(env, "built", 0),
-    ]);
-    return { phase, word: Number(await get(env, "word", 0)), words: WORDS.length, chars, items, built: Number(built) };
+    const keys = ["phase", "word", "cursor", "built", "started", "next"];
+    const { results } = await env.DB.prepare(`SELECT k, v FROM kr_job WHERE k IN (${keys.map(() => "?").join(",")})`).bind(...keys).all();
+    const o = Object.fromEntries(results.map((r) => [r.k, r.v]));
+    const picked = JSON.parse((await env.DB.prepare("SELECT v FROM kr_job WHERE k = 'picked'").first())?.v || "[]").length;
+    return { phase: o.phase || "discover", word: Number(o.word || 0), words: WORDS.length, cursor: Number(o.cursor || 0), picked,
+      built: Number(o.built || 0), resumes: Date.now() < RESUME_AT ? new Date(RESUME_AT).toISOString() : null };
   }
 
   return { tick, status };

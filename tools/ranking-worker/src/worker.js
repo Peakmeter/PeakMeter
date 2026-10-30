@@ -102,6 +102,7 @@ export default {
   // Every minute (wrangler.toml [triggers]): world boss alerts.
   async scheduled(event, env, ctx) {
     ctx.waitUntil(alertsMod().tick(env));
+    // Korea best-in-slot crawler: waits for D1's daily reset after the first cycle went over the write limit.
     ctx.waitUntil(koreaMod().tick(env).catch(() => {}));
   },
 };
