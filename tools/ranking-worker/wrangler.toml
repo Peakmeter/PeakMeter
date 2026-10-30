@@ -13,5 +13,5 @@ database_id = "d1061b39-26ae-4dab-8d4e-490f4ebabb87"
 
 # Discord bot (public values from the Discord developer portal: Application ID and Public Key). Empty = bot off.
 [vars]
-DISCORD_APP_ID = ""
-DISCORD_PUBLIC_KEY = ""
+DISCORD_APP_ID = "1565554825637273734"
+DISCORD_PUBLIC_KEY = "fc20e98fdc912335c561e45fee96089397b7f36028d2b0631fb76476856c35a3"
