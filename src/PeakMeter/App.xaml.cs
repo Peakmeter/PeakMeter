@@ -272,6 +272,19 @@ public partial class App : Application
 
     private TicketsWindow? _tickets;
 
+    private GatherProbeWindow? _gatherProbe;
+
+    public void ShowGatherProbe()
+    {
+        if (_gatherProbe is null)
+        {
+            _gatherProbe = new GatherProbeWindow(Meter);
+            _gatherProbe.Closed += (_, _) => _gatherProbe = null;
+            _gatherProbe.Show();
+        }
+        _gatherProbe.Activate();
+    }
+
     private ServerProbeWindow? _serverProbe;
 
     public void ShowServerProbe()
@@ -353,6 +366,7 @@ public partial class App : Application
         menu.Items.Add(L.S("Odyle-Energie", "Odyle energy"), null, (_, _) => ShowEnergy());
         menu.Items.Add(L.S("Energie & Tickets lernen", "Learn energy & tickets"), null, (_, _) => ShowTicketProbe());
         menu.Items.Add(L.S("Server lernen (Raid)", "Learn servers (raid)"), null, (_, _) => ShowServerProbe());
+        menu.Items.Add(L.S("Sammeln & Handwerk lernen", "Learn gathering & crafting"), null, (_, _) => ShowGatherProbe());
         menu.Items.Add(L.S("Gearscore & CP finden (Beta)", "Find gear score & CP (beta)"), null, (_, _) => ShowGearProbe());
         var party = new Forms.ToolStripMenuItem(L.S("Nur ich / meine Gruppe", "Only me / my party")) { Checked = Settings.PartyOnly, CheckOnClick = true };
         party.CheckedChanged += (_, _) => { Settings.PartyOnly = party.Checked; Settings.Save(); };

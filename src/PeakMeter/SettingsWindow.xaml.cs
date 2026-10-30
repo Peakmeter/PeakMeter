@@ -359,6 +359,8 @@ public partial class SettingsWindow : Window
     private void Energy_Click(object sender, RoutedEventArgs e) => _app.ShowEnergy();
     private void GearProbe_Click(object sender, RoutedEventArgs e) => _app.ShowGearProbe();
 
+    private void GatherProbe_Click(object sender, RoutedEventArgs e) => _app.ShowGatherProbe();
+
     private static void Open(string target)
     {
         if (target.Length > 0) try { Process.Start(new ProcessStartInfo(target) { UseShellExecute = true }); } catch { }
@@ -372,6 +374,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.39.0 – Kämpfe als Link teilen: Neuer Knopf „Link“ im Meter und in den Logs. Der Kampf wird eine Seite auf der PeakMeter-Webseite mit allen Spielern, Skills, DPS-Verlauf und Toden, mit Vorschau in Discord. Neu auf der Webseite: der Zensus (welche Klassen auf welchem Server spielen, mit welcher Kampfkraft) und Boss-Alarme direkt in deinen Discord-Kanal. Für den Zensus sendet „Anonym mitzählen“ Klasse, Server und Kampfkraft der Spieler aus deinen Kämpfen, nie einen Namen. Neu unter Werkzeuge: „Sammeln lernen“, eine kurze Aufnahme, damit PeakMeter bald Sammeln und Handwerk zählen kann.\n\n" +
         "v1.38.1 – Die Event-Timer zeigen ihre Namen jetzt immer in deiner Sprache (vorher blieben sie auf Deutsch, wenn PeakMeter zuerst auf Deutsch lief). Selbst umbenannte Events bleiben, wie sie sind.\n\n" +
         "v1.38.0 – Weltboss-Timer live auf der Webseite: Der Meter teilt anonym die Weltboss-Zeiten deines Servers (nur Boss, Server und wann er zurückkommt – kein Name, kein Charakter). So sieht jeder auf peakmeter-ranking.peakmeter.workers.dev/timers, wann die Bosse seines Servers kommen. Abschaltbar mit „Anonym mitzählen“.\n\n" +
         "v1.37.0 – Der „Profil“-Knopf öffnet jetzt das PeakMeter-Profil des Spielers: Ausrüstung, Werte, Daevanion und Skills von der offiziellen Charakterseite, zusammen mit seinen besten Kills aus der Rangliste. Neue Spielersuche auf der Webseite.\n\n" +
@@ -428,6 +431,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.39.0 – Share fights as a link: a new “Link” button in the meter and in the logs. The fight becomes a page on the PeakMeter website with every player, skill, the DPS timeline and the deaths, with a preview in Discord. New on the website: the census (which classes play on which server, with what combat power) and boss alerts right in your Discord channel. For the census, “Count me anonymously” sends class, server and combat power of the players in your fights, never a name. New under Tools: “Learn gathering”, a short recording so PeakMeter can soon count gathering and crafting.\n\n" +
         "v1.38.1 – Event timers now always show their names in your language (before, they stayed German when PeakMeter first ran in German). Events you renamed yourself stay as they are.\n\n" +
         "v1.38.0 – World boss timers live on the website: the meter anonymously shares your server's world boss times (only the boss, the server and when it comes back – no name, no character), so everyone sees on peakmeter-ranking.peakmeter.workers.dev/timers when their server's bosses come. Turn it off with “Count me anonymously”.\n\n" +
         "v1.37.0 – The “Profile” button now opens the player's PeakMeter profile: gear, stats, Daevanion and skills from the official character page, together with their best kills from the ranking. New player search on the website.\n\n" +

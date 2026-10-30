@@ -402,6 +402,7 @@
                                 <Button Style="{StaticResource Chip}" Height="26" Margin="0,0,6,6" Click="Demo_Click" Content="{local:T De=Demo-Kampf, En='Demo fight'}" />
                                 <Button Style="{StaticResource Chip}" Height="26" Margin="0,0,6,6" Click="Energy_Click" Content="{local:T De=Odyle-Energie, En='Odyle energy'}" />
                                 <Button Style="{StaticResource Chip}" Height="26" Margin="0,0,6,6" Click="GearProbe_Click" Content="{local:T De='Gearscore &amp; CP finden', En='Find gear score &amp; CP'}" />
+                                <Button Style="{StaticResource Chip}" Height="26" Margin="0,0,6,6" Click="GatherProbe_Click" Content="{local:T De='Sammeln lernen', En='Learn gathering'}" />
                             </WrapPanel>
                         </StackPanel>
                     </Grid>
