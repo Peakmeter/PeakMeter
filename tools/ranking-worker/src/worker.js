@@ -13,6 +13,7 @@
 // GET  /api/char         one character: official profile, gear, skills (NCSOFT) + PeakMeter bests
 // POST /api/report       a fight shared from the meter ("share as link"); GET /api/report?id= reads it back
 // GET  /r/<id>           the fight report page
+// GET  /api/char/bis     best in slot: every piece's lines scored against the strongest Korean players of the class
 // POST /api/alerts       world boss alerts into a Discord channel webhook (cron posts them every minute)
 // POST /api/gather       gathered items (item + count, no player data); GET /api/gather = totals per item
 // POST /api/census       players seen in fights (no names); GET /api/census, /census = the census page
@@ -31,6 +32,7 @@ import siteJs from "./client/site.js";
 import ogPng from "./og.png";
 import { discordBot } from "./discord.mjs";
 import { alerts } from "./alerts.mjs";
+import { korea, score as bisScore } from "./korea.mjs";
 
 const REGIONS = new Set(["eu", "na", "nae", "naw", "kr", "tw"]);
 const METRICS = ["dps", "hps", "stagger"];
@@ -83,6 +85,8 @@ export default {
       if (url.pathname === "/discord") return await bot()(req, env, ctx);
       if (url.pathname === "/api/char/search") return await charSearch(url);
       if (url.pathname === "/api/char") return await charProfile(url, env, ctx);
+      if (url.pathname === "/api/char/bis") return await charBis(url, env, ctx);
+      if (url.pathname === "/api/kr/status") return json(await koreaMod().status(env));
       if (url.pathname === "/api/char/board") return await charBoard(url, ctx);
       if (url.pathname === "/api/updates") return await updates(url, ctx);
       if (url.pathname === "/api/bosses/report" && req.method === "POST") return await bossReport(req, env);
@@ -98,6 +102,7 @@ export default {
   // Every minute (wrangler.toml [triggers]): world boss alerts.
   async scheduled(event, env, ctx) {
     ctx.waitUntil(alertsMod().tick(env));
+    ctx.waitUntil(koreaMod().tick(env).catch(() => {}));
   },
 };
 
@@ -312,6 +317,69 @@ async function findChar(region, server, name) {
 const charQuery = (region, lang, found) =>
   (region === "kr" ? `?lang=ko-KR` : `?region=${region}&lang=${lang}`) +
   `&characterId=${encodeURIComponent(decodeURIComponent(found.characterId))}&serverId=${found.serverId}`;
+
+// Best in slot: the character's equipped items with their soul-binding lines, manastones, god stone and Arcana
+// skills (official item pages), each scored against what the strongest Korean players of the class carry there.
+async function charBis(url, env, ctx) {
+  const region = (url.searchParams.get("region") || "eu").toLowerCase();
+  const name = cleanText(url.searchParams.get("name"), 24);
+  const server = cleanText(url.searchParams.get("server"), 30);
+  const lang = url.searchParams.get("lang") === "de" ? "de-DE" : "en-US";
+  const short2 = lang === "de-DE" ? "de" : "en";
+  if (!REGIONS.has(region) || !name || !server) return json({ error: "invalid" }, 400);
+  const key = new Request(`https://cache.peakmeter/bis/v1/${region}/${encodeURIComponent(server.toLowerCase())}/${encodeURIComponent(name.toLowerCase())}/${lang}`);
+  const cached = await caches.default.match(key);
+  if (cached) return cached;
+
+  const found = await findChar(region, server, name);
+  if (!found) return json({ error: "not found" }, 404, { "cache-control": "public, max-age=60" });
+  const cls = classOf(found.pcId);
+  const q = charQuery(region, lang, found);
+  let eq;
+  try { eq = await ncJson(NC_CHAR + "equipment" + q); } catch { return json({ error: "official" }, 502); }
+  const list = (eq?.equipment?.equipmentList || []).filter((it) => !/^(Rune|Amulet)/.test(it.slotPosName || ""));
+  const details = await Promise.all(list.map((it) =>
+    ncJson(NC_CHAR + "equipment/item" + q + `&id=${it.id}&enchantLevel=${it.enchantLevel || 0}&slotPos=${it.slotPos}`).catch(() => null)));
+  const n = (v) => { const x = parseFloat(String(v ?? "").replace(/[^\d.]/g, "")); return Number.isFinite(x) ? x : 0; };
+  const items = list.map((it, i) => {
+    const d = details[i] || {};
+    return {
+      slot: it.slotPosName, name: d.name || it.name, icon: d.icon || it.icon, grade: it.grade, plus: it.enchantLevel || 0, exceed: it.exceedLevel || 0,
+      bind: d.soulBindRate ?? null, statCount: d.subStatCount || 0, skillCount: d.subSkillCountMax || 0,
+      stats: (d.subStats || []).map((s) => ({ id: s.id, name: s.name, value: n(s.value), raw: s.value })),
+      skills: (d.subSkills || []).map((s) => ({ id: String(s.id), name: s.name, value: Number(s.level) || 1, raw: "Lv " + (s.level || 1), icon: s.icon })),
+      stones: (d.magicStoneStat || []).map((s) => ({ name: s.name, value: s.value, grade: s.grade })),
+      god: (d.godStoneStat || []).map((s) => ({ name: s.name, icon: s.icon })),
+    };
+  });
+  // Remember the line names of this language (the Korean reference has only ids and Korean names).
+  const nameStmts = [];
+  for (const it of items) for (const s of [...it.stats, ...it.skills])
+    if (s.id && s.name) nameStmts.push(env.DB.prepare("INSERT OR REPLACE INTO line_names (line, lang, name) VALUES (?1, ?2, ?3)").bind(String(s.id), short2, s.name));
+  if (nameStmts.length) ctx.waitUntil(env.DB.batch(nameStmts.slice(0, 90)).catch(() => {}));
+
+  const { results: shares } = cls ? await env.DB.prepare("SELECT slot, kind, line, share, maxv, players FROM kr_share WHERE cls = ?1").bind(cls).all() : { results: [] };
+  const scored = bisScore(shares, items);
+  const bySlot = new Map(scored.map((s) => [s.slot, s]));
+  // Names for the lines a piece is missing.
+  const missingIds = [...new Set(scored.flatMap((s) => s.kinds.flatMap((k) => k.missing.map((m) => m.id))))];
+  const names = {};
+  if (missingIds.length) {
+    const { results } = await env.DB.prepare(`SELECT line, name FROM line_names WHERE lang = ?1 AND line IN (${missingIds.map(() => "?").join(",")})`).bind(short2, ...missingIds).all();
+    for (const r of results) names[r.line] = r.name;
+  }
+  const stat = scored.flatMap((s) => s.kinds.filter((k) => k.kind === "stat" && k.comparable));
+  const avg = (f) => stat.length ? Math.round(stat.reduce((a, k) => a + f(k), 0) / stat.length) : null;
+  const built = Number((await env.DB.prepare("SELECT v FROM kr_job WHERE k = 'built'").first())?.v || 0);
+  const body = {
+    cls, reference: { players: shares.length ? Math.max(...shares.map((s) => s.players)) : 0, built },
+    pick: avg((k) => k.pick), power: avg((k) => k.power),
+    items: items.map((it) => ({ ...it, score: bySlot.get(it.slot)?.kinds || [] })), names,
+  };
+  const res = json(body, 200, { "cache-control": "public, max-age=1800" });
+  ctx.waitUntil(caches.default.put(key, res.clone()));
+  return res;
+}
 
 async function charBoard(url, ctx) {
   const region = (url.searchParams.get("region") || "eu").toLowerCase();
@@ -693,6 +761,8 @@ async function updates(url, ctx) {
 
 // Built on first use: the bot shares the worker's own lookups.
 let botHandler = null, alertsHandler = null;
+let koreaHandler = null;
+const koreaMod = () => (koreaHandler ??= korea({}));
 const alertsMod = () => (alertsHandler ??= alerts({ json, REGIONS, hash, timersHtml: timers }));
 const bot = () => (botHandler ??= discordBot({
   json, REGIONS, METRICS, source, short, group, CLASS_EN, OG_IMAGE, timersHtml: timers,

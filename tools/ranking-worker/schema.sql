@@ -141,3 +141,12 @@ CREATE TABLE IF NOT EXISTS craft (
   n INTEGER NOT NULL,
   PRIMARY KEY (region, day, item)
 );
+
+-- Best in slot, measured against Korea: the crawler's state, the strongest Korean players per class, their lines,
+-- and per class and slot the share of them carrying each line (kr_share). Line names per language for display.
+CREATE TABLE IF NOT EXISTS kr_job (k TEXT PRIMARY KEY, v TEXT);
+CREATE TABLE IF NOT EXISTS kr_chars (cid TEXT PRIMARY KEY, server INTEGER, cls TEXT, level INTEGER, cp INTEGER, info_at INTEGER, listed INTEGER);
+CREATE TABLE IF NOT EXISTS kr_items (cid TEXT, slot TEXT, item INTEGER, enchant INTEGER, slot_pos INTEGER, done INTEGER, PRIMARY KEY (cid, slot));
+CREATE TABLE IF NOT EXISTS kr_lines (cid TEXT, slot TEXT, kind TEXT, line TEXT, value REAL, PRIMARY KEY (cid, slot, kind, line));
+CREATE TABLE IF NOT EXISTS kr_share (cls TEXT, slot TEXT, kind TEXT, line TEXT, share REAL, maxv REAL, players INTEGER, PRIMARY KEY (cls, slot, kind, line));
+CREATE TABLE IF NOT EXISTS line_names (line TEXT, lang TEXT, name TEXT, PRIMARY KEY (line, lang));

@@ -13,6 +13,34 @@
 <link rel="stylesheet" href="/site.css?v=12">
 <script src="/site.js?v=12"></script>
 <style>
+  /* Best in slot against Korea: two scores up top, then one card per piece with its lines coloured by how many of
+     the strongest Korean players of the class carry the same line on that slot. */
+  .bis-top { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) 2fr; gap: 10px; }
+  .bis-top .kpi { padding: 14px 16px; }
+  .bis-top .kpi small { display: block; color: var(--mute); font: 600 11px/1 var(--hud); letter-spacing: .14em; text-transform: uppercase; }
+  .bis-top .kpi b { display: block; font: 700 32px/1 var(--hud); margin-top: 8px; }
+  .bis-top .kpi p { color: var(--dim); font-size: 12.5px; margin: 6px 0 0; }
+  @media (max-width: 720px) { .bis-top { grid-template-columns: 1fr 1fr; } .bis-top .kpi.wide { grid-column: 1 / -1; } }
+  .bis-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; margin-top: 10px; }
+  .bis-card { padding: 14px; }
+  .bis-card .hd { display: flex; gap: 10px; align-items: center; }
+  .bis-card .hd img { width: 40px; height: 40px; border-radius: 6px; background: #11131d; flex: none; }
+  .bis-card .hd b { display: block; font-weight: 500; font-size: 14px; line-height: 1.25; }
+  .bis-card .hd small { color: var(--mute); font: 600 11px/1 var(--hud); letter-spacing: .08em; }
+  .bis-card .sc { margin-left: auto; text-align: right; font: 700 18px/1 var(--hud); }
+  .bis-card .sc small { display: block; font-size: 10px; color: var(--mute); letter-spacing: .1em; margin-top: 3px; }
+  .bis-bind { height: 4px; border-radius: 2px; background: rgba(255,255,255,.08); margin: 10px 0 8px; overflow: hidden; }
+  .bis-bind i { display: block; height: 100%; background: var(--fa); }
+  .bis-l { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 3px 0; }
+  .bis-l span:first-child { color: var(--text); }
+  .bis-l .sh { font: 600 11.5px/1.6 var(--hud); padding: 0 6px; border-radius: 4px; white-space: nowrap; }
+  .sh.hi { background: color-mix(in srgb, var(--up) 18%, transparent); color: var(--up); }
+  .sh.mid { background: rgba(227,194,122,.16); color: var(--gold); }
+  .sh.lo { background: rgba(255,95,126,.14); color: #ff6b7f; }
+  .bis-miss { margin-top: 6px; font-size: 12px; color: var(--mute); }
+  .bis-miss b { color: var(--dim); font-weight: 500; }
+  .bis-stones { margin-top: 8px; font-size: 11.5px; color: var(--mute); }
+  .bis-note { color: var(--mute); font-size: 13px; margin-top: 12px; }
   /* A character's page as an in-game character window: portrait and combat power up top, then PeakMeter's bests,
      gear slots with rarity frames, Daevanion, stats and skills – all in the site's dark glass windows. */
   /* ---------- search */
@@ -282,6 +310,11 @@
       <div class="s-head"><h2 data-i="gearH">Equipment</h2><span class="rule"></span><p id="petLine" class="hud"></p></div>
       <div class="box win" id="gear"><div class="skel"></div></div>
     </section>
+    <section class="s" id="bisS" hidden>
+      <div class="s-head"><h2 data-i="bisH">Best in slot – against Korea</h2><span class="rule"></span><p class="hud" id="bisRef"></p></div>
+      <div id="bis"><div class="box win"><div class="skel"></div></div></div>
+      <p class="bis-note" data-i="bisNote">Korea is about a year ahead. For each slot PeakMeter reads the gear of the strongest Korean players of the class and counts which soul-binding lines they carry. Green: most of them carry it here; red: hardly anyone. Lines count with their current value, so binding raises them.</p>
+    </section>
     <p class="note" id="note"></p>
   </main>
 </div>
@@ -289,6 +322,7 @@
 <script>
 const de = PM.de;
 const DE = {
+  bisH: "Best in Slot – gegen Korea", bisNote: "Korea ist etwa ein Jahr voraus. Für jeden Slot liest PeakMeter die Ausrüstung der stärksten koreanischen Spieler deiner Klasse und zählt, welche Seelenbindungs-Zeilen sie tragen. Grün: die meisten tragen sie hier; rot: kaum jemand. Zeilen zählen mit ihrem aktuellen Wert – Binden hebt sie also.",
   findH: "Finde jeden Spieler.", findP: "Ausrüstung, Werte, Daevanion und Skills von den offiziellen Charakterseiten. Und die besten Kills, gemessen mit PeakMeter.",
   go: "Suchen", hint: "Tipp: Im PeakMeter auf einen Spieler klicken und dann „Profil“.",
   copy: "Link kopieren", official: "Offizielle Seite", duel: "Vergleichen",
@@ -425,9 +459,67 @@ async function showProfile(region, server, name) {
     return;
   }
   renderGear(d);
+  renderBis(region, d);
   renderBoards(d);
   renderSkills(d);
   $("note").textContent = T.src(new Date(d.at).toLocaleString(de ? "de-DE" : undefined));
+}
+
+
+// Best in slot against Korea (GET /api/char/bis): loads after the profile, it reads every equipped item.
+const SLOT_DE = { MainHand: "Waffe", SubHand: "Nebenhand", Torso: "Brust", Pants: "Hose", Helmet: "Helm", Shoulder: "Schultern", Gloves: "Handschuhe",
+  Boots: "Stiefel", Cape: "Umhang", Belt: "Gürtel", Necklace: "Halskette", Earring1: "Ohrring 1", Earring2: "Ohrring 2", Ring1: "Ring 1", Ring2: "Ring 2",
+  Bracelet1: "Armband 1", Bracelet2: "Armband 2" };
+const slotName = s => de ? (SLOT_DE[s] || s.replace(/(\d)$/, " $1")) : s.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/(\d)$/, " $1");
+// Base stats (STR, AGI …) can share a German name with another line ("Präzision"): mark them.
+const lineName = (id, names) => (names[id] || String(id).replace(/([a-z])([A-Z])/g, "$1 $2")) + (/^[A-Z]{3}$/.test(id) ? (de ? " (Grundwert)" : " (base stat)") : "");
+const shClass = v => v >= .5 ? "hi" : v >= .2 ? "mid" : "lo";
+const scoreColor = v => v == null ? "var(--mute)" : v >= 70 ? "var(--up)" : v >= 40 ? "var(--gold)" : "#ff6b7f";
+async function renderBis(region, d) {
+  $("bisS").hidden = false;
+  let b;
+  try {
+    const r = await fetch("/api/char/bis?region=" + region + "&server=" + encodeURIComponent(d.server) + "&name=" + encodeURIComponent(d.name) + "&lang=" + (de ? "de" : "en"));
+    if (!r.ok) throw 0;
+    b = await r.json();
+  } catch { $("bisS").hidden = true; return; }
+  const ref = b.reference || {};
+  if (!ref.players) {
+    $("bis").innerHTML = '<div class="box win" style="padding:18px;color:var(--dim)">' + esc(de
+      ? "Der Maßstab aus Korea wird gerade aufgebaut – PeakMeter liest langsam die Ausrüstung der stärksten koreanischen Spieler jeder Klasse. Das dauert etwa einen Tag; danach steht hier die Bewertung."
+      : "The Korean reference is being built – PeakMeter slowly reads the gear of the strongest Korean players of every class. It takes about a day; then the rating shows here.") + "</div>";
+    return;
+  }
+  const cls = esc(d.profile?.className || "");
+  $("bisRef").textContent = de ? `Top ${ref.players} ${d.profile?.className || ""} aus Korea · Stand ${new Date(ref.built).toLocaleDateString("de-DE")}`
+    : `Top ${ref.players} ${d.profile?.className || ""} of Korea · ${new Date(ref.built).toLocaleDateString()}`;
+  const kpi = (label, v, txt) => '<div class="kpi win"><small>' + esc(label) + '</small><b style="color:' + scoreColor(v) + '">' + (v == null ? "–" : v + " %") + "</b><p>" + esc(txt) + "</p></div>";
+  const top = '<div class="bis-top">' +
+    kpi(de ? "Zeilen-Wahl" : "Line choice", b.pick, de ? "Hast du die Zeilen, die Koreas Beste tragen?" : "Do you have the lines Korea's best carry?") +
+    kpi(de ? "Stärke" : "Strength", b.power, de ? "Wie nah deine Werte an Koreas höchsten sind." : "How close your values are to Korea's highest.") +
+    '<div class="kpi win wide"><small>' + esc(de ? "So liest du das" : "How to read it") + "</small><p>" + esc(de
+      ? "Grün: die meisten Top-Spieler tragen die Zeile auf diesem Slot. Rot: kaum jemand – ein Kandidat zum Neu-Würfeln. Darunter steht, was dir fehlt."
+      : "Green: most top players carry the line on this slot. Red: hardly anyone – a candidate to reroll. Below: what you are missing.") + "</p></div></div>";
+  const cards = b.items.filter(it => it.stats.length || it.skills.length).map(it => {
+    const st = it.score.find(k => k.kind === "stat"), sk = it.score.find(k => k.kind === "skill");
+    const lines = (list, k) => list.map(l => {
+      const s = k?.lines.find(x => x.id === String(l.id));
+      return '<div class="bis-l"><span>' + esc(l.name) + (/^[A-Z]{3}$/.test(String(l.id)) ? (de ? " (Grundwert)" : " (base stat)") : "") + " " + esc(l.raw ?? l.value) + "</span>" +
+        (k && k.comparable !== false ? '<span class="sh ' + shClass(s?.share || 0) + '">' + Math.round((s?.share || 0) * 100) + " %</span>" : "") + "</div>";
+    }).join("");
+    const miss = k => k?.missing?.length ? '<div class="bis-miss">' + esc(k.comparable === false ? (de ? "In Korea anders – dort üblich: " : "Different in Korea – common there: ") : (de ? "Fehlt dir: " : "You lack: ")) +
+      k.missing.map(m => "<b>" + esc(lineName(m.id, b.names)) + "</b> " + Math.round(m.share * 100) + " %").join(" · ") + "</div>" : "";
+    const sc = st && st.comparable !== false ? st.power : null;
+    return '<div class="bis-card win"><div class="hd">' + (it.icon ? '<img src="' + esc(it.icon) + '" alt="" loading="lazy">' : "") +
+      "<div><small>" + esc(slotName(it.slot)) + "</small><b>" + esc(it.name) + (it.plus ? " +" + it.plus : "") + "</b></div>" +
+      '<div class="sc" style="color:' + scoreColor(sc) + '">' + (sc == null ? (st ? "–" : "") : sc + "%") + (st ? "<small>" + (de ? "STÄRKE" : "STRENGTH") + "</small>" : "") + "</div></div>" +
+      (it.bind != null && it.bind < 100 ? '<div class="bis-bind" title="' + esc((de ? "Gebunden: " : "Bound: ") + it.bind + " %") + '"><i style="width:' + it.bind + '%"></i></div>' +
+        '<div class="bis-miss" style="margin:-4px 0 6px">' + esc((de ? "Seelenbindung " : "Soul binding ") + it.bind + " %") + "</div>" : '<div style="height:8px"></div>') +
+      lines(it.stats, st) + miss(st) + (it.skills.length ? lines(it.skills, sk) + miss(sk) : "") +
+      (it.stones.length || it.god.length ? '<div class="bis-stones">' + it.stones.map(s => esc(s.name + " " + s.value)).join(" · ") +
+        (it.god.length ? (it.stones.length ? " · " : "") + esc(it.god.map(g => g.name).join(", ")) : "") + "</div>" : "") + "</div>";
+  }).join("");
+  $("bis").innerHTML = top + '<div class="bis-grid">' + cards + "</div>";
 }
 
 // The gear grade: tier, and how many of the same class and level have a lower item level.
