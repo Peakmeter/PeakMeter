@@ -374,6 +374,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.41.2 – Beim Sammeln zählt PeakMeter jetzt, was wirklich rauskommt: Feine, reine und strahlende Funde (z. B. „Feines Oreichalkos-Erz“) werden als solche gezählt statt als normales Erz.\n\n" +
         "v1.41.1 – Gesammelte und hergestellte Gegenstände haben jetzt Namen (über 700 Gegenstände, Sammelmaterialien auf Deutsch) statt „Gegenstand 610…“.\n\n" +
         "v1.41.0 – PeakMeter zählt jetzt auch dein Handwerk: Nach jedem Herstellen zeigt der Meter kurz, was rauskam (z. B. „⚒ Orechalkos-Barren +1“), und meldet, wenn du eine Handwerks-Stufe erreichst. Fehlschläge zählen als Versuch. Auf der Webseite zeigt der Zensus jetzt auch, was hergestellt wird. Außerdem werden neue Gegenstände beim ersten Sammeln richtig gezählt.\n\n" +
         "v1.40.0 – PeakMeter zählt jetzt dein Sammeln: Nach jedem Sammeln zeigt der Meter kurz, was rauskam und wie viel du heute davon hast (z. B. „⛏ Od +2 · heute 14“), auch doppelte Erträge. Die Tagesmengen bleiben in gathering.json auf deinem PC; mit „Anonym mitzählen“ gehen nur Gegenstand und Anzahl an die Webseite – dort zeigt der Zensus jetzt auch, was gesammelt wird. Danke an alle, die mit „Sammeln lernen“ geholfen haben.\n\n" +
@@ -434,6 +435,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.41.2 – Gathering now counts what really came out: fine, pure and radiant finds (e.g. “Fine Orichalcum Ore”) count as such instead of as the plain item.\n\n" +
         "v1.41.1 – Gathered and crafted items now show their names (over 700 items) instead of “Item 610…”.\n\n" +
         "v1.41.0 – PeakMeter now counts your crafting too: after each craft the meter briefly shows what came out (e.g. “⚒ Orechalkos-Barren +1”) and tells you when you reach a crafting level. Failed crafts count as tries. On the website the census now also shows what is crafted. Also, new items are counted right on their first gather.\n\n" +
         "v1.40.0 – PeakMeter now counts your gathering: after each gather the meter briefly shows what came out and how much of it you have today (e.g. “⛏ Od +2 · today 14”), double yields included. The daily amounts stay in gathering.json on your PC; with “Count me anonymously” only item and amount go to the website – where the census now also shows what is gathered. Thanks to everyone who helped with “Learn gathering”.\n\n" +

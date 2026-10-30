@@ -53,6 +53,16 @@ public sealed class Gathering
     private readonly Dictionary<int, int> _unsentCrafted = new();
     private long _craftAt = long.MinValue;
     private long _lastUpload;
+    // Gathering materials that just came into the inventory (item, how many, when): what a gather really gave.
+    private readonly List<(int Item, int Delta, long AtMs)> _incoming = new();
+    // Gathers waiting for their inventory changes: settled once the game's clock is a second past them (or after a
+    // second of real time, when nothing else comes).
+    private readonly List<(int Spot, long AtMs, long Wall)> _pending = new();
+    private Timer? _settle;
+
+    /// <summary>Gathering materials (ore, gems, wood, herbs, food …): 6106xxxxx. A gather names its spot's base item, but
+    /// a lucky one gives a finer grade ("Feines Oreichalkos-Erz"), which only the inventory shows.</summary>
+    private static bool IsGatherMaterial(int item) => item is >= 610_600_000 and < 610_700_000;
 
     public Gathering(Settings settings, Action<string> log)
     {
@@ -87,10 +97,18 @@ public sealed class Gathering
     /// <summary>The inventory's new stack of an item. Comes just before the gather that changed it.</summary>
     public void NoteStack(int item, long count, long timeMs, bool isNew = false)
     {
+        Settle(timeMs);
         lock (_gate)
         {
-            var delta = isNew ? count : _stacks.TryGetValue(item, out var old) && count > old.Count ? count - old.Count : 0;
+            // Unknown before (first time seen since start, not a new stack): +1 for a gathering material, else nothing.
+            var known = _stacks.TryGetValue(item, out var old);
+            var delta = isNew ? count : known ? (count > old.Count ? count - old.Count : 0) : IsGatherMaterial(item) && count > 0 ? 1 : 0;
             _stacks[item] = (count, timeMs, delta);
+            if (delta is > 0 and <= 50 && IsGatherMaterial(item) && !(timeMs - _craftAt is >= 0 and < 2_000))
+            {
+                _incoming.RemoveAll(x => timeMs - x.AtMs > 60_000);
+                _incoming.Add((item, (int)delta, timeMs));
+            }
             // The item a craft made arrives right after the craft itself.
             if (delta is > 0 and <= 100 && timeMs - _craftAt is >= 0 and < 2_000)
             {
@@ -136,27 +154,56 @@ public sealed class Gathering
         CraftLevelUp?.Invoke(level);
     }
 
-    /// <summary>A finished gather of an item.</summary>
-    public void Add(int item, long timeMs)
+    /// <summary>A finished gather at a spot of <paramref name="spotItem"/>. What came out is read from the inventory a
+    /// moment later: the materials that went up around the same time (a finer grade, two at once …); if none showed,
+    /// one of the spot's item.</summary>
+    public void Add(int spotItem, long timeMs)
     {
-        int qty, total;
+        Settle(timeMs);
         lock (_gate)
         {
-            // The stack change of the same moment tells the amount; without one (first gather of an item since start) it is 1.
-            qty = _stacks.TryGetValue(item, out var s) && Math.Abs(timeMs - s.AtMs) < 2_000 && s.Delta is > 0 and <= 50 ? (int)s.Delta : 1;
-            var key = Today;
-            if (!_days.TryGetValue(key, out var day)) _days[key] = day = new Day();
-            day.Items[item] = day.Items.GetValueOrDefault(item) + qty;
-            day.Gathers++;
-            total = day.Items[item];
-            _unsent[item] = _unsent.GetValueOrDefault(item) + qty;
-            _unsentGathers++;
-            // Keep 60 days.
-            foreach (var old in _days.Keys.Where(k => string.CompareOrdinal(k, DateTime.Now.AddDays(-60).ToString("yyyy-MM-dd")) < 0).ToList()) _days.Remove(old);
-            try { File.WriteAllText(FilePath, JsonSerializer.Serialize(_days)); } catch { }
+            _pending.Add((spotItem, timeMs, Environment.TickCount64));
+            _settle ??= new Timer(_ => Settle(long.MaxValue, byWall: true), null, 1_000, 1_000);
         }
-        _log($"Gathered {item} x{qty} (today {total})");
-        Gathered?.Invoke(item, qty, total);
+    }
+
+    /// <summary>Settles the gathers the game's clock (<paramref name="nowMs"/>) or the real clock has left behind.</summary>
+    public void Settle(long nowMs, bool byWall = false)
+    {
+        List<(int Spot, long AtMs, long Wall)> due;
+        lock (_gate)
+        {
+            var wall = Environment.TickCount64;
+            due = _pending.Where(p => byWall ? wall - p.Wall >= 1_000 : nowMs - p.AtMs >= 1_000).OrderBy(p => p.AtMs).ToList();
+            foreach (var p in due) _pending.Remove(p);
+        }
+        foreach (var p in due) Resolve(p.Spot, p.AtMs);
+    }
+
+    private void Resolve(int spotItem, long timeMs)
+    {
+        var got = new List<(int Item, int Qty, int Total)>();
+        lock (_gate)
+        {
+            var mine = _incoming.Where(x => Math.Abs(x.AtMs - timeMs) <= 2_000).ToList();
+            foreach (var x in mine) _incoming.Remove(x);
+            var yields = mine.Count > 0 ? mine.Select(x => (x.Item, x.Delta)).ToList() : [(spotItem, 1)];
+            var day = TodayDay();
+            day.Gathers++;
+            _unsentGathers++;
+            foreach (var (item, qty) in yields)
+            {
+                day.Items[item] = day.Items.GetValueOrDefault(item) + qty;
+                _unsent[item] = _unsent.GetValueOrDefault(item) + qty;
+                got.Add((item, qty, day.Items[item]));
+            }
+            Save();
+        }
+        foreach (var (item, qty, total) in got)
+        {
+            _log($"Gathered {item} x{qty} (today {total})");
+            Gathered?.Invoke(item, qty, total);
+        }
         if (Environment.TickCount64 - _lastUpload > 10 * 60_000) Upload();
     }
 
