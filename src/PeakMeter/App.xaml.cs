@@ -93,6 +93,14 @@ public partial class App : Application
         {
             if (_overlay is { IsVisible: true }) _overlay.ShowNote($"⛏ {Gathering.NameOf(item)} +{qty} · {L.S("heute", "today")} {total}", 5_000);
         });
+        Meter.Gathering.Crafted += (item, qty, crafts) => Dispatcher.BeginInvoke(() =>
+        {
+            if (_overlay is { IsVisible: true }) _overlay.ShowNote($"⚒ {Gathering.NameOf(item)} +{qty} · {L.S($"heute {crafts}× hergestellt", $"{crafts} crafts today")}", 5_000);
+        });
+        Meter.Gathering.CraftLevelUp += level => Dispatcher.BeginInvoke(() =>
+        {
+            if (_overlay is { IsVisible: true }) _overlay.ShowNote(L.S($"⚒ Handwerk: Stufe {level} erreicht!", $"⚒ Crafting: level {level} reached!"), 8_000);
+        });
         Meter.RankingPlaced += (p, cls) => Dispatcher.BeginInvoke(() =>
         {
             var (title, detail) = Ranking.Describe(p, cls);
@@ -741,7 +749,13 @@ public sealed class Meter : IDisposable
                 LastSouls = (ps.Souls, Environment.TickCount64);
                 return;
             case ItemStackEvent st:
-                Gathering.NoteStack(st.Item, st.Count, st.TimeMs);
+                Gathering.NoteStack(st.Item, st.Count, st.TimeMs, st.New);
+                return;
+            case CraftEvent ce:
+                if (!_demoOnly && !DemoRunning) Gathering.AddCraft(ce.TimeMs);
+                return;
+            case CraftLevelEvent cl:
+                if (!_demoOnly && !DemoRunning) Gathering.LevelUp(cl.Level);
                 return;
             case GatherEvent ge:
                 if (!_demoOnly && !DemoRunning) Gathering.Add(ge.Item, ge.TimeMs);

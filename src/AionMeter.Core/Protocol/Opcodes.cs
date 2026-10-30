@@ -38,6 +38,8 @@ public static class Opcodes
     public const ushort PetLevel = 0x1490;       // a pet reached a level
     public const ushort StaggerGauge = 0x05E0;   // a monster's stagger gauge (A2Tools-DPS-Meter)
     public const ushort GatherDone = 0x338D;     // PeakMeter: a finished gather: 00 3A, gathering spot (varint), item u32
+    public const ushort CraftDone = 0x7C8D;      // PeakMeter: a finished craft: kind u8, points u32, ?, gain u32 at 9
+    public const ushort CraftLevel = 0x7D8D;     // PeakMeter: a craft level up: kind u8, level u8
     public const ushort ItemStack = 0x1B56;      // PeakMeter: an inventory item's new stack: item u32 at 11, count u32 at 15
     public const ushort FieldBossList = 0x0191;  // a map's field bosses: alive since / back at (in-game map list)
 

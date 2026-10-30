@@ -21,12 +21,16 @@ public sealed class Gathering
     {
         [610610013] = ("Od", "Od"),
         [610680045] = ("Mela", "Mela"),
+        [610710001] = ("Orechalkos-Barren", "Orechalkos-Barren"),
+        [510716012] = ("Gegrillter Cypri des Meisters", "Gegrillter Cypri des Meisters"),
     };
 
     public sealed class Day
     {
         public Dictionary<int, int> Items { get; set; } = new();
         public int Gathers { get; set; }
+        public Dictionary<int, int> Crafted { get; set; } = new();
+        public int Crafts { get; set; }
     }
 
     private readonly object _gate = new();
@@ -36,6 +40,8 @@ public sealed class Gathering
     private readonly Dictionary<int, (long Count, long AtMs, long Delta)> _stacks = new();
     private readonly Dictionary<int, int> _unsent = new();
     private int _unsentGathers;
+    private readonly Dictionary<int, int> _unsentCrafted = new();
+    private long _craftAt = long.MinValue;
     private long _lastUpload;
 
     public Gathering(Settings settings, Action<string> log)
@@ -52,6 +58,12 @@ public sealed class Gathering
     /// <summary>Raised after a gather: item, how many came out, today's total of that item.</summary>
     public event Action<int, int, int>? Gathered;
 
+    /// <summary>Raised after a craft: the item made (0 when none came out), how many, today's crafts.</summary>
+    public event Action<int, int, int>? Crafted;
+
+    /// <summary>Raised when a craft reaches a level.</summary>
+    public event Action<int>? CraftLevelUp;
+
     public static string NameOf(int item) =>
         KnownNames.TryGetValue(item, out var n) ? L.S(n.De, n.En) : L.S($"Gegenstand {item}", $"Item {item}");
 
@@ -63,13 +75,55 @@ public sealed class Gathering
     }
 
     /// <summary>The inventory's new stack of an item. Comes just before the gather that changed it.</summary>
-    public void NoteStack(int item, long count, long timeMs)
+    public void NoteStack(int item, long count, long timeMs, bool isNew = false)
     {
         lock (_gate)
         {
-            var delta = _stacks.TryGetValue(item, out var old) && count > old.Count ? count - old.Count : 0;
+            var delta = isNew ? count : _stacks.TryGetValue(item, out var old) && count > old.Count ? count - old.Count : 0;
             _stacks[item] = (count, timeMs, delta);
+            // The item a craft made arrives right after the craft itself.
+            if (delta is > 0 and <= 100 && timeMs - _craftAt is >= 0 and < 2_000)
+            {
+                _craftAt = long.MinValue;
+                var day = TodayDay();
+                day.Crafted[item] = day.Crafted.GetValueOrDefault(item) + (int)delta;
+                _unsentCrafted[item] = _unsentCrafted.GetValueOrDefault(item) + (int)delta;
+                Save();
+                var crafts = day.Crafts;
+                ThreadPool.QueueUserWorkItem(_ => Crafted?.Invoke(item, (int)delta, crafts));
+            }
         }
+    }
+
+    private Day TodayDay()
+    {
+        if (!_days.TryGetValue(Today, out var day)) _days[Today] = day = new Day();
+        return day;
+    }
+
+    private void Save()
+    {
+        foreach (var old in _days.Keys.Where(k => string.CompareOrdinal(k, DateTime.Now.AddDays(-60).ToString("yyyy-MM-dd")) < 0).ToList()) _days.Remove(old);
+        try { File.WriteAllText(FilePath, JsonSerializer.Serialize(_days)); } catch { }
+    }
+
+    /// <summary>A finished craft. The item it made follows in the inventory; a craft without one (failed) counts too.</summary>
+    public void AddCraft(long timeMs)
+    {
+        lock (_gate)
+        {
+            TodayDay().Crafts++;
+            _craftAt = timeMs;
+            Save();
+        }
+        _log("Craft finished");
+        if (Environment.TickCount64 - _lastUpload > 10 * 60_000) Upload();
+    }
+
+    public void LevelUp(int level)
+    {
+        _log($"Craft level {level}");
+        CraftLevelUp?.Invoke(level);
     }
 
     /// <summary>A finished gather of an item.</summary>
@@ -99,12 +153,14 @@ public sealed class Gathering
     /// <summary>What was gathered since the last upload, to the website's gathering stats (only with "Count me anonymously").</summary>
     public void Upload()
     {
-        Dictionary<int, int> items;
+        Dictionary<int, int> items, crafted;
         int gathers;
         lock (_gate)
         {
-            if (!_settings.CountMe || _unsent.Count == 0) return;
+            if (!_settings.CountMe || (_unsent.Count == 0 && _unsentCrafted.Count == 0)) return;
             items = new(_unsent);
+            crafted = new(_unsentCrafted);
+            _unsentCrafted.Clear();
             gathers = _unsentGathers;
             _unsent.Clear();
             _unsentGathers = 0;
@@ -114,6 +170,7 @@ public sealed class Gathering
         {
             ["region"] = _settings.Region,
             ["gathers"] = gathers,
+            ["crafted"] = crafted.Select(kv => new Dictionary<string, object?> { ["item"] = kv.Key, ["n"] = kv.Value, ["name"] = KnownNames.TryGetValue(kv.Key, out var nm) ? nm.De : null }).ToList(),
             ["items"] = items.Select(kv => new Dictionary<string, object?> { ["item"] = kv.Key, ["n"] = kv.Value, ["name"] = KnownNames.TryGetValue(kv.Key, out var nm) ? nm.De : null }).ToList(),
         };
         _ = Task.Run(async () =>

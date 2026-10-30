@@ -98,12 +98,14 @@ PM.translate({
 });
 const de = PM.de, $ = id => document.getElementById(id);
 const T = de ? {
+  crH: "Hergestellt", crP: "Was PeakMeter-Spieler in dieser Region hergestellt haben.",
   gatH: "Gesammelt", gatP: "Was PeakMeter-Spieler in dieser Region gesammelt haben.", item: "Gegenstand", amount: "Menge",
   chars: "Charaktere gezählt", servers: "Server", avgCp: "Ø Kampfkraft", classes: "Klassen", cpH: "Kampfkraft", cpP: "Wie viele Charaktere in welchem Bereich.",
   srvH: "Server", srvP: "Klick auf einen Server, um nur ihn zu sehen.", all: "Alle Server", share: "Anteil", cp: "Ø KK", gs: "Ø GS", n: "Charaktere", days: d => d + " Tage",
   empty: "Für diese Auswahl wurde noch niemand gezählt. Sobald Spieler mit PeakMeter (ab v1.39) hier kämpfen, füllt sich der Zensus.", region: "Region",
   names: { gladiator: "Gladiator", templar: "Templer", ranger: "Waldläufer", assassin: "Assassine", sorcerer: "Magier", elementalist: "Beschwörer", cleric: "Kleriker", chanter: "Kantor", brawler: "Faustkämpfer" },
 } : {
+  crH: "Crafted", crP: "What PeakMeter players crafted in this region.",
   gatH: "Gathered", gatP: "What PeakMeter players gathered in this region.", item: "Item", amount: "Amount",
   chars: "Characters counted", servers: "Servers", avgCp: "Avg combat power", classes: "Classes", cpH: "Combat power", cpP: "How many characters in each range.",
   srvH: "Servers", srvP: "Click a server to see only that one.", all: "All servers", share: "Share", cp: "Avg CP", gs: "Avg GS", n: "Characters", days: d => d + " days",
@@ -186,15 +188,23 @@ function draw(d) {
 }
 
 async function loadGather() {
-  try {
-    const list = await (await fetch("/api/gather?region=" + region + "&days=" + days)).json();
-    if (!Array.isArray(list) || !list.length || !$("gat")) return;
+  const host = $("gat");
+  if (!host) return;
+  let html = "";
+  for (const [kind, h2, p] of [["gather", T.gatH, T.gatP], ["craft", T.crH, T.crP]]) {
+    try {
+      const list = await (await fetch("/api/gather?kind=" + kind + "&region=" + region + "&days=" + days)).json();
+      if (Array.isArray(list) && list.length) html += table(list, h2, p);
+    } catch {}
+  }
+  host.innerHTML = html;
+}
+function table(list, h2, p) {
     const top = list[0].n || 1;
-    $("gat").innerHTML = '<section class="s"><div class="s-head"><h2>' + esc(T.gatH) + '</h2><span class="rule"></span><p>' + esc(T.gatP) + '</p></div><div class="win" style="padding:6px 4px">' +
+    return '<section class="s"><div class="s-head"><h2>' + esc(h2) + '</h2><span class="rule"></span><p>' + esc(p) + '</p></div><div class="win" style="padding:6px 4px">' +
       '<table class="srvs"><thead><tr><th>' + esc(T.item) + "</th><th>" + esc(T.amount) + "</th></tr></thead><tbody>" +
       list.map(g => "<tr><td>" + esc(g.name || (de ? "Gegenstand " : "Item ") + g.item) + '</td><td><span class="bar" style="width:' + Math.round(g.n / top * 80) + 'px"></span>' + nf.format(g.n) + "</td></tr>").join("") +
       "</tbody></table></div></section>";
-  } catch {}
 }
 
 async function load() {

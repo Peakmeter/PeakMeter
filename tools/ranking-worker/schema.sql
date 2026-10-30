@@ -132,3 +132,12 @@ CREATE TABLE IF NOT EXISTS gather (
   PRIMARY KEY (region, day, item)
 );
 CREATE TABLE IF NOT EXISTS gather_names (item INTEGER PRIMARY KEY, name TEXT NOT NULL);
+
+-- Crafting: items made per day and region (same rules as gather).
+CREATE TABLE IF NOT EXISTS craft (
+  region TEXT NOT NULL,
+  day TEXT NOT NULL,
+  item INTEGER NOT NULL,
+  n INTEGER NOT NULL,
+  PRIMARY KEY (region, day, item)
+);

@@ -169,8 +169,15 @@ public sealed record PetSoulEvent(long TimeMs, IReadOnlyList<(int Pet, int Amoun
 /// <summary>A finished gather (Opcodes.GatherDone): the item that came out and the gathering spot.</summary>
 public sealed record GatherEvent(long TimeMs, int Item, uint Spot) : GameEvent(TimeMs);
 
+/// <summary>A finished craft (Opcodes.CraftDone): which craft, its progress points after it, and what it gained.</summary>
+public sealed record CraftEvent(long TimeMs, int Kind, long Points, int Gain) : GameEvent(TimeMs);
+
+/// <summary>A craft reached a level (Opcodes.CraftLevel).</summary>
+public sealed record CraftLevelEvent(long TimeMs, int Kind, int Level) : GameEvent(TimeMs);
+
 /// <summary>An inventory item's new stack (Opcodes.ItemStack): with a gather it tells how many came out.</summary>
-public sealed record ItemStackEvent(long TimeMs, int Item, long Count) : GameEvent(TimeMs);
+/// <param name="New">A new stack (the item was not in that bag before): all of <paramref name="Count"/> just came in.</param>
+public sealed record ItemStackEvent(long TimeMs, int Item, long Count, bool New = false) : GameEvent(TimeMs);
 
 public sealed record PetLevelEvent(long TimeMs, int Pet, int Level) : GameEvent(TimeMs);
 

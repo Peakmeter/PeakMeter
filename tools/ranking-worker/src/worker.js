@@ -824,7 +824,8 @@ async function gatherSave(req, env) {
   try { b = await req.json(); } catch { return json({ error: "bad json" }, 400); }
   const region = typeof b?.region === "string" ? b.region.toLowerCase() : "";
   const items = Array.isArray(b?.items) ? b.items.slice(0, 60) : [];
-  if (!REGIONS.has(region) || !items.length) return json({ error: "invalid" }, 400);
+  const crafted = Array.isArray(b?.crafted) ? b.crafted.slice(0, 60) : [];
+  if (!REGIONS.has(region) || (!items.length && !crafted.length)) return json({ error: "invalid" }, 400);
   const ip = await hash("g:" + (req.headers.get("cf-connecting-ip") || "?"));
   const hour = Math.floor(Date.now() / 3600_000);
   const row = await env.DB.prepare(
@@ -833,10 +834,10 @@ async function gatherSave(req, env) {
   if (row && row.n > 30) return json({ error: "slow down" }, 429);
   const day = new Date().toISOString().slice(0, 10);
   const stmts = [];
-  for (const it of items) {
+  for (const [table, list] of [["gather", items], ["craft", crafted]]) for (const it of list) {
     const item = int(it?.item), n = int(it?.n);
     if (!(item >= 100_000_000 && item < 1_000_000_000) || !(n > 0 && n <= 2000)) continue;
-    stmts.push(env.DB.prepare("INSERT INTO gather (region, day, item, n) VALUES (?1, ?2, ?3, ?4) ON CONFLICT(region, day, item) DO UPDATE SET n = n + excluded.n")
+    stmts.push(env.DB.prepare(`INSERT INTO ${table} (region, day, item, n) VALUES (?1, ?2, ?3, ?4) ON CONFLICT(region, day, item) DO UPDATE SET n = n + excluded.n`)
       .bind(region, day, item, n));
     const name = cleanText(it?.name, 40);
     if (name) stmts.push(env.DB.prepare("INSERT OR IGNORE INTO gather_names (item, name) VALUES (?1, ?2)").bind(item, name));
@@ -851,7 +852,7 @@ async function gatherGet(url, env) {
   const days = [7, 30, 90].includes(Number(url.searchParams.get("days"))) ? Number(url.searchParams.get("days")) : 30;
   const from = new Date(Date.now() - days * DAY).toISOString().slice(0, 10);
   const { results } = await env.DB.prepare(
-    `SELECT g.item AS item, MAX(nm.name) AS name, SUM(g.n) AS n FROM gather g LEFT JOIN gather_names nm ON nm.item = g.item
+    `SELECT g.item AS item, MAX(nm.name) AS name, SUM(g.n) AS n FROM ${url.searchParams.get("kind") === "craft" ? "craft" : "gather"} g LEFT JOIN gather_names nm ON nm.item = g.item
      WHERE g.region = ?1 AND g.day >= ?2 GROUP BY g.item ORDER BY n DESC LIMIT 40`
   ).bind(region, from).all();
   return json(results, 200, { "cache-control": "public, max-age=300" });

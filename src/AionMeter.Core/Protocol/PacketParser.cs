@@ -79,11 +79,19 @@ public sealed class PacketParser
                 if (item is >= 100_000_000 and < 1_000_000_000) Emit(new GatherEvent(TimeMs, (int)item, spot));
             }
         }
-        else if (opcode == Opcodes.ItemStack && body.Length >= 19 && body[0] == 1)
+        else if (opcode == Opcodes.CraftDone && body.Length >= 13 && body[0] is >= 1 and <= 20)
+        {
+            var gain = Wire.U32(body, 9);
+            if (gain < 100_000) Emit(new CraftEvent(TimeMs, body[0], Wire.U32(body, 1), (int)gain));
+        }
+        else if (opcode == Opcodes.CraftLevel && body.Length >= 2 && body[0] is >= 1 and <= 20 && body[1] is > 0 and <= 200)
+            Emit(new CraftLevelEvent(TimeMs, body[0], body[1]));
+        // Byte 0 is the bag (1 inventory, 2 and 3 seen for materials): every bag counts.
+        else if (opcode == Opcodes.ItemStack && body.Length >= 19 && body[0] is >= 1 and <= 4)
         {
             var item = Wire.U32(body, 11);
             var count = Wire.U32(body, 15);
-            if (item is >= 100_000_000 and < 1_000_000_000 && count < 1_000_000) Emit(new ItemStackEvent(TimeMs, (int)item, count));
+            if (item is >= 100_000_000 and < 1_000_000_000 && count < 1_000_000) Emit(new ItemStackEvent(TimeMs, (int)item, count, New: body[1] == 0));
         }
 
         switch (opcode)
