@@ -380,6 +380,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.43.0 – Der Meter lässt sich einklappen: neuer Knopf oben (beim Drüberfahren) oder Doppelklick auf die Kopfzeile. Eingeklappt bleibt nur die Kopfzeile mit Boss, DPS und Zeit stehen; Hinweise erscheinen weiter. Der Zustand bleibt nach einem Neustart erhalten.\n\n" +
         "v1.42.0 – Neu unter Einstellungen → Overlay: „Nur in Dungeons zeigen“. Außerhalb von Dungeons verschwindet der Meter; mit „…und bei Bosskämpfen draußen“ erscheint er auch bei Weltbossen und bleibt danach eine Minute mit dem Ergebnis stehen. Behoben: Mit „Nur mich bzw. meine Gruppe“ tauchten Fremde in der Nähe auf, solange du selbst noch nicht angegriffen hattest – jetzt bleibt stattdessen dein letzter eigener Kampf stehen.\n\n" +
         "v1.41.2 – Beim Sammeln zählt PeakMeter jetzt, was wirklich rauskommt: Feine, reine und strahlende Funde (z. B. „Feines Oreichalkos-Erz“) werden als solche gezählt statt als normales Erz.\n\n" +
         "v1.41.1 – Gesammelte und hergestellte Gegenstände haben jetzt Namen (über 700 Gegenstände, Sammelmaterialien auf Deutsch) statt „Gegenstand 610…“.\n\n" +
@@ -442,6 +443,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.43.0 – The meter can be collapsed: a new button at the top (on hover) or double-click the header. Collapsed, only the header with boss, DPS and time stays; alerts still show. It stays that way after a restart.\n\n" +
         "v1.42.0 – New under Settings → Overlay: “Show only in dungeons”. Outside dungeons the meter steps aside; with “…and in boss fights outside” it also shows for world bosses and keeps the result up for a minute afterwards. Fixed: with “Only me / my party”, strangers nearby showed up until you attacked yourself – now your last own fight stays instead.\n\n" +
         "v1.41.2 – Gathering now counts what really came out: fine, pure and radiant finds (e.g. “Fine Orichalcum Ore”) count as such instead of as the plain item.\n\n" +
         "v1.41.1 – Gathered and crafted items now show their names (over 700 items) instead of “Item 610…”.\n\n" +

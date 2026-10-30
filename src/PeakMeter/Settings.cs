@@ -93,6 +93,8 @@ public sealed class Settings
     public bool OnlyOverGame { get; set; }
     /// <summary>Show the meter only inside dungeons (and, with <see cref="AlsoBossFights"/>, in boss fights outside).</summary>
     public bool OnlyInDungeons { get; set; }
+    /// <summary>The meter folded to its header line (boss, DPS, time).</summary>
+    public bool Collapsed { get; set; }
     public bool AlsoBossFights { get; set; } = true;
     public bool RememberClickThrough { get; set; } = true;
     /// <summary>Hide the meter while AION 2 is not running; it comes back when the game starts.</summary>

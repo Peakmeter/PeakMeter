@@ -103,6 +103,7 @@ public partial class Overlay : Window
         // Never steal focus from the game, never show up in Alt+Tab.
         Native.SetExStyle(hwnd, Native.WS_EX_NOACTIVATE | Native.WS_EX_TOOLWINDOW, true);
         ApplyClickThrough();
+        ApplyCollapsed();
     }
 
     public void ApplyClickThrough()
@@ -217,7 +218,7 @@ public partial class Overlay : Window
         _showingEmpty = false;
         EmptyText.Visibility = Visibility.Collapsed;
         var focus = _settings.FocusMode && snap.IsActive && !IsMouseOver;
-        Header.Visibility = focus ? Visibility.Collapsed : Visibility.Visible;
+        Header.Visibility = focus && !_settings.Collapsed ? Visibility.Collapsed : Visibility.Visible;
         UpdateCompare(snap);
         UpdateRows(snap);
         UpdateDetail();
@@ -906,6 +907,7 @@ public partial class Overlay : Window
 
     private void Header_MouseDown(object sender, MouseButtonEventArgs e)
     {
+        if (e.ClickCount == 2) { ToggleCollapsed(); e.Handled = true; return; }
         if (_settings.Locked || e.ButtonState != MouseButtonState.Pressed) return;
         try { DragMove(); } catch (InvalidOperationException) { }
         SavePlacement();
@@ -1056,6 +1058,24 @@ public partial class Overlay : Window
     }
 
     private void Hide_Click(object sender, RoutedEventArgs e) => _app.SetVisible(false);
+
+    private void Collapse_Click(object sender, RoutedEventArgs e) => ToggleCollapsed();
+
+    /// <summary>Folds the meter to its header line (boss, DPS, time) or opens it again. Alert banners still show.</summary>
+    public void ToggleCollapsed()
+    {
+        _settings.Collapsed = !_settings.Collapsed;
+        _settings.Save();
+        ApplyCollapsed();
+    }
+
+    private void ApplyCollapsed()
+    {
+        var folded = _settings.Collapsed;
+        Body.Visibility = Footer.Visibility = folded ? Visibility.Collapsed : Visibility.Visible;
+        CollapseButton.Content = folded ? "\uE922" : "\uE921";
+        if (folded) Header.Visibility = Visibility.Visible;
+    }
 
     private void Grip_Drag(object sender, DragDeltaEventArgs e)
     {

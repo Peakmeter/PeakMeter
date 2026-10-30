@@ -75,6 +75,7 @@
                             <Button Style="{StaticResource IconButton}" Content="&#xE71B;" Click="ShareLink_Click" ToolTip="{local:T De='Kampf als Link teilen (Seite mit allen Spielern, Skills und Verlauf)', En='Share the fight as a link (page with every player, skill and the timeline)'}" />
                             <Button Style="{StaticResource IconButton}" Content="&#xE72C;" Click="Reset_Click" ToolTip="{local:T De='Zurücksetzen (Strg+Shift+R)', En='Reset'}" />
                             <Button x:Name="LockButton" Style="{StaticResource IconButton}" Content="&#xE785;" Click="Lock_Click" ToolTip="{local:T De='Position sperren', En='Lock position'}" />
+                            <Button x:Name="CollapseButton" Style="{StaticResource IconButton}" Content="&#xE921;" Click="Collapse_Click" ToolTip="{local:T De='Einklappen / ausklappen (auch Doppelklick auf die Kopfzeile)', En='Collapse / expand (also double-click the header)'}" />
                             <Button Style="{StaticResource IconButton}" Content="&#xE711;" Click="Hide_Click" ToolTip="{local:T De='Verstecken (Strg+Shift+D)', En='Hide'}" />
                         </StackPanel>
                         <TextBlock x:Name="ClockText" Text="0:00" Foreground="{StaticResource Text}" FontSize="15" FontWeight="SemiBold"
@@ -82,6 +83,8 @@
                     </StackPanel>
                 </Grid>
 
+                <!-- Everything below the header folds away with "collapse" -->
+                <StackPanel x:Name="Body">
                 <!-- Boss HP -->
                 <Grid x:Name="HpPanel" Margin="2,8,2,2" Visibility="Collapsed">
                     <Grid.RowDefinitions>
@@ -222,6 +225,8 @@
                     </StackPanel>
                 </Border>
 
+                </StackPanel>
+
                 <!-- Event alert banner -->
                 <Border x:Name="Banner" Visibility="Collapsed" Margin="0,8,0,0" CornerRadius="8" Padding="10,7"
                         Background="#267FD8F2" BorderBrush="#557FD8F2" BorderThickness="1" Cursor="Hand"
@@ -235,7 +240,7 @@
                 </Border>
 
                 <!-- Footer: next event, logs, timers -->
-                <Grid Margin="2,8,0,0">
+                <Grid x:Name="Footer" Margin="2,8,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
