@@ -259,6 +259,8 @@
   .final h2 { font-size: clamp(44px, 7vw, 86px); line-height: 1; }
   .final p { color: var(--dim); margin-top: 18px; font-size: 18px; }
   .final .ctas { justify-content: center; }
+  .final p.botline { font-size: 14px; margin-top: 16px; color: var(--mute); }
+  .final p.botline b { color: var(--fa); font-family: var(--hud); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -478,8 +480,10 @@
       <p data-i="fP">Free, and it stays that way. If it helps you, a coffee keeps it going.</p>
       <div class="ctas">
         <a class="btn dl" href="https://github.com/Peakmeter/PeakMeter/releases/latest" data-i="dl2">Download free</a>
+        <a class="btn ghost" href="/discord"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span data-i="botT">Add the Discord bot</span></a>
         <a class="btn ghost" href="https://ko-fi.com/peakmeter" data-i="kofi">Support on Ko-fi</a>
       </div>
+      <p class="botline" data-i="botP">In your guild: <b>/boss</b> world boss timers, <b>/player</b> player cards, <b>/rank</b> top 10 – free, no setup.</p>
       <div id="shareHome"></div>
     </div>
   </section>
@@ -521,7 +525,8 @@ PM.translate({
   rew: "Belohnung", r1: "Live-DPS", r2: "Rangliste", r3: "Profile",
   cH: "Der Kodex: liest nur, fasst nichts an",
   cP: "PeakMeter liest nur den Netzwerkverkehr deines eigenen Spiels. Kein Speicherzugriff, nichts wird ans Spiel gesendet, Updates kommen von GitHub. Tools von Drittanbietern können trotzdem gegen die Nutzungsbedingungen verstoßen – Nutzung auf eigenes Risiko.",
-  fH: "Der nächste Pull wartet.", fP: "Kostenlos, und das bleibt so. Wenn er dir hilft, hält ein Kaffee ihn am Laufen.", kofi: "Auf Ko-fi unterstützen",
+  fH: "Der nächste Pull wartet.", fP: "Kostenlos, und das bleibt so. Wenn er dir hilft, hält ein Kaffee ihn am Laufen.", kofi: "Auf Ko-fi unterstützen", botT: "Discord-Bot hinzufügen",
+  botP: "In deiner Gilde: <b>/boss</b> Weltboss-Timer, <b>/player</b> Spielerkarten, <b>/rank</b> Top 10 – kostenlos, ohne Einrichtung.",
   fRank: "Rangliste", fPl: "Spieler", fUp: "Alle Funktionen", fLic: "Lizenz GPL-3.0",
   fDis: "PeakMeter ist kein offizielles Produkt und nicht mit NCSOFT verbunden. AION ist eine Marke der NCSOFT Corporation. Die Namen in den Bildern sind erfunden.",
 });
@@ -666,6 +671,7 @@ const FEATS = [
   ["party", 0, "Party panel", "Level, gear score and combat power of every member, server tags like in game.", "Gruppen-Fenster", "Stufe, Gearscore und Kampfkraft aller Mitglieder, Server-Kürzel wie im Spiel."],
   ["party", 0, "Ready check", "✓ or ✗ next to every party member in the lobby.", "Bereit-Check", "✓ oder ✗ bei jedem Gruppenmitglied in der Lobby."],
   ["party", 1, "Profile button", "Click a player in the meter and open their PeakMeter profile.", "Profil-Knopf", "Spieler im Meter anklicken und sein PeakMeter-Profil öffnen."],
+  ["party", 1, "Discord bot", "Add it to your guild: /boss world boss timers, /player cards, /rank top 10.", "Discord-Bot", "Für deine Gilde: /boss Weltboss-Timer, /player Spielerkarten, /rank Top 10."],
   ["party", 0, "Stream mode", "Hide other players' names – they show as their class.", "Stream-Modus", "Namen anderer Spieler verstecken – sie erscheinen als ihre Klasse."],
   ["glory", 1, "Hall of fame", "Best DPS, healing and stagger per dungeon boss – overall, per class, per week. Opt-in.", "Ruhmeshalle", "Beste DPS, Heilung und Stagger pro Dungeon-Boss – gesamt, pro Klasse, pro Woche. Freiwillig."],
   ["glory", 1, "Your place after the kill", "Right after a ranked kill: your place, your class place and this week's.", "Dein Platz nach dem Kill", "Direkt nach dem Ranking-Kill: dein Platz, in deiner Klasse und diese Woche."],

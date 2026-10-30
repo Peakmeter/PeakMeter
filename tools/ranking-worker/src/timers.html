@@ -97,6 +97,10 @@
   .srvbar .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--up); box-shadow: 0 0 8px var(--up); }
   .srvbar .none { color: var(--dim); font-size: 14px; }
   .note { color: var(--mute); font-size: 13px; margin-top: 14px; }
+  .botcard { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 18px; border-radius: 10px; border: 1px solid var(--line); background: linear-gradient(90deg, rgba(127,216,255,.08), rgba(176,124,255,.06)); }
+  .botcard p { color: var(--dim); font-size: 14px; margin: 0; }
+  .botcard p b { color: var(--text); }
+  .botcard code { font: 600 13px/1 var(--hud); color: var(--fa); }
   .note a { color: var(--fa); }
 </style>
 </head>
@@ -126,6 +130,7 @@
     <div class="s-head"><h2 data-i="wbH">World bosses</h2><span class="rule"></span><p data-i="wbP">Live per server, from the meters playing there.</p></div>
     <div class="srvbar" id="srvbar"></div>
     <div class="wb" id="wb"></div>
+    <div class="botcard"><p data-i="botP"><b>Timers in your Discord:</b> type <code>/boss</code> in your guild and see who is up and what comes next.</p><a class="btn sm" href="/discord" data-i="botB">Add the bot</a></div>
     <p class="note" data-i="wbNote">Every server runs its own world bosses. Players with PeakMeter share their server's timers anonymously (only the boss and when it comes back) – the more play with it, the more servers show up here. <a href="/">Get the meter</a>.</p>
   </section>
 </main>
@@ -141,6 +146,7 @@
 PM.translate({
   h1: "Der Glockenturm", lead: "Jedes AION-2-Event, heruntergezählt in deiner eigenen Uhrzeit.", h24: "Die nächsten 24 Stunden",
   allH: "Alle Events", allP: "Sortiert nach dem, was als Nächstes kommt.", wbH: "Weltbosse", wbP: "Live pro Server, von den Metern, die dort spielen.",
+  botP: '<b>Timer in deinem Discord:</b> tippe <code>/boss</code> in deiner Gilde und sieh, wer lebt und was als Nächstes kommt.', botB: 'Bot hinzufügen',
   wbNote: 'Jeder Server hat seine eigenen Weltbosse. Spieler mit PeakMeter teilen die Timer ihres Servers anonym (nur Boss und wann er zurückkommt) – je mehr mitspielen, desto mehr Server erscheinen hier. <a href="/">Meter laden</a>.',
   fRank: "Rangliste", fPl: "Spieler", fSrc: "Zeiten nach Angaben der Community; NCSOFT veröffentlicht keine offiziellen Zeiten. Nicht mit NCSOFT verbunden.",
 });
