@@ -98,7 +98,10 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button x:Name="AllChip" Style="{StaticResource Chip}" Content="{local:T De='ALLE', En='ALL'}" Height="22" Margin="0,0,4,0" Click="Filter_Click" Tag="all" />
-                    <Button x:Name="BossChip" Style="{StaticResource Chip}" Content="{local:T De='BOSSE', En='BOSSES'}" Height="22" Margin="0,0,10,0" Click="Filter_Click" Tag="boss" />
+                    <Button x:Name="WorldChip" Style="{StaticResource Chip}" Content="{local:T De='WELTBOSSE', En='WORLD BOSSES'}" Height="22" Margin="0,0,4,0" Click="Filter_Click" Tag="world"
+                            ToolTip="{local:T De='Nur Bosse in der offenen Welt', En='Only bosses in the open world'}" />
+                    <Button x:Name="DungeonChip" Style="{StaticResource Chip}" Content="{local:T De='DUNGEON', En='DUNGEON'}" Height="22" Margin="0,0,10,0" Click="Filter_Click" Tag="dungeon"
+                            ToolTip="{local:T De='Nur Bosse in Dungeons', En='Only bosses in dungeons'}" />
                     <Button Style="{StaticResource IconButton}" Content="&#xE838;" Click="Folder_Click" ToolTip="{local:T De='Log-Ordner öffnen', En='Open log folder'}" Width="28" Height="28" />
                     <Button Style="{StaticResource IconButton}" Content="&#xE8BB;" Click="Close_Click" ToolTip="{local:T De='Schließen', En='Close'}" Width="28" Height="28" />
                 </StackPanel>

@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Logs → Buffs zeigt jetzt in Klartext, welcher Buff wie viel Schaden gebracht hat";
-    private const string WhatsNewEn = "Logs → Buffs now says in plain words how much damage each buff added";
+    private const string WhatsNew = "Logs trennt jetzt Weltbosse und Dungeon-Bosse";
+    private const string WhatsNewEn = "Logs now splits world bosses and dungeon bosses";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";

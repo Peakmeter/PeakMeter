@@ -21,7 +21,8 @@ public partial class LogsWindow : Window
     private static readonly Brush NoBrush = Frozen(0x14, 0xFF, 0xFF, 0xFF);
 
     private readonly Meter _meter;
-    private bool _bossesOnly;
+    /// <summary>"all", "world" (bosses outside dungeons) or "dungeon" (bosses in dungeons).</summary>
+    private string _filter = "all";
     private FightRecord? _record;
     private uint? _selected;
     private string? _loaded;
@@ -55,14 +56,20 @@ public partial class LogsWindow : Window
         var offset = scroll?.VerticalOffset ?? 0;
         var before = List.ItemsSource is List<FightItem> old ? old.Count : 0;
         var keep = (List.SelectedItem as FightItem)?.Entry.FileName;
-        var entries = _meter.History.List().Where(e => !_bossesOnly || e.IsBoss).ToList();
+        var entries = _meter.History.List().Where(e => _filter switch
+        {
+            "world" => e.IsBoss && !_meter.Data.IsDungeonZone(e.Zone),
+            "dungeon" => e.IsBoss && _meter.Data.IsDungeonZone(e.Zone),
+            _ => true,
+        }).ToList();
         var items = entries.Select(e => new FightItem(e, e.Reason == EncounterEndReason.Kill && e.BossCode != 0 &&
                                                          e.CombatMs == _meter.Records.BestKillMs(e.BossCode))).ToList();
         List.ItemsSource = items;
         EmptyList.Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         CountText.Text = items.Count == 1 ? L.S("1 Kampf", "1 fight") : L.S($"{items.Count} Kämpfe", $"{items.Count} fights");
-        AllChip.Foreground = (Brush)FindResource(_bossesOnly ? "TextDim" : "Text");
-        BossChip.Foreground = (Brush)FindResource(_bossesOnly ? "Text" : "TextDim");
+        AllChip.Foreground = (Brush)FindResource(_filter == "all" ? "Text" : "TextDim");
+        WorldChip.Foreground = (Brush)FindResource(_filter == "world" ? "Text" : "TextDim");
+        DungeonChip.Foreground = (Brush)FindResource(_filter == "dungeon" ? "Text" : "TextDim");
 
         var again = items.FirstOrDefault(i => i.Entry.FileName == keep) ?? items.FirstOrDefault();
         List.SelectedItem = again;
@@ -283,7 +290,7 @@ public partial class LogsWindow : Window
 
     private void Filter_Click(object sender, RoutedEventArgs e)
     {
-        _bossesOnly = (sender as FrameworkElement)?.Tag as string == "boss";
+        _filter = (sender as FrameworkElement)?.Tag as string ?? "all";
         LoadList();
     }
 
