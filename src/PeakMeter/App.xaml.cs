@@ -550,6 +550,7 @@ public sealed class Meter : IDisposable
     private long _selfSeenAt = long.MinValue / 2;
 
     private readonly OnlineCounter? _online;
+    private BossShare? _bossShare;
 
     public Meter(Settings settings, bool demo, bool saveDemo = false)
     {
@@ -637,6 +638,8 @@ public sealed class Meter : IDisposable
             Bosses.OnList(l);
         };
         Tracker.SelfIdentified += _ => Bosses.SetCurrentServer(Tracker.SelfServerId);
+        // Live world boss countdowns on the website: this server's timers, anonymously (follows "Count me anonymously").
+        if (!demo) _bossShare = new BossShare(settings, Bosses, Data, Log, () => _demoOnly || DemoRunning);
         _savedVersion = Tracker.CacheVersion;
     }
 
@@ -951,6 +954,7 @@ public sealed class Meter : IDisposable
         StopProbe();
         _disposing = true;
         _capture?.Dispose();
+        _bossShare?.Dispose();
         if (!_demoOnly) Tracker.Reset(); // closing mid-fight keeps the fight so far
         _demo?.Dispose();
         if (!_demoOnly) try { _names.Save(Tracker.ExportCache()); } catch { }

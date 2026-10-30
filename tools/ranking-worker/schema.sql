@@ -49,6 +49,20 @@ CREATE TABLE IF NOT EXISTS gear (
 );
 CREATE INDEX IF NOT EXISTS gear_cohort ON gear (cls, level, il);
 
+-- World boss timers per server, as the meters of that server report them (no player data).
+CREATE TABLE IF NOT EXISTS boss_live (
+  region TEXT NOT NULL,
+  server INTEGER NOT NULL,
+  boss INTEGER NOT NULL,
+  server_name TEXT,
+  state TEXT NOT NULL,
+  next_at INTEGER,
+  since INTEGER,
+  src TEXT,
+  reported INTEGER NOT NULL,
+  PRIMARY KEY (region, server, boss)
+);
+
 -- Boss names and HP as first reported (the HP check keeps made-up damage out).
 CREATE TABLE IF NOT EXISTS bosses (
   boss INTEGER PRIMARY KEY,

@@ -50,7 +50,8 @@ PeakMeter only reads your own game's network traffic: no memory access, nothing 
 Still, third-party tools may be against the terms of service – use at your own risk.
 Anonymous player count: while connected to the game, PeakMeter raises a public counter
 (abacus.jasoncameron.dev) by one every 10 minutes and once a day – no name, character, server or id.
-Turn it off in Settings: "Count me anonymously".
+With the same setting it shares your server's world boss times (boss, server, when it comes back – no name or
+character) for the live timers on the website. Turn both off in Settings: "Count me anonymously".
 Ranking (off unless you turn it on, Settings -> "Join the ranking"): after a dungeon boss kill PeakMeter sends only
 YOUR name, server, class, combat power, DPS, healing and stagger to the PeakMeter ranking server. Never other players.
 Not an official product, not affiliated with NCSOFT.
@@ -112,7 +113,8 @@ PeakMeter liest nur den Netzwerkverkehr deines eigenen Spiels: kein Speicherzugr
 Trotzdem können Tools von Drittanbietern gegen die Nutzungsbedingungen verstoßen – Nutzung auf eigenes Risiko.
 Anonyme Nutzerzahl: Solange PeakMeter mit dem Spiel verbunden ist, zählt es alle 10 Minuten und einmal am Tag einen
 öffentlichen Zähler (abacus.jasoncameron.dev) um eins hoch – ohne Name, Charakter, Server oder ID. Abschaltbar in den
-Einstellungen: „Anonym mitzählen“.
+Einstellungen: „Anonym mitzählen“. Mit derselben Einstellung teilt es die Weltboss-Zeiten deines Servers (Boss, Server,
+wann er zurückkommt – kein Name, kein Charakter) für die Live-Timer auf der Webseite.
 Ranking (aus, bis du es einschaltest: Einstellungen -> „Am Ranking teilnehmen“): Nach einem Dungeon-Boss-Kill sendet
 PeakMeter nur DEINEN Namen, Server, Klasse, Kampfkraft, DPS, Heilung und Stagger an den PeakMeter-Ranking-Server.
 Nie andere Spieler.

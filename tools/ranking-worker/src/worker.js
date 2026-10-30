@@ -6,6 +6,8 @@
 // GET  /ranking          the ranking page (the meter before 1.36 opened /?region=..., which lands there too)
 // GET  /player[/<region>/<server>/<name>]   player search and profile
 // GET  /compare?r=<region>&p1=<server>/<name>&p2=...   two players side by side
+// POST /api/bosses/report  world boss timers of one server, from a meter (no player data)
+// GET  /api/bosses/live  servers with live timers, or one server's timers
 // GET  /api/updates      every version with its note (from the meter's own changelog) and release date
 // GET  /api/char/search  NCSOFT's official character search, trimmed
 // GET  /api/char         one character: official profile, gear, skills (NCSOFT) + PeakMeter bests
@@ -60,6 +62,8 @@ export default {
       if (url.pathname === "/api/char") return await charProfile(url, env, ctx);
       if (url.pathname === "/api/char/board") return await charBoard(url, ctx);
       if (url.pathname === "/api/updates") return await updates(url, ctx);
+      if (url.pathname === "/api/bosses/report" && req.method === "POST") return await bossReport(req, env);
+      if (url.pathname === "/api/bosses/live") return await bossLive(url, env);
       if (url.pathname === "/api/submit" && req.method === "POST") return await submit(req, env);
       if (url.pathname === "/api/bosses") return await bosses(url, env);
       if (url.pathname === "/api/top") return await top(url, env);
@@ -549,6 +553,70 @@ async function rankingCard(url, env, page) {
   } catch {
     return withCard(page, url, plain);
   }
+}
+
+// ---------------------------------------------------------------- live world boss timers
+// A meter shares its server's timers: boss, alive or down, when it comes back. The game's own list ("game") is the
+// best word; a kill seen nearby ("kill") or a boss seen alive ("seen") does not replace a game report younger than
+// ten minutes.
+const BOSS_PER_HOUR = 120;
+
+async function bossReport(req, env) {
+  let b;
+  try { b = await req.json(); } catch { return json({ error: "bad json" }, 400); }
+  const region = typeof b.region === "string" ? b.region.toLowerCase() : "";
+  const server = int(b.server);
+  const reports = Array.isArray(b.reports) ? b.reports.slice(0, 80) : [];
+  if (!REGIONS.has(region) || !(server > 0 && server < 100000) || !reports.length) return json({ error: "invalid" }, 400);
+  const ip = await hash("b:" + (req.headers.get("cf-connecting-ip") || "?"));
+  const hour = Math.floor(Date.now() / 3600_000);
+  const row = await env.DB.prepare(
+    "INSERT INTO hits (ip, hour, n) VALUES (?1, ?2, 1) ON CONFLICT(ip, hour) DO UPDATE SET n = n + 1 RETURNING n"
+  ).bind(ip, hour).first();
+  if (row && row.n > BOSS_PER_HOUR) return json({ error: "slow down" }, 429);
+  const now = Date.now();
+  const name = cleanText(b.serverName, 30);
+  const stmts = [];
+  for (const r of reports) {
+    const boss = int(r?.boss);
+    if (!(boss >= 2000000 && boss < 3000000)) continue;
+    const src = ["game", "kill", "seen"].includes(r.src) ? r.src : "kill";
+    let state, next = null, since = null;
+    if (r.state === "up") {
+      state = "up";
+      if (int(r.since) > now - 86400_000 && r.since < now + 300_000) since = r.since;
+    } else if (r.state === "down" && int(r.next) > now - 3 * 3600_000 && r.next < now + 48 * 3600_000) {
+      state = "down"; next = r.next;
+    } else continue;
+    stmts.push(env.DB.prepare(
+      `INSERT INTO boss_live (region, server, boss, server_name, state, next_at, since, src, reported)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+       ON CONFLICT(region, server, boss) DO UPDATE SET server_name = COALESCE(excluded.server_name, boss_live.server_name),
+         state = excluded.state, next_at = excluded.next_at, since = excluded.since, src = excluded.src, reported = excluded.reported
+       WHERE excluded.src = 'game' OR boss_live.src != 'game' OR excluded.reported - boss_live.reported > 600000`
+    ).bind(region, server, boss, name, state, next, since, src, now));
+  }
+  if (stmts.length) await env.DB.batch(stmts);
+  return json({ ok: true, taken: stmts.length });
+}
+
+async function bossLive(url, env) {
+  const region = (url.searchParams.get("region") || "eu").toLowerCase();
+  if (!REGIONS.has(region)) return json({ error: "invalid" }, 400);
+  const day = Date.now() - 2 * 86400_000;
+  const server = Number(url.searchParams.get("server"));
+  if (!server) {
+    const { results } = await env.DB.prepare(
+      `SELECT server, MAX(server_name) AS name, COUNT(*) AS bosses, MAX(reported) AS last FROM boss_live
+       WHERE region = ?1 AND reported > ?2 GROUP BY server ORDER BY last DESC`
+    ).bind(region, day).all();
+    return json(results, 200, { "cache-control": "public, max-age=30" });
+  }
+  if (!Number.isInteger(server)) return json({ error: "invalid" }, 400);
+  const { results } = await env.DB.prepare(
+    `SELECT boss, state, next_at AS next, since, src, reported FROM boss_live WHERE region = ?1 AND server = ?2 AND reported > ?3`
+  ).bind(region, server, day).all();
+  return json(results, 200, { "cache-control": "public, max-age=30" });
 }
 
 // ---------------------------------------------------------------- updates (patch notes)

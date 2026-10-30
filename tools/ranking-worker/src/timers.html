@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/site.css?v=10">
-<script src="/site.js?v=10"></script>
+<link rel="stylesheet" href="/site.css?v=11">
+<script src="/site.js?v=11"></script>
 <style>
   /* The bell tower: the next event as a big countdown, the next 24 hours as lanes, every event below,
      then the world bosses as a reference table. All times in the viewer's own clock. */
@@ -83,6 +83,19 @@
   .boss { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 8px 0; border-bottom: 1px dotted rgba(255,255,255,.08); font-size: 14px; }
   .boss:last-child { border-bottom: 0; }
   .boss span { font: 600 13px/1 var(--hud); color: var(--gold); white-space: nowrap; align-self: center; }
+  .boss .st { text-align: right; }
+  .boss .st b { display: block; font: 700 15px/1 var(--hud); font-variant-numeric: tabular-nums; }
+  .boss .st small { display: block; font: 600 11px/1.3 var(--hud); color: var(--mute); margin-top: 3px; }
+  .boss.up .st b { color: var(--up); }
+  .boss.due .st b { color: #ffae55; }
+  .boss.cd .st b { color: var(--gold); }
+  .boss.unk .st b { color: var(--mute); font-weight: 600; font-size: 13px; }
+  .srvbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .srvbar select { background: rgba(0,0,0,.4); color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 9px 12px; font: 600 13px/1 var(--hud); letter-spacing: .04em; }
+  .srvbar select option { background: var(--panel-solid); }
+  .srvbar .live { display: inline-flex; align-items: center; gap: 7px; font: 600 12px/1 var(--hud); color: var(--dim); letter-spacing: .04em; }
+  .srvbar .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--up); box-shadow: 0 0 8px var(--up); }
+  .srvbar .none { color: var(--dim); font-size: 14px; }
   .note { color: var(--mute); font-size: 13px; margin-top: 14px; }
   .note a { color: var(--fa); }
 </style>
@@ -110,9 +123,10 @@
   </section>
 
   <section class="s">
-    <div class="s-head"><h2 data-i="wbH">World bosses</h2><span class="rule"></span><p data-i="wbP">Respawn after a kill.</p></div>
+    <div class="s-head"><h2 data-i="wbH">World bosses</h2><span class="rule"></span><p data-i="wbP">Live per server, from the meters playing there.</p></div>
+    <div class="srvbar" id="srvbar"></div>
     <div class="wb" id="wb"></div>
-    <p class="note" data-i="wbNote">World bosses come back a set time after each kill, so their timers differ per server. PeakMeter counts them down live in the game, with a soft chime: <a href="/">get the meter</a>.</p>
+    <p class="note" data-i="wbNote">Every server runs its own world bosses. Players with PeakMeter share their server's timers anonymously (only the boss and when it comes back) – the more play with it, the more servers show up here. <a href="/">Get the meter</a>.</p>
   </section>
 </main>
 
@@ -126,8 +140,8 @@
 <script>
 PM.translate({
   h1: "Der Glockenturm", lead: "Jedes AION-2-Event, heruntergezählt in deiner eigenen Uhrzeit.", h24: "Die nächsten 24 Stunden",
-  allH: "Alle Events", allP: "Sortiert nach dem, was als Nächstes kommt.", wbH: "Weltbosse", wbP: "Respawn nach einem Kill.",
-  wbNote: 'Weltbosse kommen eine feste Zeit nach jedem Kill zurück, ihre Timer sind also pro Server verschieden. PeakMeter zählt sie im Spiel live herunter, mit sanftem Ton: <a href="/">Meter laden</a>.',
+  allH: "Alle Events", allP: "Sortiert nach dem, was als Nächstes kommt.", wbH: "Weltbosse", wbP: "Live pro Server, von den Metern, die dort spielen.",
+  wbNote: 'Jeder Server hat seine eigenen Weltbosse. Spieler mit PeakMeter teilen die Timer ihres Servers anonym (nur Boss und wann er zurückkommt) – je mehr mitspielen, desto mehr Server erscheinen hier. <a href="/">Meter laden</a>.',
   fRank: "Rangliste", fPl: "Spieler", fSrc: "Zeiten nach Angaben der Community; NCSOFT veröffentlicht keine offiziellen Zeiten. Nicht mit NCSOFT verbunden.",
 });
 const de = PM.de, $ = id => document.getElementById(id);
@@ -259,11 +273,55 @@ function tick() {
 
 // world bosses (respawn after a kill)
 const BOSSES = [[2100050, "Kernon of the West", "Kernon des Westens", 30, "Verteron"], [2100003, "Neikel of the East", "Neikel des Ostens", 30, "Verteron"], [2100040, "Rotten Kutar", "Verfaulter Kutar", 30, "Verteron"], [2100141, "Blooming Korin", "Blühender Korin", 60, "Verteron"], [2100079, "Bodyguard Teegant", "Leibgardist Teegant", 90, "Verteron"], [2100076, "Kusan the Mad Gladiator", "Wahnstreiter Kusan", 120, "Verteron"], [2100077, "Ritualist Garshim", "Erzpriester Garshim", 120, "Verteron"], [2100178, "Bloodfang Pnyn", "Blutzahn Pnyn", 180, "Verteron"], [2100177, "Furious Saursus", "Wütende Saursus", 180, "Verteron"], [2100988, "Scholar Aulla", "Gelehrter Aulla", 120, "Verteron"], [2100991, "Chaser Taulo", "Verfolger Taulo", 120, "Verteron"], [2100989, "Forest Warrior Aullamu", "Waldkrieger Aullamu", 120, "Verteron"], [2100582, "Heretic Layla", "Apostatin Layla", 180, "Verteron"], [2100617, "Black Tentacle Lawa", "Schwarztentakel Lawa", 120, "Verteron"], [2100708, "Centurion Demiros", "Zenturio Demiros", 120, "Verteron"], [2100718, "Divine Ansas", "Heiliger Ansas", 360, "Verteron"], [2100876, "Harvest Manager Moshav", "Ernteaufseher Moshav", 180, "Verteron"], [2100877, "Sentinel K'nash", "Überwachungswaffe K'nash", 120, "Verteron"], [2101016, "Researcher Setram", "Forscher Setram", 180, ""], [2100661, "Phantasm Kasia", "Traumtrug Kasia", 360, "Verteron"], [2101120, "Silent Dartan", "Schweigender Dartan", 180, ""], [2101122, "Soul Ruler Kashapa", "Seelenherrscher Kashapa", 360, ""], [2101131, "High Commander Lagta", "Legat Lagta", 360, ""], [2101074, "Eternal Gartua", "Ewiger Gartua", 360, ""], [2400017, "Melted Danar", "Geschmolzener Danar", 30, "Altgard"], [2400074, "Black Warrior Aed", "Dunkelkrieger Aed", 30, "Altgard"], [2400140, "Faithful Rajit", "Treuer Rajit", 30, "Altgard"], [2400141, "Berserker Vargor", "Berserker Vargor", 60, "Altgard"], [2400223, "Blood Warrior Lannar", "Blutkrieger Lannar", 90, "Altgard"], [2400212, "Predator Garsan", "Verschlinger Garsan", 120, "Altgard"], [2400274, "Deceiver Trid", "Täuscherin Trid", 120, "Altgard"], [2400335, "Blue Wave Kelpina", "Blauwelle Kelpina", 120, "Altgard"], [2400358, "Advisor Resana", "Berater Resana", 180, "Altgard"], [2400353, "High Overseer Nutah", "Hauptaufseher Nutah", 120, "Altgard"], [2400419, "Special Operations Leader Linx", "Sondereinsatzhauptmann Linx", 180, "Altgard"], [2400424, "Desecrator Newbold", "Schänder Newbold", 240, "Altgard"], [2400425, "Specter Archon Axios", "Schattenarchon Axios", 240, "Altgard"], [2400474, "Addicted Hardirun", "Vergifteter Hadirun", 180, "Altgard"], [2400504, "Executioner Barthien", "Henker Barthien", 240, "Altgard"], [2400593, "Drakan Battalion Weapon Guruta", "Bataillonswaffe Guruta (Drakan)", 360, "Altgard"], [2400607, "Veteran Shujakan", "Veteran Shujakan", 180, "Altgard"], [2400608, "Visionary Karuka", "Visionärer Karuka", 240, "Altgard"], [2400659, "Dark Shadow Vishwada", "Dunkelschatten Vishwada", 360, "Altgard"], [2400709, "Sharp Shylak", "Scharfer Shylak", 360, "Altgard"], [2400855, "Silent Dartan", "Schweigender Dartan", 360, "Altgard"], [2400854, "Soul Ruler Kashapa", "Seelenherrscher Kashapa", 360, "Altgard"], [2400853, "High Commander Lagta", "Legat Lagta", 720, "Altgard"], [2400800, "Immortal Gartua", "Unsterblicher Gartua", 720, "Altgard"]];
-const byRegion = {};
-for (const [code, en, dn, min, reg] of BOSSES) (byRegion[reg] = byRegion[reg] || []).push({ code, name: de ? dn : en, min });
-$("wb").innerHTML = Object.entries(byRegion).map(([reg, list]) => '<div class="win"><h3>' + esc(reg) + "</h3>" +
-  list.sort((a, b) => a.min - b.min || a.name.localeCompare(b.name)).map(b => '<div class="boss"><b style="font-weight:500">' + esc(b.name) + "</b><span>" +
-    (b.min >= 60 ? (b.min / 60) + " h" : b.min + " min") + "</span></div>").join("") + "</div>").join("");
+// Area from the code where the table has none (2100/2101… Verteron, 2400… Altgard).
+const AREA = (code, reg) => reg || (code >= 2400000 ? "Altgard" : "Verteron");
+const BY_CODE = new Map(BOSSES.map(([code, en, dn, min, reg]) => [code, { code, name: de ? dn : en, min, area: AREA(code, reg) }]));
+let live = new Map(), liveServer = null, liveServers = [];
+const ago = ms => { const m = Math.round((Date.now() - ms) / 60000); return m < 1 ? (de ? "gerade eben" : "just now") : m < 60 ? (de ? "vor " + m + " min" : m + " min ago") : (de ? "vor " + Math.round(m / 60) + " h" : Math.round(m / 60) + " h ago"); };
+const dur = min => min >= 60 ? (min / 60) + " h" : min + " min";
+
+async function loadServers() {
+  liveServers = [];
+  try { const r = await fetch("/api/bosses/live?region=" + region); if (r.ok) liveServers = await r.json(); } catch {}
+  let saved = null; try { saved = Number(localStorage.getItem("pm-boss-server-" + region)); } catch {}
+  liveServer = liveServers.find(x => x.server === saved)?.server ?? liveServers[0]?.server ?? null;
+  $("srvbar").innerHTML = liveServers.length
+    ? '<select id="srvSel" aria-label="Server">' + liveServers.map(x => '<option value="' + x.server + '"' + (x.server === liveServer ? " selected" : "") + ">" +
+        esc(x.name || ("Server " + x.server)) + " · " + x.bosses + "</option>").join("") + '</select><span class="live"><span class="dot"></span><span id="srvAgo"></span></span>'
+    : '<p class="none">' + (de ? "Aus dieser Region kam noch keine Live-Meldung. Sobald jemand mit PeakMeter dort spielt, erscheint sein Server hier." : "No live report from this region yet. As soon as someone plays there with PeakMeter, their server shows up here.") + "</p>";
+  const sel = $("srvSel");
+  if (sel) sel.onchange = () => { liveServer = Number(sel.value); try { localStorage.setItem("pm-boss-server-" + region, liveServer); } catch {} loadLive(); };
+  await loadLive();
+}
+async function loadLive() {
+  live = new Map();
+  if (liveServer != null) {
+    try { const r = await fetch("/api/bosses/live?region=" + region + "&server=" + liveServer); if (r.ok) for (const x of await r.json()) live.set(x.boss, x); } catch {}
+  }
+  drawBosses();
+}
+function bossState(b, now) {
+  const x = live.get(b.code);
+  if (!x) return { cls: "unk", main: dur(b.min) + " " + (de ? "Respawn" : "respawn"), sub: de ? "noch keine Meldung" : "no report yet", order: 3, key: 0 };
+  const src = x.src === "game" ? (de ? "aus der Spielliste" : "from the game list") : x.src === "seen" ? (de ? "gesehen" : "seen") : (de ? "nach Kill" : "after a kill");
+  if (x.state === "up") return { cls: "up", main: de ? "lebt" : "alive", sub: (x.since ? (de ? "seit " : "since ") + hm(x.since) + " · " : "") + src, order: 0, key: x.since || 0 };
+  if (x.next > now) return { cls: "cd", main: cd(x.next - now), sub: hm(x.next) + " · " + src, order: 1, key: x.next };
+  return { cls: "due", main: de ? "sollte da sein" : "should be up", sub: (de ? "seit " : "since ") + hm(x.next) + " · " + src, order: 2, key: -x.next };
+}
+function drawBosses() {
+  const now = Date.now(), groups = {};
+  for (const b of BY_CODE.values()) (groups[b.area] = groups[b.area] || []).push({ b, st: bossState(b, now) });
+  $("wb").innerHTML = Object.entries(groups).map(([area, list]) => '<div class="win"><h3>' + esc(area) + "</h3>" +
+    list.sort((p, q) => p.st.order - q.st.order || p.st.key - q.st.key || p.b.min - q.b.min || p.b.name.localeCompare(q.b.name))
+      .map(({ b, st }) => '<div class="boss ' + st.cls + '"><b style="font-weight:500">' + esc(b.name) + '</b><span class="st"><b>' + esc(st.main) + "</b><small>" + esc(st.sub) + "</small></span></div>").join("") +
+    "</div>").join("");
+  const srv = liveServers.find(x => x.server === liveServer);
+  if (srv && $("srvAgo")) $("srvAgo").textContent = (de ? "zuletzt gemeldet " : "last report ") + ago(srv.last);
+}
+$("region").addEventListener("click", e => { if (e.target.closest("button")) setTimeout(loadServers, 0); });
+loadServers();
+setInterval(drawBosses, 1000);
+setInterval(loadServers, 60000);
 
 drawStatic();
 tick();

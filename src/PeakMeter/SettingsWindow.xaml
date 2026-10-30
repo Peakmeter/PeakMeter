@@ -141,7 +141,7 @@
                             <CheckBox x:Name="Autostart" Style="{StaticResource Switch}" Click="Autostart_Click" Content="{local:T De='Mit Windows starten', En='Start with Windows'}" />
                             <TextBlock Style="{StaticResource Section}" Text="{local:T De=UPDATES, En=UPDATES}" Margin="0,16,0,8" />
                             <CheckBox x:Name="AutoUpdate" Style="{StaticResource Switch}" Click="Toggle_Click" Content="{local:T De='Updates automatisch installieren', En='Install updates automatically'}" />
-                            <CheckBox x:Name="CountMe" Style="{StaticResource Switch}" Click="Toggle_Click" Content="{local:T De='Anonym mitzählen (nur eine Zahl: wie viele mit PeakMeter spielen; kein Name, kein Charakter)', En='Count me anonymously (only a number: how many play with PeakMeter; no name, no character)'}" />
+                            <CheckBox x:Name="CountMe" Style="{StaticResource Switch}" Click="Toggle_Click" Content="{local:T De='Anonym mitzählen (wie viele mit PeakMeter spielen, dazu die Weltboss-Zeiten deines Servers für die Webseite; kein Name, kein Charakter)', En='Count me anonymously (how many play with PeakMeter, and your server''s world boss times for the website; no name, no character)'}" />
                             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                                 <Button Style="{StaticResource Chip}" Height="26" Click="CheckUpdate_Click" Content="{local:T De='Nach Updates suchen', En='Check for updates'}" />
                                 <TextBlock x:Name="UpdateText" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="10,0,0,0" />
