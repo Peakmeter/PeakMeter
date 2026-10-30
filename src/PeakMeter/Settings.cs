@@ -91,6 +91,9 @@ public sealed class Settings
     public int FadeAfterSec { get; set; } = 60;
     /// <summary>Show the meter only while AION 2 (or PeakMeter itself) is in the foreground.</summary>
     public bool OnlyOverGame { get; set; }
+    /// <summary>Show the meter only inside dungeons (and, with <see cref="AlsoBossFights"/>, in boss fights outside).</summary>
+    public bool OnlyInDungeons { get; set; }
+    public bool AlsoBossFights { get; set; } = true;
     public bool RememberClickThrough { get; set; } = true;
     /// <summary>Hide the meter while AION 2 is not running; it comes back when the game starts.</summary>
     public bool HideWhenGameClosed { get; set; }

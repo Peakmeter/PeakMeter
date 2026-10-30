@@ -42,6 +42,9 @@ public partial class SettingsWindow : Window
         FocusMode.IsChecked = _s.FocusMode;
         FadeIdle.IsChecked = _s.FadeIdle;
         OnlyOverGame.IsChecked = _s.OnlyOverGame;
+        OnlyInDungeons.IsChecked = _s.OnlyInDungeons;
+        AlsoBossFights.IsChecked = _s.AlsoBossFights;
+        AlsoBossFights.IsEnabled = _s.OnlyInDungeons;
         RememberClick.IsChecked = _s.RememberClickThrough;
         HideClosed.IsChecked = _s.HideWhenGameClosed;
         ToastsOn.IsChecked = _s.Toasts;
@@ -156,6 +159,9 @@ public partial class SettingsWindow : Window
         _s.FocusMode = FocusMode.IsChecked == true;
         _s.FadeIdle = FadeIdle.IsChecked == true;
         _s.OnlyOverGame = OnlyOverGame.IsChecked == true;
+        _s.OnlyInDungeons = OnlyInDungeons.IsChecked == true;
+        _s.AlsoBossFights = AlsoBossFights.IsChecked == true;
+        AlsoBossFights.IsEnabled = _s.OnlyInDungeons;
         _s.RememberClickThrough = RememberClick.IsChecked == true;
         _s.HideWhenGameClosed = HideClosed.IsChecked == true;
         _s.Toasts = ToastsOn.IsChecked == true;
@@ -374,6 +380,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.42.0 – Neu unter Einstellungen → Overlay: „Nur in Dungeons zeigen“. Außerhalb von Dungeons verschwindet der Meter; mit „…und bei Bosskämpfen draußen“ erscheint er auch bei Weltbossen und bleibt danach eine Minute mit dem Ergebnis stehen.\n\n" +
         "v1.41.2 – Beim Sammeln zählt PeakMeter jetzt, was wirklich rauskommt: Feine, reine und strahlende Funde (z. B. „Feines Oreichalkos-Erz“) werden als solche gezählt statt als normales Erz.\n\n" +
         "v1.41.1 – Gesammelte und hergestellte Gegenstände haben jetzt Namen (über 700 Gegenstände, Sammelmaterialien auf Deutsch) statt „Gegenstand 610…“.\n\n" +
         "v1.41.0 – PeakMeter zählt jetzt auch dein Handwerk: Nach jedem Herstellen zeigt der Meter kurz, was rauskam (z. B. „⚒ Orechalkos-Barren +1“), und meldet, wenn du eine Handwerks-Stufe erreichst. Fehlschläge zählen als Versuch. Auf der Webseite zeigt der Zensus jetzt auch, was hergestellt wird. Außerdem werden neue Gegenstände beim ersten Sammeln richtig gezählt.\n\n" +
@@ -435,6 +442,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.42.0 – New under Settings → Overlay: “Show only in dungeons”. Outside dungeons the meter steps aside; with “…and in boss fights outside” it also shows for world bosses and keeps the result up for a minute afterwards.\n\n" +
         "v1.41.2 – Gathering now counts what really came out: fine, pure and radiant finds (e.g. “Fine Orichalcum Ore”) count as such instead of as the plain item.\n\n" +
         "v1.41.1 – Gathered and crafted items now show their names (over 700 items) instead of “Item 610…”.\n\n" +
         "v1.41.0 – PeakMeter now counts your crafting too: after each craft the meter briefly shows what came out (e.g. “⚒ Orechalkos-Barren +1”) and tells you when you reach a crafting level. Failed crafts count as tries. On the website the census now also shows what is crafted. Also, new items are counted right on their first gather.\n\n" +

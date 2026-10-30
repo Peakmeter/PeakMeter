@@ -121,7 +121,9 @@ public partial class Overlay : Window
             _bannerUntil = 0;
             Banner.Visibility = Visibility.Collapsed;
         }
-        var live = _meter.Tracker.LiveFight() is not null || _meter.DemoRunning;
+        var fight = _meter.Tracker.LiveFight();
+        var live = fight is not null || _meter.DemoRunning;
+        if (fight is { Boss: true } || _meter.DemoRunning) _lastBossFight = Environment.TickCount64;
         _app.CheckBossAlerts();
         if (_meter.EnergyConfirmed && _meter.Odyle.TakeFullAlert(DateTimeOffset.Now))
             _app.Notify(L.S("Odyle-Energie voll", "Odyle energy full"), L.S($"{_meter.Odyle.Cap} erreicht – Zeit zum Raiden!", $"{_meter.Odyle.Cap} reached – time to raid!"), "energy");
@@ -499,11 +501,12 @@ public partial class Overlay : Window
     private long _lastFight = Environment.TickCount64;
     private bool _hiddenByRule;
     private long _lastRuleCheck;
+    private long _lastBossFight = long.MinValue / 2;
 
-    /// <summary>"Only over the game" and "hide while the game is closed": the meter steps aside by itself.</summary>
+    /// <summary>"Only over the game", "hide while the game is closed" and "only in dungeons": the meter steps aside by itself.</summary>
     private void ApplyVisibilityRules()
     {
-        if (!_settings.OnlyOverGame && !_settings.HideWhenGameClosed)
+        if (!_settings.OnlyOverGame && !_settings.HideWhenGameClosed && !_settings.OnlyInDungeons)
         {
             if (_hiddenByRule) { _hiddenByRule = false; if (_settings.Visible) Show(); }
             return;
@@ -514,6 +517,10 @@ public partial class Overlay : Window
         var hide = false;
         if (_settings.HideWhenGameClosed && !Native.GameRunning()) hide = true;
         if (!hide && _settings.OnlyOverGame && !Native.GameOrMeterInFront()) hide = true;
+        // "Only in dungeons": outside one the meter steps aside, unless a boss fight is on (or ended less than a minute
+        // ago, so its result can still be read). An old fight opened from the logs always shows.
+        if (!hide && _settings.OnlyInDungeons && !Browsing && !_meter.Tracker.InInstance
+            && !(_settings.AlsoBossFights && now - _lastBossFight < 60_000)) hide = true;
         if (hide && IsVisible) { _hiddenByRule = true; Hide(); }
         else if (!hide && _hiddenByRule) { _hiddenByRule = false; if (_settings.Visible) Show(); }
     }
