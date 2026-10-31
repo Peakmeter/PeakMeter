@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Logs trennt jetzt Weltbosse und Dungeon-Bosse";
-    private const string WhatsNewEn = "Logs now splits world bosses and dungeon bosses";
+    private const string WhatsNew = "Meter friert im Dungeon nicht mehr beim ersten Boss ein";
+    private const string WhatsNewEn = "the meter no longer freezes on the first boss in dungeons";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";

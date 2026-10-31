@@ -178,7 +178,7 @@ public partial class Overlay : Window
 
         var shown = Visible(snap);
         // "Only me / my party": a fight of strangers only (nobody of yours in it) is not shown; your last own fight stays.
-        if (shown.Filtered && !Browsing && shown.List.Count == 0)
+        if (shown.Filtered && !Browsing && shown.List.Count == 0 && !_meter.Tracker.InInstance)
         {
             var own = _lastOwnFight is { } id && id != snap.Id ? _meter.Tracker.Snapshot(id, now) : null;
             if (own is null) { ShowEmpty(); return; }
@@ -357,21 +357,30 @@ public partial class Overlay : Window
             // Raids and dungeons: the game sends no (or only your own) party list. Inside an instance everyone
             // fighting is your group, so they stay visible. In the open world strangers on a field boss are not.
             var group = Browsing ? _meter.Data.IsDungeonZone(snap.Zone) : _meter.Tracker.InInstance;
+            // You by id, or by name when the game handed out a new id (zone change, death) and the meter lost it.
+            bool Me(CombatantSnapshot c) => c.IsSelf || (self is { Length: > 0 } && string.Equals(c.Name, self, StringComparison.OrdinalIgnoreCase));
             if (roster is not null)
             {
                 var names = roster.Members.Select(m => m.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-                var mates = snap.Combatants.Count(c => !c.IsSelf && !c.IsUnknownSummons && names.Contains(c.Name));
-                var others = snap.Combatants.Count(c => !c.IsSelf && !c.IsUnknownSummons);
+                var mates = snap.Combatants.Count(c => !Me(c) && !c.IsUnknownSummons && names.Contains(c.Name));
+                var others = snap.Combatants.Count(c => !Me(c) && !c.IsUnknownSummons);
                 if (!group || mates >= others || mates >= 3)
-                    pick = pick.Where(c => c.IsSelf || (!c.IsUnknownSummons && names.Contains(c.Name)));
+                    pick = pick.Where(c => Me(c) || (!c.IsUnknownSummons && names.Contains(c.Name)));
                 filtered = true;
             }
             else if (!group)
             {
                 // Solo in the open world: only you, also before the meter knows who you are (that often comes with
                 // your first hit). Strangers fighting nearby never show.
-                pick = pick.Where(c => c.IsSelf);
+                pick = pick.Where(Me);
                 filtered = true;
+            }
+            // In a dungeon everyone fighting is your group: if the filter finds nobody (old party list, your id
+            // not known yet), show them all rather than nothing or an old fight.
+            if (group && filtered && !pick.Any(c => !c.IsUnknownSummons))
+            {
+                pick = snap.Combatants;
+                filtered = false;
             }
         }
         if (_settings.View != "dps") pick = pick.Where(c => Metric(c) > 0 && !c.IsUnknownSummons);
