@@ -380,6 +380,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.45.2 – Behoben: Wurde der Meter mitten im Dungeon gestartet, standen statt Namen nur Nummern da (z. B. „#1173“). Fehlende Namen holt er sich jetzt aus der Gruppenliste (über die Klasse).\n\n" +
         "v1.45.1 – Behoben: Mit „Nur ich / meine Gruppe“ blieb der Meter im Dungeon manchmal beim ersten Boss stehen und zählte die nächsten Bosse nicht. Im Dungeon zeigt er jetzt immer den laufenden Kampf, und er erkennt dich auch am Namen, wenn das Spiel dir nach Tod oder Zonenwechsel eine neue ID gibt.\n\n" +
         "v1.45.0 – Logs: statt „Bosse“ gibt es jetzt „Weltbosse“ und „Dungeon“, so lassen sich Bosse der offenen Welt und Dungeon-Bosse getrennt anzeigen.\n\n" +
         "v1.44.0 – Logs → Buffs ist leichter zu verstehen: jeder Buff sagt in Klartext, ob er geholfen hat (grün „+12% Schaden“, sonst „kaum Unterschied“), wie lange er aktiv war und bei wie vielen Spielern. Die genauen DPS mit / ohne stehen im Tooltip.\n\n" +
@@ -446,6 +447,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.45.2 – Fixed: if the meter was started in the middle of a dungeon, players showed as numbers (like “#1173”) instead of names. Missing names now come from the party list (matched by class).\n\n" +
         "v1.45.1 – Fixed: with “Only me / my party” the meter sometimes froze on the first boss in a dungeon and didn't count the next bosses. In dungeons it now always shows the running fight, and it also finds you by name when the game gives you a new id after a death or zone change.\n\n" +
         "v1.45.0 – Logs: “Bosses” is now split into “World bosses” and “Dungeon”, so open-world and dungeon bosses can be shown separately.\n\n" +
         "v1.44.0 – Logs → Buffs is easier to read: every buff says in plain words whether it helped (green “+12% damage”, otherwise “barely any difference”), how long it was up and on how many players. The exact DPS with / without is in the tooltip.\n\n" +

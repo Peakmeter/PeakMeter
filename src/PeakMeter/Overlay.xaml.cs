@@ -348,7 +348,8 @@ public partial class Overlay : Window
 
     private (List<CombatantSnapshot> List, Dictionary<uint, double> Share, double Dps, bool Filtered) Visible(EncounterSnapshot snap)
     {
-        IEnumerable<CombatantSnapshot> pick = snap.Combatants;
+        var all = Named(snap.Combatants);
+        IEnumerable<CombatantSnapshot> pick = all;
         var filtered = false;
         if (_settings.PartyOnly)
         {
@@ -362,8 +363,8 @@ public partial class Overlay : Window
             if (roster is not null)
             {
                 var names = roster.Members.Select(m => m.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-                var mates = snap.Combatants.Count(c => !Me(c) && !c.IsUnknownSummons && names.Contains(c.Name));
-                var others = snap.Combatants.Count(c => !Me(c) && !c.IsUnknownSummons);
+                var mates = all.Count(c => !Me(c) && !c.IsUnknownSummons && names.Contains(c.Name));
+                var others = all.Count(c => !Me(c) && !c.IsUnknownSummons);
                 if (!group || mates >= others || mates >= 3)
                     pick = pick.Where(c => Me(c) || (!c.IsUnknownSummons && names.Contains(c.Name)));
                 filtered = true;
@@ -379,7 +380,7 @@ public partial class Overlay : Window
             // not known yet), show them all rather than nothing or an old fight.
             if (group && filtered && !pick.Any(c => !c.IsUnknownSummons))
             {
-                pick = snap.Combatants;
+                pick = all;
                 filtered = false;
             }
         }
@@ -390,6 +391,32 @@ public partial class Overlay : Window
         var share = list.ToDictionary(c => c.ActorId, c => mine ? (total > 0 ? Metric(c) / total : 0) : c.Share);
         return (list, share, filtered || _settings.DpsMode == "a" ? list.Sum(DpsOf) : snap.PartyDps, filtered);
     }
+
+    /// <summary>
+    /// Players the meter has no name for ("#1173": it started after their name went by, e.g. restarted in a
+    /// dungeon) get it from the party list when exactly one unplaced member plays that class.
+    /// </summary>
+    private List<CombatantSnapshot> Named(IReadOnlyList<CombatantSnapshot> list)
+    {
+        if (_meter.Roster is not { } roster || !list.Any(Unnamed)) return list as List<CombatantSnapshot> ?? list.ToList();
+        var self = _meter.Tracker.SelfName;
+        var taken = list.Where(c => !Unnamed(c)).Select(c => c.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var free = roster.Members.Where(m => !taken.Contains(m.Name)).ToList();
+        var nameless = list.Where(c => Unnamed(c) && c.Class != GameClass.Unknown).ToList();
+        var names = new Dictionary<uint, string>();
+        foreach (var c in nameless)
+        {
+            // You: by your own name when it is free, whatever class the party list says.
+            if (c.IsSelf && self is { Length: > 0 } && !taken.Contains(self)) { names[c.ActorId] = self; continue; }
+            var fits = free.Where(m => m.Class == c.Class).ToList();
+            if (fits.Count == 1 && nameless.Count(o => o.Class == c.Class) == 1) names[c.ActorId] = fits[0].Name;
+        }
+        return names.Count == 0
+            ? list as List<CombatantSnapshot> ?? list.ToList()
+            : list.Select(c => names.TryGetValue(c.ActorId, out var n) ? c with { Name = n } : c).ToList();
+    }
+
+    private static bool Unnamed(CombatantSnapshot c) => !c.IsUnknownSummons && c.Name.StartsWith('#');
 
     /// <summary>eDPS (whole fight) or aDPS (the player's own active time), per the settings.</summary>
     private double DpsOf(CombatantSnapshot c) => _settings.DpsMode == "a" ? c.ActiveDps : c.Dps;

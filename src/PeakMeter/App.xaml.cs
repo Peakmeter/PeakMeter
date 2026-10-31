@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Meter friert im Dungeon nicht mehr beim ersten Boss ein";
-    private const string WhatsNewEn = "the meter no longer freezes on the first boss in dungeons";
+    private const string WhatsNew = "Namen statt Nummern (#1173) nach Neustart im Dungeon";
+    private const string WhatsNewEn = "names instead of numbers (#1173) after a restart in a dungeon";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
