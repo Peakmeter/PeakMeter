@@ -98,6 +98,7 @@ PM.translate({
 });
 const de = PM.de, $ = id => document.getElementById(id);
 const T = de ? {
+  legH: "Größte Legionen", legP: "Nach Mitgliedern, die PeakMeter-Spieler in den letzten 60 Tagen gesehen haben.", legion: "Legion", members: "Mitglieder",
   crH: "Hergestellt", crP: "Was PeakMeter-Spieler in dieser Region hergestellt haben.",
   gatH: "Gesammelt", gatP: "Was PeakMeter-Spieler in dieser Region gesammelt haben.", item: "Gegenstand", amount: "Menge",
   chars: "Charaktere gezählt", servers: "Server", avgCp: "Ø Kampfkraft", classes: "Klassen", cpH: "Kampfkraft", cpP: "Wie viele Charaktere in welchem Bereich.",
@@ -105,6 +106,7 @@ const T = de ? {
   empty: "Für diese Auswahl wurde noch niemand gezählt. Sobald Spieler mit PeakMeter (ab v1.39) hier kämpfen, füllt sich der Zensus.", region: "Region",
   names: { gladiator: "Gladiator", templar: "Templer", ranger: "Waldläufer", assassin: "Assassine", sorcerer: "Magier", elementalist: "Beschwörer", cleric: "Kleriker", chanter: "Kantor", brawler: "Faustkämpfer" },
 } : {
+  legH: "Biggest legions", legP: "By members PeakMeter players have seen in the last 60 days.", legion: "Legion", members: "Members",
   crH: "Crafted", crP: "What PeakMeter players crafted in this region.",
   gatH: "Gathered", gatP: "What PeakMeter players gathered in this region.", item: "Item", amount: "Amount",
   chars: "Characters counted", servers: "Servers", avgCp: "Avg combat power", classes: "Classes", cpH: "Combat power", cpP: "How many characters in each range.",
@@ -191,6 +193,17 @@ async function loadGather() {
   const host = $("gat");
   if (!host) return;
   let html = "";
+  try {
+    const list = await (await fetch("/api/legion/top?region=" + region + (server ? "&server=" + server : ""))).json();
+    if (Array.isArray(list) && list.length) {
+      const top = list[0].n || 1;
+      html += '<section class="s"><div class="s-head"><h2>' + esc(T.legH) + '</h2><span class="rule"></span><p>' + esc(T.legP) + '</p></div><div class="win" style="padding:6px 4px">' +
+        '<table class="srvs legs"><thead><tr><th>' + esc(T.legion) + "</th><th>Server</th><th>" + esc(T.members) + "</th></tr></thead><tbody>" +
+        list.map(l => '<tr data-href="/legion/' + region + "/" + encodeURIComponent(l.serverName || l.server) + "/" + encodeURIComponent(l.legion) + '"><td>⚑ ' + esc(l.legion) + "</td><td>" +
+          esc(l.serverName || l.server) + '</td><td><span class="bar" style="width:' + Math.round(l.n / top * 80) + 'px"></span>' + nf.format(l.n) + "</td></tr>").join("") +
+        "</tbody></table></div></section>";
+    }
+  } catch {}
   for (const [kind, h2, p] of [["gather", T.gatH, T.gatP], ["craft", T.crH, T.crP]]) {
     try {
       const list = await (await fetch("/api/gather?kind=" + kind + "&region=" + region + "&days=" + days + "&lang=" + (de ? "de" : "en"))).json();
@@ -198,6 +211,8 @@ async function loadGather() {
     } catch {}
   }
   host.innerHTML = html;
+  const legs = host.querySelector("table.legs");
+  if (legs) legs.onclick = e => { const tr = e.target.closest("tr[data-href]"); if (tr) location.href = tr.dataset.href; };
 }
 function table(list, h2, p) {
     const top = list[0].n || 1;

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AION 2 Legion · PeakMeter</title>
+<meta name="description" content="Members of an AION 2 legion, as seen in game by PeakMeter players.">
+<meta name="theme-color" content="#05060a">
+<link rel="icon" href="https://raw.githubusercontent.com/Peakmeter/PeakMeter/main/docs/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Marcellus+SC&family=Sora:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/site.css?v=12">
+<script src="/site.js?v=12"></script>
+<style>
+  /* A legion: its name as a banner, the classes as filter chips, the members as a roll call. */
+  .l-head { text-align: center; padding-block: 52px 20px; }
+  .l-head .orn { max-width: 240px; margin: 0 auto 16px; }
+  .l-head small { display: block; color: var(--mute); font: 600 12px/1 var(--hud); letter-spacing: .18em; text-transform: uppercase; }
+  .l-head h1 { font-size: clamp(38px, 6vw, 70px); line-height: 1.05; margin-top: 10px; overflow-wrap: anywhere; }
+  .l-head p { color: var(--dim); margin-top: 12px; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 18px; }
+  .chips button { display: inline-flex; align-items: center; gap: 6px; background: rgba(0,0,0,.35); color: var(--dim); border: 1px solid var(--line-2);
+    border-radius: 4px; padding: 6px 10px; cursor: pointer; font: 600 12px/1 var(--hud); letter-spacing: .06em; }
+  .chips button img { width: 18px; height: 18px; }
+  .chips button.on { color: var(--fb); border-color: var(--fb); }
+  .chips button b { color: var(--text); font-weight: 700; }
+
+  .roll { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+  .m { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; background: rgba(255,255,255,.03); border: 1px solid var(--line);
+    color: inherit; text-decoration: none; min-width: 0; transition: border-color .15s, background .15s; }
+  .m:hover, .m:focus-visible { border-color: var(--line-2); background: rgba(255,255,255,.06); }
+  .m img { width: 28px; height: 28px; flex: none; }
+  .m .ni { min-width: 0; }
+  .m b { display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .m small { display: block; color: var(--mute); font: 500 11.5px/1.3 var(--hud); letter-spacing: .04em; }
+
+  table.lb { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.lb th { text-align: left; color: var(--mute); font: 600 11px/1 var(--hud); letter-spacing: .1em; text-transform: uppercase; padding: 10px 12px; }
+  table.lb td { padding: 9px 12px; border-top: 1px solid var(--line); vertical-align: middle; }
+  table.lb td small { display: block; color: var(--mute); font: 500 11.5px/1.3 var(--hud); }
+  table.lb a { color: inherit; text-decoration: none; }
+  table.lb a:hover { color: var(--fb); }
+  table.lb .v { font: 700 15px/1 var(--hud); font-variant-numeric: tabular-nums; color: var(--fb); }
+  table.lb .who { display: inline-flex; align-items: center; gap: 8px; }
+  table.lb .who img { width: 22px; height: 22px; }
+  @media (max-width: 620px) { table.lb .hps { display: none; } }
+
+  .empty { text-align: center; padding: 50px 20px; color: var(--dim); }
+  .note { color: var(--mute); font-size: 13px; margin-top: 18px; }
+</style>
+</head>
+<body>
+<nav class="top" data-page="player" aria-label="Main"></nav>
+
+<main class="wrap">
+  <header class="l-head">
+    <div class="orn"><i></i></div>
+    <small id="lSub" data-i="sub">Legion</small>
+    <h1 class="metal" id="lName">…</h1>
+    <p id="lLead"></p>
+    <div class="chips" id="chips"></div>
+  </header>
+  <section class="s" id="bestS" hidden>
+    <div class="s-head"><h2 data-i="bestH">Best kills of the legion</h2><span class="rule"></span><p data-i="bestP">Per boss the strongest member in the PeakMeter ranking.</p></div>
+    <div class="win" style="padding:6px 4px"><table class="lb" id="lb"></table></div>
+  </section>
+  <section class="s">
+    <div class="s-head"><h2 data-i="memH">Members</h2><span class="rule"></span></div>
+    <div class="roll" id="roll"></div>
+  </section>
+  <p class="note" data-i="src">Members as seen in game by PeakMeter players with “Take part in the ranking” on. Players nobody has met lately are missing, so the list is a picture, not the full roster.</p>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="fl"><a href="/ranking" data-i="fRank">Ranking</a><a href="/player" data-i="fPl">Players</a><a href="/timers">Timers</a><a href="https://github.com/Peakmeter/PeakMeter">GitHub</a></div>
+    <p data-i="fSrc">PeakMeter is not affiliated with NCSOFT.</p>
+  </div>
+</footer>
+
+<script>
+PM.translate({
+  sub: "Legion", bestH: "Beste Kills der Legion", bestP: "Pro Boss das stärkste Mitglied in der PeakMeter-Rangliste.", memH: "Mitglieder",
+  src: "Mitglieder, wie PeakMeter-Spieler mit „Am Ranking teilnehmen“ sie im Spiel gesehen haben. Wer lange niemandem begegnet ist, fehlt – die Liste ist ein Bild, nicht die vollständige Mitgliederliste.",
+  fRank: "Rangliste", fPl: "Spieler", fSrc: "PeakMeter ist nicht mit NCSOFT verbunden.",
+});
+const de = PM.de, $ = id => document.getElementById(id);
+const T = de ? {
+  lead: (n, s, r) => n + (n === 1 ? " Mitglied" : " Mitglieder") + " · " + s + " · " + r, all: "Alle", boss: "Boss", dps: "Bester DPS", hps: "Beste Heilung", ranked: n => n + " in der Rangliste",
+  seen: d => d < 1 ? "heute gesehen" : d < 2 ? "gestern gesehen" : "vor " + d + " Tagen gesehen",
+  none: "Diese Legion hat noch niemand mit PeakMeter gesehen. Sobald Spieler mit PeakMeter ihr begegnen, füllt sich die Liste.", err: "Konnte die Legion nicht laden.",
+  names: { gladiator: "Gladiator", templar: "Templer", ranger: "Waldläufer", assassin: "Assassine", sorcerer: "Magier", elementalist: "Beschwörer", cleric: "Kleriker", chanter: "Kantor", brawler: "Faustkämpfer" },
+} : {
+  lead: (n, s, r) => n + (n === 1 ? " member" : " members") + " · " + s + " · " + r, all: "All", boss: "Boss", dps: "Best DPS", hps: "Best healing", ranked: n => n + " ranked",
+  seen: d => d < 1 ? "seen today" : d < 2 ? "seen yesterday" : "seen " + d + " days ago",
+  none: "Nobody with PeakMeter has seen this legion yet. As soon as PeakMeter players meet its members, the list fills up.", err: "Could not load the legion.",
+  names: { gladiator: "Gladiator", templar: "Templar", ranger: "Ranger", assassin: "Assassin", sorcerer: "Sorcerer", elementalist: "Spiritmaster", cleric: "Cleric", chanter: "Chanter", brawler: "Brawler" },
+};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const parts = location.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+const region = (parts[1] || "eu").toLowerCase(), server = parts[2] || "", legion = parts[3] || "";
+const profileUrl = (s, n) => "/player/" + region + "/" + encodeURIComponent(s) + "/" + encodeURIComponent(n);
+let members = [], cls = "", serverName = server;
+const nf = new Intl.NumberFormat(de ? "de-DE" : "en-US");
+const short = v => v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e4 ? (v / 1e3).toFixed(1) + "K" : nf.format(Math.round(v || 0));
+
+function drawBests(list) {
+  const bosses = new Map();
+  for (const b of list) { const e = bosses.get(b.boss) || { boss: b.boss, name: b.bossName, zone: b.zone }; e[b.metric] = b; bosses.set(b.boss, e); }
+  if (!bosses.size) return;
+  const cell = (b, metric) => {
+    if (!b) return "<td" + (metric === "hps" ? ' class="hps"' : "") + ">–</td>";
+    const ic = b.cls && PM.classIcon(b.cls);
+    return "<td" + (metric === "hps" ? ' class="hps"' : "") + '><a class="who" href="' + profileUrl(serverName, b.name) + '">' + (ic ? '<img src="' + ic + '" alt="">' : "") +
+      '<span><span class="v">' + short(b.value) + "</span><small>" + esc(b.name) + " · " + esc(T.ranked(b.n)) + "</small></span></a></td>";
+  };
+  $("lb").innerHTML = "<thead><tr><th>" + esc(T.boss) + "</th><th>" + esc(T.dps) + '</th><th class="hps">' + esc(T.hps) + "</th></tr></thead><tbody>" +
+    [...bosses.values()].map(e => '<tr><td><a href="/ranking?region=' + region + "&boss=" + e.boss + '">' + esc(e.name) + "</a><small>" + esc(e.zone || "") + "</small></td>" +
+      cell(e.dps, "dps") + cell(e.hps, "hps") + "</tr>").join("") + "</tbody>";
+  $("bestS").hidden = false;
+}
+
+function draw() {
+  const counts = {};
+  for (const m of members) if (m.cls) counts[m.cls] = (counts[m.cls] || 0) + 1;
+  const order = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  $("chips").innerHTML = members.length < 2 ? "" : '<button data-c=""' + (cls ? "" : ' class="on"') + ">" + esc(T.all) + " <b>" + members.length + "</b></button>" +
+    order.map(c => { const ic = PM.classIcon(c); return '<button data-c="' + c + '"' + (cls === c ? ' class="on"' : "") + ">" + (ic ? '<img src="' + ic + '" alt="">' : "") +
+      esc(T.names[c] || c) + " <b>" + counts[c] + "</b></button>"; }).join("");
+  const now = Date.now();
+  const list = cls ? members.filter(m => m.cls === cls) : members;
+  $("roll").innerHTML = list.map(m => {
+    const ic = m.cls && PM.classIcon(m.cls);
+    return '<a class="m" href="' + profileUrl(serverName, m.name) + '">' + (ic ? '<img src="' + ic + '" alt="">' : '<span style="width:28px"></span>') +
+      '<span class="ni"><b>' + esc(m.name) + "</b><small>" + esc(T.names[m.cls] || "") + (m.cls ? " · " : "") + esc(T.seen(Math.floor((now - m.seen) / 86400000))) + "</small></span></a>";
+  }).join("");
+}
+
+async function load() {
+  document.title = legion + " · " + (de ? "Legion" : "Legion") + " · PeakMeter";
+  $("lName").textContent = legion;
+  try {
+    const r = await fetch("/api/legion?region=" + encodeURIComponent(region) + "&server=" + encodeURIComponent(server) + "&legion=" + encodeURIComponent(legion));
+    if (!r.ok) throw 0;
+    const d = await r.json();
+    if (!d.legion) { $("roll").outerHTML = '<div class="win empty">' + esc(T.none) + "</div>"; return; }
+    members = d.members;
+    serverName = d.serverName || server;
+    $("lName").textContent = d.legion;
+    document.title = d.legion + " · Legion · " + serverName + " · PeakMeter";
+    $("lLead").textContent = T.lead(d.count, serverName, region.toUpperCase());
+    $("chips").onclick = e => { const b = e.target.closest("button"); if (b) { cls = b.dataset.c; draw(); } };
+    draw();
+    drawBests(d.bests || []);
+  } catch { $("roll").outerHTML = '<div class="win empty">' + esc(T.err) + "</div>"; }
+}
+load();
+</script>
+</body>
+</html>

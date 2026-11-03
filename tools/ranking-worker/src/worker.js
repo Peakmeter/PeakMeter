@@ -26,6 +26,7 @@ import compare from "./compare.html";
 import timers from "./timers.html";
 import report from "./report.html";
 import census from "./census.html";
+import legionPage from "./legion.html";
 import ITEMS from "./items.json";
 import siteCss from "./client/site.css";
 import siteJs from "./client/site.js";
@@ -78,6 +79,12 @@ export default {
       if (url.pathname === "/api/gather") return await gatherGet(url, env);
       if (url.pathname === "/api/census" && req.method === "POST") return await censusSave(req, env);
       if (url.pathname === "/api/census") return await censusGet(url, env);
+      if (url.pathname === "/api/legion/search") return await legionSearch(url, env);
+      if (url.pathname === "/api/legion/top") return await legionTop(url, env);
+      if (url.pathname === "/api/stats") return await stats(url, ctx, env);
+      if (url.pathname === "/api/legion" && req.method === "POST") return await legionSave(req, env);
+      if (url.pathname === "/api/legion") return await legionGet(url, env);
+      if (url.pathname.startsWith("/legion/")) return html(isBot(req) ? await legionCard(url, env) : legionPage);
       if (url.pathname.startsWith("/r/")) return html(isBot(req) ? await reportCard(url, env, report) : report);
       if (url.pathname === "/api/report" && req.method === "POST") return await reportSave(req, env, url);
       if (url.pathname === "/api/report") return await reportGet(url, env);
@@ -548,6 +555,11 @@ async function sitemap(url, env) {
        GROUP BY region, server_name, name ORDER BY at DESC LIMIT 20000`).all();
     for (const p of players)
       rows.push(`<url><loc>${xml(`${o}/player/${p.region}/${encodeURIComponent(p.server)}/${encodeURIComponent(p.name)}`)}</loc><lastmod>${day(p.at)}</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url>`);
+    const { results: legions } = await env.DB.prepare(
+      `SELECT region, MAX(server_name) AS server, legion, COUNT(*) AS n, MAX(seen) AS at FROM legion_members WHERE legion <> '' AND seen > ?1
+       GROUP BY region, server, legion HAVING n >= 3 ORDER BY n DESC LIMIT 5000`).bind(Date.now() - LEGION_FRESH).all();
+    for (const l of legions) if (l.server)
+      rows.push(`<url><loc>${xml(`${o}/legion/${l.region}/${encodeURIComponent(l.server)}/${encodeURIComponent(l.legion)}`)}</loc><lastmod>${day(l.at)}</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url>`);
   } catch { /* the fixed pages still go out */ }
   const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${rows.join("\n")}\n</urlset>\n`;
   return new Response(body, { headers: { "content-type": "application/xml; charset=utf-8", "cache-control": "public, max-age=3600" } });
@@ -578,9 +590,27 @@ function withCard(page, url, m) {
     `<meta name="twitter:description" content="${attr(m.desc)}">`,
     `<meta name="twitter:image" content="${attr(m.image || OG_IMAGE)}">`,
     `<meta name="description" content="${attr(m.desc)}">`,
-    `<link rel="canonical" href="${attr(url.origin + url.pathname + (url.pathname.startsWith("/player/") ? "" : url.search))}">`,
+    `<link rel="canonical" href="${attr(url.origin + url.pathname + (url.pathname.startsWith("/player/") || url.pathname.startsWith("/legion/") ? "" : url.search))}">`,
   ].join("\n");
   return page.replace(/<title>[\s\S]*?<\/title>/, `<title>${attr(m.title)}</title>`).replace(/<meta name="description"[^>]*>/, "").replace("</head>", tags + "\n</head>");
+}
+
+async function legionCard(url, env) {
+  const [, , region, server, legion] = url.pathname.split("/").map(decodeURIComponent);
+  const plain = { title: `${legion || "Legion"} · AION 2 legion · PeakMeter`, desc: "Members and best kills of an AION 2 legion on PeakMeter." };
+  if (!region || !server || !legion) return withCard(legionPage, url, plain);
+  try {
+    const u = new URL(url.origin + "/api/legion");
+    u.search = new URLSearchParams({ region, server, legion }).toString();
+    const d = await (await legionGet(u, env)).json();
+    if (!d.legion) return withCard(legionPage, url, plain);
+    const counts = {};
+    for (const m of d.members) if (m.cls) counts[m.cls] = (counts[m.cls] || 0) + 1;
+    const classes = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([c, n]) => `${n} ${c[0].toUpperCase() + c.slice(1)}`).join(", ");
+    const best = d.bests.filter((b) => b.metric === "dps").sort((a, b) => b.value - a.value)[0];
+    const desc = [`${d.count} members`, classes, best ? `best: ${best.name} ${short(best.value)} DPS on ${best.bossName}` : ""].filter(Boolean).join(" · ") + " — on PeakMeter.";
+    return withCard(legionPage, url, { title: `${d.legion} · ${d.serverName || server} (${region.toUpperCase()}) · AION 2 legion`, desc });
+  } catch { return withCard(legionPage, url, plain); }
 }
 
 async function charData(url, env, ctx, region, server, name) {
@@ -768,7 +798,7 @@ const koreaMod = () => (koreaHandler ??= korea({}));
 const alertsMod = () => (alertsHandler ??= alerts({ json, REGIONS, hash, timersHtml: timers }));
 const bot = () => (botHandler ??= discordBot({
   json, REGIONS, METRICS, source, short, group, CLASS_EN, OG_IMAGE, timersHtml: timers,
-  ncSearchUrl, ncJson, strip, charData,
+  ncSearchUrl, ncJson, strip, charData, legionGet, legionSearch,
 }));
 
 // ---------------------------------------------------------------- shared fight reports
@@ -951,6 +981,158 @@ async function censusGet(url, env) {
   ]);
   const total = classes.results.reduce((a, r) => a + r.n, 0);
   return json({ region, days, server, total, classes: classes.results, servers: servers.results, cp: buckets.results }, 200, { "cache-control": "public, max-age=300" });
+}
+
+// ---------------------------------------------------------------- legions
+// Meters with "Take part in the ranking" on send the players they saw with their legion. A row is written only when
+// it is new or the legion changed (seen is refreshed at most weekly), and LEGION_DAY_CAP caps the rows written per day:
+// once reached, uploads are turned away until midnight UTC and the meters keep them for later.
+const LEGION_DAY_CAP = 25_000;
+const LEGION_PER_HOUR = 30;
+const LEGION_FRESH = 60 * DAY;
+
+async function legionSave(req, env) {
+  let b;
+  try { b = await req.json(); } catch { return json({ error: "bad json" }, 400); }
+  const region = typeof b?.region === "string" ? b.region.toLowerCase() : "";
+  const list = Array.isArray(b?.players) ? b.players.slice(0, 100) : [];
+  if (!REGIONS.has(region) || !list.length) return json({ error: "invalid" }, 400);
+  const day = new Date().toISOString().slice(0, 10);
+  const used = (await env.DB.prepare("SELECT n FROM legion_day WHERE day = ?1").bind(day).first())?.n || 0;
+  if (used >= LEGION_DAY_CAP) return json({ error: "full", full: true }, 429);
+  const ip = await hash("l:" + (req.headers.get("cf-connecting-ip") || "?"));
+  const hour = Math.floor(Date.now() / 3600_000);
+  const row = await env.DB.prepare(
+    "INSERT INTO hits (ip, hour, n) VALUES (?1, ?2, 1) ON CONFLICT(ip, hour) DO UPDATE SET n = n + 1 RETURNING n"
+  ).bind(ip, hour).first();
+  if (row && row.n > LEGION_PER_HOUR) return json({ error: "slow down" }, 429);
+
+  const now = Date.now();
+  const stmts = [], servers = new Map();
+  for (const p of list) {
+    const name = cleanText(p?.name, 24);
+    const server = int(p?.server);
+    if (!name || !(server >= 1000 && server < 3000)) continue;
+    const cls = REPORT_CLASSES.has(p?.cls) ? p.cls : null;
+    const legion = p?.legion === "" ? "" : cleanText(p?.legion, 24);
+    if (legion === null) continue;
+    if (legion === "") {
+      // Left the legion: forget it, but only for players we know (costs nothing otherwise).
+      stmts.push(env.DB.prepare("UPDATE legion_members SET legion = '', seen = ?4 WHERE region = ?1 AND server = ?2 AND name = ?3 AND legion <> ''")
+        .bind(region, server, name, now));
+      continue;
+    }
+    stmts.push(env.DB.prepare(
+      `INSERT INTO legion_members (region, server, server_name, name, legion, cls, seen) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+       ON CONFLICT(region, server, name) DO UPDATE SET legion = excluded.legion, cls = COALESCE(excluded.cls, legion_members.cls),
+         server_name = COALESCE(excluded.server_name, legion_members.server_name), seen = excluded.seen
+       WHERE legion_members.legion <> excluded.legion OR legion_members.seen < ?8`
+    ).bind(region, server, cleanText(p?.serverName, 30), name, legion, cls, now, now - 7 * DAY));
+    const sn = cleanText(p?.serverName, 30);
+    if (sn && !/^\d+$/.test(sn)) servers.set(sn, server);
+  }
+  for (const [sn, id] of servers) stmts.push(env.DB.prepare("INSERT OR IGNORE INTO legion_servers (region, name, server) VALUES (?1, ?2, ?3)").bind(region, sn, id));
+  let written = 0;
+  if (stmts.length) for (const r of await env.DB.batch(stmts)) written += r.meta?.rows_written || 0;
+  if (written) await env.DB.prepare("INSERT INTO legion_day (day, n) VALUES (?1, ?2) ON CONFLICT(day) DO UPDATE SET n = n + excluded.n").bind(day, written).run();
+  return json({ ok: true, taken: stmts.length, written });
+}
+
+// ---------------------------------------------------------------- live numbers for the home page
+// A handful of counts, kept in the edge cache for 10 minutes so the home page costs the database almost nothing.
+async function stats(url, ctx, env) {
+  const key = new Request(url.origin + "/api/stats");
+  const cached = await caches.default.match(key);
+  if (cached) return cached;
+  const now = Date.now();
+  const [ranked, week, census, legions, latest] = await env.DB.batch([
+    env.DB.prepare("SELECT COUNT(*) AS n FROM (SELECT 1 FROM best GROUP BY region, server, name)"),
+    env.DB.prepare("SELECT COUNT(*) AS n FROM week_best WHERE week = ?1").bind(weekOf(now)),
+    env.DB.prepare("SELECT COUNT(*) AS n FROM census WHERE seen > ?1").bind(now - 30 * DAY),
+    env.DB.prepare("SELECT COUNT(*) AS n FROM (SELECT 1 FROM legion_members WHERE legion <> '' AND seen > ?1 GROUP BY region, server, legion)").bind(now - LEGION_FRESH),
+    env.DB.prepare(
+      `SELECT b.region AS region, b.name AS name, b.server_name AS server, b.cls AS cls, b.value AS value, o.boss AS boss, o.name AS bossName, b.at AS at
+       FROM best b JOIN bosses o ON o.boss = b.boss WHERE b.metric = 'dps' ORDER BY b.at DESC LIMIT 1`),
+  ]);
+  const res = json({
+    ranked: ranked.results[0]?.n || 0, week: week.results[0]?.n || 0, census: census.results[0]?.n || 0, legions: legions.results[0]?.n || 0,
+    latest: latest.results[0] || null,
+  }, 200, { "cache-control": "public, max-age=600" });
+  ctx.waitUntil(caches.default.put(key, res.clone()));
+  return res;
+}
+
+/** The biggest legions of a region (or one server), by members seen lately. */
+async function legionTop(url, env) {
+  const region = (url.searchParams.get("region") || "eu").toLowerCase();
+  const server = Number(url.searchParams.get("server")) || 0;
+  if (!REGIONS.has(region)) return json([], 400);
+  const { results } = await env.DB.prepare(
+    `SELECT legion, server, MAX(server_name) AS serverName, COUNT(*) AS n FROM legion_members
+     WHERE region = ?1 AND legion <> '' AND seen > ?2 AND (?3 = 0 OR server = ?3) GROUP BY legion, server ORDER BY n DESC LIMIT 15`
+  ).bind(region, Date.now() - LEGION_FRESH, server).all();
+  return json(results, 200, { "cache-control": "public, max-age=600" });
+}
+
+/** Legions whose name starts with q, on any server of the region, biggest first. */
+async function legionSearch(url, env) {
+  const region = (url.searchParams.get("region") || "eu").toLowerCase();
+  const q = (url.searchParams.get("q") || "").trim();
+  if (!REGIONS.has(region) || q.length < 2 || q.length > 24) return json([], 200);
+  const { results } = await env.DB.prepare(
+    `SELECT legion, server, MAX(server_name) AS serverName, COUNT(*) AS n FROM legion_members
+     WHERE region = ?1 AND legion >= ?2 AND legion < ?3 AND seen > ?4 GROUP BY legion, server ORDER BY n DESC LIMIT 12`
+  ).bind(region, q, q + "\uffff", Date.now() - LEGION_FRESH).all();
+  return json(results, 200, { "cache-control": "public, max-age=300" });
+}
+
+/** ?player=Name → that player's legion and its size; ?legion=Name → its members. server = id or name. */
+async function legionGet(url, env) {
+  const region = (url.searchParams.get("region") || "eu").toLowerCase();
+  const srv = (url.searchParams.get("server") || "").trim();
+  const player = (url.searchParams.get("player") || "").trim(), legion = (url.searchParams.get("legion") || "").trim();
+  if (!REGIONS.has(region) || !srv || (!player && !legion) || player.length > 24 || legion.length > 24) return json({ error: "invalid" }, 400);
+  const since = Date.now() - LEGION_FRESH;
+  let server = /^\d+$/.test(srv) ? Number(srv) : 0;
+  if (!server) {
+    const s = await env.DB.prepare("SELECT server FROM legion_servers WHERE region = ?1 AND name = ?2").bind(region, srv).first();
+    if (!s) return json({ legion: null, members: [] }, 200, { "cache-control": "public, max-age=300" });
+    server = s.server;
+  }
+  const cache = { "cache-control": "public, max-age=300" };
+  if (player) {
+    const me = await env.DB.prepare("SELECT legion, server_name AS serverName FROM legion_members WHERE region = ?1 AND server = ?2 AND name = ?3 AND legion <> '' AND seen > ?4")
+      .bind(region, server, player, since).first();
+    if (!me) return json({ legion: null }, 200, cache);
+    const c = await env.DB.prepare("SELECT COUNT(*) AS n FROM legion_members WHERE region = ?1 AND server = ?2 AND legion = ?3 AND seen > ?4")
+      .bind(region, server, me.legion, since).first();
+    return json({ legion: me.legion, server, serverName: me.serverName, count: c?.n || 1 }, 200, cache);
+  }
+  const { results } = await env.DB.prepare(
+    `SELECT name, legion, cls, server_name AS serverName, seen FROM legion_members WHERE region = ?1 AND server = ?2 AND legion = ?3 AND seen > ?4
+     ORDER BY name COLLATE NOCASE LIMIT 500`
+  ).bind(region, server, legion, since).all();
+  // The legion's best kills: per boss and metric, its strongest member from the ranking.
+  let bests = [];
+  if (results.length) {
+    const { results: rows } = await env.DB.prepare(
+      `SELECT b.boss AS boss, o.name AS bossName, o.zone AS zone, b.metric AS metric, b.name AS name, b.cls AS cls, b.value AS value
+       FROM legion_members m JOIN best b ON b.region = m.region AND b.server = m.server AND b.name = m.name
+       JOIN bosses o ON o.boss = b.boss
+       WHERE m.region = ?1 AND m.server = ?2 AND m.legion = ?3 AND m.seen > ?4 AND b.metric IN ('dps', 'hps')`
+    ).bind(region, server, legion, since).all();
+    const top = new Map();
+    for (const r of rows) {
+      const k = r.boss + ":" + r.metric, t = top.get(k);
+      if (!t) top.set(k, { ...r, n: 1 });
+      else { t.n++; if (r.value > t.value) Object.assign(t, r, { n: t.n }); }
+    }
+    bests = [...top.values()].sort((a, b) => (a.zone || "").localeCompare(b.zone || "") || a.bossName.localeCompare(b.bossName));
+  }
+  return json({
+    legion: results[0]?.legion || null, server, serverName: results[0]?.serverName || (/^\d+$/.test(srv) ? null : srv), count: results.length,
+    members: results.map((r) => ({ name: r.name, cls: r.cls, seen: r.seen })), bests,
+  }, 200, cache);
 }
 
 async function hash(s) {

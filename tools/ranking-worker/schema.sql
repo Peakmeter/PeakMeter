@@ -150,3 +150,20 @@ CREATE TABLE IF NOT EXISTS kr_items (cid TEXT, slot TEXT, item INTEGER, enchant 
 CREATE TABLE IF NOT EXISTS kr_lines (cid TEXT, slot TEXT, kind TEXT, line TEXT, value REAL, PRIMARY KEY (cid, slot, kind, line));
 CREATE TABLE IF NOT EXISTS kr_share (cls TEXT, slot TEXT, kind TEXT, line TEXT, share REAL, maxv REAL, players INTEGER, PRIMARY KEY (cls, slot, kind, line));
 CREATE TABLE IF NOT EXISTS line_names (line TEXT, lang TEXT, name TEXT, PRIMARY KEY (line, lang));
+
+-- Legions: players seen by meters with "Take part in the ranking" on, with the legion the game showed for them.
+-- A row is only written when it is new or the legion changed (seen is refreshed at most weekly), and legion_day caps
+-- the rows written per day so the free database limit stays far away.
+CREATE TABLE IF NOT EXISTS legion_members (
+  region TEXT NOT NULL,
+  server INTEGER NOT NULL,
+  server_name TEXT,
+  name TEXT NOT NULL COLLATE NOCASE,
+  legion TEXT NOT NULL COLLATE NOCASE,
+  cls TEXT,
+  seen INTEGER NOT NULL,
+  PRIMARY KEY (region, server, name)
+);
+CREATE INDEX IF NOT EXISTS legion_by_name ON legion_members (region, legion, server);
+CREATE TABLE IF NOT EXISTS legion_day (day TEXT PRIMARY KEY, n INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS legion_servers (region TEXT NOT NULL, name TEXT NOT NULL COLLATE NOCASE, server INTEGER NOT NULL, PRIMARY KEY (region, name));

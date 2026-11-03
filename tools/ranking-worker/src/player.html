@@ -55,6 +55,9 @@
   form.search input { flex: 1; padding: 12px 8px; }
   form.search:focus-within { border-color: var(--fb); }
   .hint { margin-top: 14px; font-size: 13px; color: var(--mute); }
+  #saved h3 { font: 600 11.5px/1 var(--hud); letter-spacing: .14em; text-transform: uppercase; color: var(--mute); margin: 22px 0 10px; }
+  #saved .results { padding-block: 0 6px; }
+  #pFav.on { color: var(--fb); border-color: var(--fb); }
   .results { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; padding-block: 20px 40px; }
   .card { display: flex; gap: 12px; align-items: center; padding: 12px; text-decoration: none; min-width: 0; border-radius: 8px;
     background: var(--panel); border: 1px solid var(--line-2); transition: border-color .2s, transform .2s; }
@@ -78,6 +81,12 @@
   .prof .facts { margin-top: 12px; color: var(--dim); font-size: 15px; display: flex; flex-wrap: wrap; gap: 6px 10px; }
   .prof .facts > span { display: inline-flex; align-items: center; padding: 5px 10px; border: 1px solid var(--line-2); border-radius: 4px; background: rgba(0,0,0,.3); font-family: var(--hud); letter-spacing: .04em; font-size: 13px; }
   .prof .facts b { color: var(--fb); font-weight: 600; }
+  .card.legc .flag { display: grid; place-items: center; font-size: 22px; color: var(--fb); }
+  .card.legc { border-color: var(--fa); }
+  .prof .facts > a.leg { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--fa); border-radius: 4px; background: rgba(0,0,0,.3);
+    color: var(--fb); text-decoration: none; font-family: var(--hud); letter-spacing: .04em; font-size: 13px; transition: background .15s; }
+  .prof .facts > a.leg:hover, .prof .facts > a.leg:focus-visible { background: rgba(255,255,255,.07); }
+  .prof .facts > a.leg small { color: var(--mute); font-size: 11.5px; }
   .prof .acts { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 10px; }
   .cp { text-align: right; }
   .cp b { display: block; font: 700 clamp(46px, 6vw, 72px)/1 var(--hud); letter-spacing: .01em; font-variant-numeric: tabular-nums; }
@@ -270,7 +279,7 @@
       <p class="hint" data-i="hint">Tip: in PeakMeter, click a player and then “Profile”.</p>
     </div>
   </header>
-  <div class="wrap"><div class="results" id="results"></div></div>
+  <div class="wrap"><div id="saved"></div><div class="results" id="results"></div></div>
 </div>
 
 <!-- profile (at /player/<region>/<server>/<name>) -->
@@ -285,6 +294,7 @@
         <div class="acts">
           <button class="btn sm" id="copy" type="button" data-i="copy">Copy link</button>
           <a class="btn sm ghost" id="pDuel" data-i="duel">Compare</a>
+          <button class="btn sm ghost" id="pFav" type="button" hidden></button>
           <a class="btn sm ghost" id="pBis" href="#bisS" hidden data-i="bisJump">Best in slot</a>
         </div>
         <div id="pShare" style="margin-top:14px"></div>
@@ -358,7 +368,9 @@ const DE = {
   gearH: "Ausrüstung", attrH: "Attribute", divH: "Göttliche Werte", allSkills: "Alle Skills →", dvnOpen: "Bretter ansehen →", titleH: "Angelegte Titel",
 };
 const T = de ? {
-  ph: "Charaktername", lvl: "Stufe", cp: "Kampfkraft", il: "Gegenstandsstufe", none: "Keine Charaktere gefunden.", err: "Die offizielle Suche antwortet gerade nicht. Bitte gleich nochmal.",
+  fav: "☆ Merken", faved: "★ Gemerkt", favH: "Gemerkt", recentH: "Zuletzt angesehen",
+  legion: "Legion", members: "Mitglieder", legionTip: "Legion – alle Mitglieder ansehen",
+  ph: "Charakter oder Legion", lvl: "Stufe", cp: "Kampfkraft", il: "Gegenstandsstufe", none: "Keine Charaktere gefunden.", err: "Die offizielle Suche antwortet gerade nicht. Bitte gleich nochmal.",
   tw: "Für Taiwan gibt es keine öffentliche Charaktersuche.", searching: "Suche …", races: { 1: "Elyos", 2: "Asmodier" },
   notFound: "Diesen Charakter gibt es nicht – oder nicht auf diesem Server.", back: "Zur Suche",
   optinH: "Noch keine Ranking-Kills.", optinP: "Im PeakMeter unter Einstellungen „Am Ranking teilnehmen“ einschalten. Nach jedem Dungeon-Boss-Kill erscheinen hier deine Bestwerte mit Platz.",
@@ -374,7 +386,9 @@ const T = de ? {
   noOfficial: "Die offizielle Charakterseite war gerade nicht erreichbar – hier nur die PeakMeter-Daten.",
   src: (t) => `Ausrüstung, Werte und Skills: offizielle AION-2-Charakterseite (NCSOFT), Stand ${t}. Bestwerte: PeakMeter-Rangliste, nur von Spielern, die teilnehmen.`,
 } : {
-  ph: "Character name", lvl: "Level", cp: "Combat power", il: "Item level", none: "No characters found.", err: "The official search is not answering right now. Please try again in a moment.",
+  fav: "☆ Save", faved: "★ Saved", favH: "Saved", recentH: "Recently viewed",
+  legion: "Legion", members: "members", legionTip: "Legion – see all members",
+  ph: "Character or legion", lvl: "Level", cp: "Combat power", il: "Item level", none: "No characters found.", err: "The official search is not answering right now. Please try again in a moment.",
   tw: "Taiwan has no public character search.", searching: "Searching …", races: { 1: "Elyos", 2: "Asmodian" },
   notFound: "This character does not exist – or not on this server.", back: "Back to search",
   optinH: "No ranked kills yet.", optinP: "In PeakMeter, turn on Settings → “Join the ranking”. After every dungeon boss kill your best values show up here with your place.",
@@ -401,6 +415,19 @@ const GRADE_DE = { Common: "Gewöhnlich", Rare: "Selten", Legend: "Legendär", U
 const gradeName = g => (de && GRADE_DE[g]) || g || "";
 const emblem = cls => { const u = PM.classIcon(cls); return u ? '<span class="emb" style="--cc:' + PM.classColor(cls) + '"><img src="' + u + '" alt=""></span>' : ""; };
 const profileUrl = (r, server, name) => "/player/" + r + "/" + encodeURIComponent(server) + "/" + encodeURIComponent(name);
+// Saved and recently viewed players live only in this browser.
+const readList = k => { try { const v = JSON.parse(localStorage.getItem(k) || "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
+const writeList = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+const same = (a, b) => a.r === b.r && String(a.s).toLowerCase() === String(b.s).toLowerCase() && String(a.n).toLowerCase() === String(b.n).toLowerCase();
+function savedCards(list) {
+  return list.map(c => '<a class="card" href="' + profileUrl(c.r, c.s, c.n) + '"><span class="pp">' + (c.img ? '<img class="port" src="' + esc(c.img) + '" alt="">' : '<span class="noimg"></span>') +
+    emblem(c.cls) + '</span><div style="min-width:0"><b>' + esc(c.n) + "</b><span>" + esc(c.s) + " · " + esc(String(c.r).toUpperCase()) + "</span></div></a>").join("");
+}
+function renderSaved() {
+  const fav = readList("pm-fav"), recent = readList("pm-recent").filter(c => !fav.some(f => same(f, c)));
+  $("saved").innerHTML = (fav.length ? "<h3>" + esc(T.favH) + '</h3><div class="results">' + savedCards(fav) + "</div>" : "") +
+    (recent.length ? "<h3>" + esc(T.recentH) + '</h3><div class="results">' + savedCards(recent) + "</div>" : "");
+}
 const remember = r => { try { localStorage.setItem("pm-region", r); } catch {} };
 const recall = () => { try { return localStorage.getItem("pm-region"); } catch { return null; } };
 
@@ -414,7 +441,7 @@ function showSearch() {
   const qs = new URLSearchParams(location.search);
   $("q").placeholder = T.ph;
   $("region").value = qs.get("region") || recall() || "eu";
-  if (qs.get("q")) { $("q").value = qs.get("q"); run(); }
+  if (qs.get("q")) { $("q").value = qs.get("q"); run(); } else renderSaved();
   $("form").addEventListener("submit", e => { e.preventDefault(); run(); });
 }
 async function run() {
@@ -422,16 +449,21 @@ async function run() {
   if (q.length < 2) return;
   remember(region);
   history.replaceState(null, "", "/player?region=" + region + "&q=" + encodeURIComponent(q));
+  $("saved").innerHTML = "";
   out.innerHTML = '<p class="empty" style="grid-column:1/-1">' + T.searching + "</p>";
   try {
+    const legions = fetch("/api/legion/search?region=" + region + "&q=" + encodeURIComponent(q)).then(r => r.ok ? r.json() : []).catch(() => []);
     const r = await fetch("/api/char/search?region=" + region + "&q=" + encodeURIComponent(q));
-    if (r.status === 400) { out.innerHTML = '<p class="empty" style="grid-column:1/-1">' + (region === "tw" ? T.tw : T.none) + "</p>"; return; }
-    if (!r.ok) throw 0;
+    const legs = (await legions).map(l =>
+      '<a class="card legc" href="/legion/' + region + "/" + encodeURIComponent(l.serverName || l.server) + "/" + encodeURIComponent(l.legion) + '"><span class="pp"><span class="noimg flag">⚑</span></span>' +
+      '<div style="min-width:0"><b>' + esc(l.legion) + "</b><span>" + T.legion + " · " + esc(l.serverName || l.server) + " · " + l.n + " " + T.members + "</span></div></a>").join("");
+    if (r.status === 400) { out.innerHTML = legs || '<p class="empty" style="grid-column:1/-1">' + (region === "tw" ? T.tw : T.none) + "</p>"; return; }
+    if (!r.ok) { if (legs) { out.innerHTML = legs; return; } throw 0; }
     const list = await r.json();
-    out.innerHTML = list.length ? list.map(c =>
+    out.innerHTML = legs + (list.length ? list.map(c =>
       '<a class="card" href="' + profileUrl(region, c.server, c.name) + '"><span class="pp">' + (c.img ? '<img class="port" src="' + esc(c.img) + '" alt="">' : '<span class="noimg"></span>') + emblem(c.cls) + "</span>" +
       '<div style="min-width:0"><b>' + esc(c.name) + "</b><span>" + esc(c.server) + " · " + T.lvl + " " + c.level + " · " + (T.races[c.race] || "") + "</span></div></a>").join("")
-      : '<p class="empty" style="grid-column:1/-1">' + T.none + "</p>";
+      : legs ? "" : '<p class="empty" style="grid-column:1/-1">' + T.none + "</p>");
   } catch { out.innerHTML = '<p class="empty" style="grid-column:1/-1">' + T.err + "</p>"; }
 }
 
@@ -466,6 +498,7 @@ async function showProfile(region, server, name) {
   if (p.race) facts.push("<span>" + esc(p.race) + "</span>");
   facts.push("<span>" + esc(d.server) + " · " + region.toUpperCase() + "</span>");
   $("pFacts").innerHTML = facts.join("");
+  loadLegion(region, d);
   const il = (d.stats || []).find(s => s.type === "ItemLevel");
   $("pCp").innerHTML = (p.cp ? '<b class="metal">' + num(p.cp) + "</b><span>" + T.cp + "</span>" : "") +
     (il ? '<div class="il"><b>' + num(il.value) + "</b><span>" + T.il + "</span></div>" : "") + gradeBlock(d.grade, p);
@@ -474,6 +507,13 @@ async function showProfile(region, server, name) {
     text: d.name + " – " + (de ? "AION-2-Profil auf PeakMeter" : "AION 2 profile on PeakMeter"),
     discord: "🛡️ **" + d.name + "** · " + [p.level ? T.lvl + " " + p.level : "", p.className, d.server].filter(Boolean).join(" · ") + (p.cp ? " · " + num(p.cp) + " " + T.cp : ""),
   });
+  const me = { r: region, s: d.server, n: d.name, cls: p.cls || null, img: p.img || null };
+  writeList("pm-recent", [me, ...readList("pm-recent").filter(c => !same(c, me))].slice(0, 8));
+  const favBtn = $("pFav"), isFav = () => readList("pm-fav").some(c => same(c, me));
+  const paint = () => { favBtn.textContent = isFav() ? T.faved : T.fav; favBtn.classList.toggle("on", isFav()); };
+  favBtn.hidden = false;
+  paint();
+  favBtn.onclick = () => { const f = readList("pm-fav").filter(c => !same(c, me)); writeList("pm-fav", isFav() ? f : [me, ...f].slice(0, 12)); paint(); };
   $("pDuel").href = "/compare?r=" + region + "&p1=" + encodeURIComponent(d.server) + "/" + encodeURIComponent(d.name);
 
   renderBests(d, region);
@@ -718,6 +758,21 @@ function openBoard(d, i) {
   if ($("dvnS").dataset.shown !== "1") { $("dvnS").dataset.shown = "1"; $("dvnS").scrollIntoView({ behavior: PM.still ? "auto" : "smooth", block: "start" }); }
   loadBoard(d, d.daevanion[i]);
 }
+// The legion, as seen in game by PeakMeter players (the official profile has none); a click shows all its members.
+async function loadLegion(region, d) {
+  try {
+    const r = await fetch("/api/legion?region=" + region + "&server=" + encodeURIComponent(d.serverId || d.server) + "&player=" + encodeURIComponent(d.name));
+    const l = r.ok ? await r.json() : null;
+    if (!l?.legion) return;
+    const a = document.createElement("a");
+    a.className = "leg";
+    a.href = "/legion/" + region + "/" + encodeURIComponent(l.serverName || d.server) + "/" + encodeURIComponent(l.legion);
+    a.title = T.legionTip;
+    a.innerHTML = "⚑ " + esc(l.legion) + " <small>" + l.count + " " + T.members + "</small>";
+    $("pFacts").appendChild(a);
+  } catch {}
+}
+
 async function loadBoard(d, b) {
   $("dvnTitle").textContent = "Daevanion · " + b.name;
   $("dvBoard").innerHTML = '<div class="skel" style="aspect-ratio:1;height:auto"></div>';

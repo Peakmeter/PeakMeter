@@ -4,3 +4,6 @@ release/
 dist/
 *.user
 .vs/
+
+# wrangler local cache and dev state
+.wrangler/

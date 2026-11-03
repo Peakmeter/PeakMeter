@@ -4,6 +4,7 @@
 //   /boss     live world boss timers of one server (from the meters that play there)
 //   /player   a player's card: class, level, combat power, gear grade, best kills
 //   /rank     top 10 of a dungeon boss (DPS, healing or stagger; all time or this week)
+//   /legion   a legion: members by class and its best kills (from what meters saw in game)
 //   /peakmeter  what PeakMeter is, with the download
 // Setup (once): wrangler.toml [vars] DISCORD_APP_ID + DISCORD_PUBLIC_KEY, then `node discord/register.mjs`.
 
@@ -55,6 +56,7 @@ export function discordBot(h) {
       if (name === "boss") return reply({ type: 4, data: await bossMessage(env, val("region", "eu"), val("server", ""), t, de) });
       if (name === "rank")
         return reply({ type: 4, data: await rankMessage(env, val("region", "eu"), Number(val("boss", 0)), val("metric", "dps"), val("period", "all"), t) });
+      if (name === "legion") return reply({ type: 4, data: await legionMessage(req, env, val("region", "eu"), String(val("name", "")).trim(), t) });
       if (name === "player") {
         // NCSOFT can take a few seconds: answer "thinking…" now, fill it in afterwards.
         ctx.waitUntil(followUp(env.DISCORD_API || API, it, () => playerMessage(req, env, ctx, val("region", "eu"), String(val("name", "")).trim(), String(val("server", "")).trim(), t)));
@@ -91,7 +93,54 @@ export function discordBot(h) {
         .slice(0, 25)
         .map((r) => ({ name: (r.zone ? `${r.name} · ${r.zone}` : r.name).slice(0, 100), value: String(r.boss) }));
     }
+    if (cmd === "legion" && focused.name === "name" && q.length >= 2) {
+      const u = new URL(SITE + "/api/legion/search");
+      u.search = new URLSearchParams({ region, q }).toString();
+      const list = await (await h.legionSearch(u, env)).json();
+      return list.slice(0, 25).map((l) => ({
+        name: `${l.legion} · ${l.serverName || l.server} · ${l.n} ${de ? "Mitglieder" : "members"}`.slice(0, 100), value: `${l.server}|${l.legion}`.slice(0, 100),
+      }));
+    }
     return [];
+  }
+
+  // ------------------------------------------------------------ /legion
+  async function legionMessage(req, env, region, raw, t) {
+    if (!h.REGIONS.has(region)) return { content: "?", flags: 64 };
+    let server = "", legion = raw;
+    const bar = raw.indexOf("|");
+    if (bar > 0) { server = raw.slice(0, bar); legion = raw.slice(bar + 1); }
+    if (legion.length < 2) return { content: t("Gib einen Legionsnamen an.", "Give a legion name."), flags: 64 };
+    if (!server) {
+      // Typed, not picked: take the biggest legion of that name.
+      const u = new URL(SITE + "/api/legion/search");
+      u.search = new URLSearchParams({ region, q: legion }).toString();
+      const hit = (await (await h.legionSearch(u, env)).json()).find((l) => l.legion.toLowerCase() === legion.toLowerCase());
+      if (!hit) return { content: t(`Die Legion „${legion}“ hat noch niemand mit PeakMeter gesehen.`, `Nobody with PeakMeter has seen the legion "${legion}" yet.`) };
+      server = String(hit.server);
+    }
+    const u = new URL(SITE + "/api/legion");
+    u.search = new URLSearchParams({ region, server, legion }).toString();
+    const d = await (await h.legionGet(u, env)).json();
+    if (!d.legion) return { content: t(`Die Legion „${legion}“ hat noch niemand mit PeakMeter gesehen.`, `Nobody with PeakMeter has seen the legion "${legion}" yet.`) };
+    const link = `${SITE}/legion/${region}/${encodeURIComponent(d.serverName || d.server)}/${encodeURIComponent(d.legion)}`;
+    const counts = {};
+    for (const m of d.members) if (m.cls) counts[m.cls] = (counts[m.cls] || 0) + 1;
+    const fields = [];
+    const classes = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([c, n]) => `${h.CLASS_EN[c] || c} ${n}`).join(" · ");
+    if (classes) fields.push({ name: t("Klassen", "Classes"), value: classes.slice(0, 1024) });
+    const best = d.bests.filter((b) => b.metric === "dps").sort((a, b) => b.value - a.value).slice(0, 5);
+    if (best.length) fields.push({ name: t("Beste Kills (DPS)", "Best kills (DPS)"), value: best.map((b) => `**${b.bossName}** — ${b.name} ${h.short(b.value)}`).join("\n") });
+    let names = "";
+    for (const m of d.members) { const next = (names ? ", " : "") + m.name; if (names.length + next.length > 1000) { names += " …"; break; } names += next; }
+    fields.push({ name: t("Mitglieder", "Members") + ` (${d.count})`, value: names || "—" });
+    return {
+      embeds: [{
+        color: COLOR, author: { name: `${d.serverName || d.server} · ${region.toUpperCase()}` }, title: "⚑ " + d.legion, url: link, fields,
+        footer: { text: t("So, wie PeakMeter-Spieler sie im Spiel gesehen haben · PeakMeter", "As PeakMeter players saw them in game · PeakMeter") },
+      }],
+      components: buttons([[t("Legion öffnen", "Open legion"), link]]),
+    };
   }
 
   // ------------------------------------------------------------ /boss
@@ -310,6 +359,13 @@ export const COMMANDS = [
         type: 3, name: "period", description: "All time or this week", description_localizations: { de: "Gesamt oder diese Woche" },
         choices: [{ name: "All time", name_localizations: { de: "Gesamt" }, value: "all" }, { name: "This week", name_localizations: { de: "Diese Woche" }, value: "week" }],
       },
+      region("Region (default EU)", "Region (Standard EU)"),
+    ],
+  },
+  {
+    name: "legion", description: "An AION 2 legion: members and best kills", description_localizations: { de: "Eine AION-2-Legion: Mitglieder und beste Kills" },
+    options: [
+      { type: 3, name: "name", description: "Legion name", description_localizations: { de: "Legionsname" }, required: true, min_length: 2, max_length: 100, autocomplete: true },
       region("Region (default EU)", "Region (Standard EU)"),
     ],
   },
