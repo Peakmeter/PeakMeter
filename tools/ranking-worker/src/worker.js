@@ -328,7 +328,7 @@ async function charBis(url, env, ctx) {
   const lang = url.searchParams.get("lang") === "de" ? "de-DE" : "en-US";
   const short2 = lang === "de-DE" ? "de" : "en";
   if (!REGIONS.has(region) || !name || !server) return json({ error: "invalid" }, 400);
-  const key = new Request(`https://cache.peakmeter/bis/v1/${region}/${encodeURIComponent(server.toLowerCase())}/${encodeURIComponent(name.toLowerCase())}/${lang}`);
+  const key = new Request(`https://cache.peakmeter/bis/v3/${region}/${encodeURIComponent(server.toLowerCase())}/${encodeURIComponent(name.toLowerCase())}/${lang}`);
   const cached = await caches.default.match(key);
   if (cached) return cached;
 
@@ -362,11 +362,12 @@ async function charBis(url, env, ctx) {
   const { results: shares } = cls ? await env.DB.prepare("SELECT slot, kind, line, share, maxv, players FROM kr_share WHERE cls = ?1").bind(cls).all() : { results: [] };
   const scored = bisScore(shares, items);
   const bySlot = new Map(scored.map((s) => [s.slot, s]));
-  // Names for the lines a piece is missing.
-  const missingIds = [...new Set(scored.flatMap((s) => s.kinds.flatMap((k) => k.missing.map((m) => m.id))))];
+  // Names for the lines a piece is missing and for its ideal lines.
+  const missingIds = [...new Set(scored.flatMap((s) => s.kinds.flatMap((k) => [...k.missing, ...k.ideal].map((m) => m.id))))];
   const names = {};
-  if (missingIds.length) {
-    const { results } = await env.DB.prepare(`SELECT line, name FROM line_names WHERE lang = ?1 AND line IN (${missingIds.map(() => "?").join(",")})`).bind(short2, ...missingIds).all();
+  for (let i = 0; i < missingIds.length; i += 90) { // D1 takes at most 100 bound values per query
+    const ids = missingIds.slice(i, i + 90);
+    const { results } = await env.DB.prepare(`SELECT line, name FROM line_names WHERE lang = ?1 AND line IN (${ids.map(() => "?").join(",")})`).bind(short2, ...ids).all();
     for (const r of results) names[r.line] = r.name;
   }
   const stat = scored.flatMap((s) => s.kinds.filter((k) => k.kind === "stat" && k.comparable));

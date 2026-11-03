@@ -233,6 +233,9 @@ export function score(shares, items) {
         .map((s) => ({ id: s.line, share: s.share }));
       res.kinds.push({
         kind, comparable, pick: comparable ? Math.round(pick / best * 100) : null, power: comparable ? Math.round(power / best * 100) : null,
+        // Best in slot: the slot's most carried lines at the largest Korean values. The ideal piece has the first
+        // `slots` of them (as many lines as the piece can have); a few more follow as alternatives.
+        slots: k, ideal: ref.slice(0, Math.min(8, Math.max(k, 6))).map((s) => ({ id: s.line, share: s.share, max: s.maxv })),
         lines, missing: comparable ? missing : ref.slice(0, 4).map((s) => ({ id: s.line, share: s.share })), players: ref[0]?.players || 0,
       });
     }
