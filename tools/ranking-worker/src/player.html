@@ -130,10 +130,18 @@
   .item b { display: block; font-weight: 600; font-size: 14px; line-height: 1.25; overflow-wrap: anywhere; color: var(--g, var(--text)); }
   .item span { color: var(--dim); font-size: 12px; font-family: var(--hud); letter-spacing: .04em; }
   /* A gear piece turns over on click: its best in slot (the lines Korea's top players carry there). */
-  .item[data-bis] { cursor: pointer; }
+  .item[data-bis] { cursor: pointer; position: relative; }
+  /* Says "you can click this": a small BiS tag, a wiggle on hover and once when the gear first scrolls into view. */
+  .item[data-bis]:not(.back)::after { content: "BiS ↻"; position: absolute; top: 6px; right: 6px; font: 700 9.5px/1 var(--hud); letter-spacing: .08em;
+    color: var(--gold); padding: 3px 5px; border-radius: 3px; border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); background: rgba(0,0,0,.35); }
+  .item[data-bis]:not(.back) > div { padding-right: 46px; }
+  .item[data-bis]:not(.back):hover { border-color: color-mix(in srgb, var(--gold) 70%, transparent); animation: wiggle .5s ease-in-out; }
+  .item[data-bis]:not(.back):hover::after { background: var(--gold); color: #0b0c12; }
+  .item.wiggle { animation: wiggle .55s ease-in-out; }
+  @keyframes wiggle { 0%, 100% { transform: none; } 20% { transform: rotate(-1.6deg); } 40% { transform: rotate(1.4deg); } 60% { transform: rotate(-.9deg); } 80% { transform: rotate(.5deg); } }
   .item.turn { animation: turn .32s ease-out; }
   @keyframes turn { from { transform: perspective(600px) rotateY(90deg); opacity: .4; } to { transform: none; opacity: 1; } }
-  @media (prefers-reduced-motion: reduce) { .item.turn { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .item.turn, .item.wiggle, .item[data-bis]:hover { animation: none !important; } }
   .item.back { display: block; border-color: color-mix(in srgb, var(--gold) 55%, transparent);
     background: linear-gradient(160deg, rgba(227,194,122,.10), rgba(0,0,0,.35) 45%); }
   .item.back .bh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
@@ -583,6 +591,18 @@ function turnableGear(b) {
     };
     el.onclick = flip;
     el.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); } };
+  }
+  // The first time the gear scrolls into view, the turnable pieces wiggle one after another.
+  if (any && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver(es => {
+      if (!es.some(e => e.isIntersecting)) return;
+      io.disconnect();
+      document.querySelectorAll("#gear .item[data-bis]:not(.back)").forEach((el, i) => setTimeout(() => {
+        el.classList.add("wiggle");
+        el.addEventListener("animationend", () => el.classList.remove("wiggle"), { once: true });
+      }, 300 + i * 70));
+    }, { threshold: .35 });
+    io.observe($("gear"));
   }
   if (any) { $("gearTip").hidden = false; $("gearTip").textContent = de ? "Klick auf ein Teil: Best in Slot" : "Click a piece: best in slot"; }
 }
