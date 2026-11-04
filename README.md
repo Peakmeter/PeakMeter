@@ -82,7 +82,7 @@
 
 1. Install **[Npcap](https://npcap.com/#download)** (free capture driver, keep the default options).
 2. Download the newest **`PeakMeter-v…-win-x64.zip`** from [Releases](https://github.com/Peakmeter/PeakMeter/releases/latest), unzip it.
-3. Double-click **`PeakMeter installieren.cmd`** – it installs PeakMeter for your user (no admin), adds a desktop shortcut and starts it.
+3. Double-click **`PeakMeter.exe`** and answer *Install PeakMeter?* with Yes – it installs itself for your user (no admin), adds a desktop shortcut and starts. No script, no PowerShell.
    If Windows says *"Windows protected your PC"*: *More info → Run anyway* (PeakMeter is not code-signed yet).
 4. Start PeakMeter **before** logging in: names, your pets and your energy arrive at login and on loading screens.
 
@@ -140,7 +140,7 @@ Bugs and ideas: [Issues](https://github.com/Peakmeter/PeakMeter/issues). The fil
 - **9 Sprachen** (Deutsch, English, Français, Español, Português, Русский, 한국어, 繁體中文, 日本語) und **Regionen** Europa, NA-Ost, NA-West, Korea, Taiwan.
 - Optional dein **Charakterbild** statt Klassen-Logo, **Hinweise** am Bildschirmrand, **Einstellungen** wie bei den großen Metern, **automatische Updates**, schont den PC.
 
-**Installieren:** [Npcap](https://npcap.com/#download) installieren → neueste ZIP unter [Releases](https://github.com/Peakmeter/PeakMeter/releases/latest) laden und entpacken → `PeakMeter installieren.cmd` doppelklicken. Bei „Der Computer wurde durch Windows geschützt“: *Weitere Informationen → Trotzdem ausführen*. PeakMeter **vor dem Einloggen** starten, dann kennt er Namen, Pets und Energie.
+**Installieren:** [Npcap](https://npcap.com/#download) installieren → neueste ZIP unter [Releases](https://github.com/Peakmeter/PeakMeter/releases/latest) laden und entpacken → `PeakMeter.exe` doppelklicken und „PeakMeter installieren?“ mit Ja beantworten. Bei „Der Computer wurde durch Windows geschützt“: *Weitere Informationen → Trotzdem ausführen*. PeakMeter **vor dem Einloggen** starten, dann kennt er Namen, Pets und Energie.
 
 PeakMeter liest nur den Netzwerkverkehr deines eigenen Spiels – kein Speicherzugriff, nichts wird ans Spiel gesendet. Nutzung auf eigenes Risiko; kein offizielles Produkt von NCSOFT.
 

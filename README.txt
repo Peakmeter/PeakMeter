@@ -5,9 +5,13 @@ English below · Deutsch weiter unten
 INSTALL (2 minutes)
 -------------------
 1. Unzip the ZIP (right-click -> "Extract All"). Do not start it from inside the ZIP.
-2. Double-click "PeakMeter installieren.cmd".
+2. Double-click "PeakMeter.exe" and answer "Install PeakMeter?" with Yes.
+   It copies itself to %LocalAppData%\Programs\PeakMeter (no admin rights) and puts itself on the desktop.
    - If Windows says "Windows protected your PC": "More info" -> "Run anyway".
      (PeakMeter is new and not signed yet.)
+   - If your antivirus complains: PeakMeter is open source (github.com/Peakmeter/PeakMeter). It reads network
+     traffic through Npcap, like Wireshark, which some scanners flag by mistake. Please report it to your
+     antivirus as a false positive.
    - If Npcap is missing, its download page opens: install Npcap with the default settings,
      then start PeakMeter from the desktop icon.
 3. Start PeakMeter BEFORE you log in (names, pets and energy arrive at login and loading screens).
@@ -69,9 +73,13 @@ DEUTSCH
 INSTALLIEREN (2 Minuten)
 ------------------------
 1. Die ZIP entpacken (Rechtsklick -> "Alle extrahieren"). Nicht direkt aus der ZIP starten.
-2. "PeakMeter installieren.cmd" doppelklicken.
+2. "PeakMeter.exe" doppelklicken und "PeakMeter installieren?" mit Ja beantworten.
+   Es kopiert sich nach %LocalAppData%\Programs\PeakMeter (ohne Admin-Rechte) und legt sich auf den Desktop.
    - Meldet Windows "Der Computer wurde durch Windows geschützt": "Weitere Informationen" -> "Trotzdem ausführen".
      (PeakMeter ist neu und noch nicht signiert.)
+   - Meckert dein Virenscanner: PeakMeter ist Open Source (github.com/Peakmeter/PeakMeter). Es liest den
+     Netzwerkverkehr über Npcap, wie Wireshark – das halten manche Scanner fälschlich für verdächtig.
+     Bitte beim Hersteller deines Virenscanners als Fehlalarm melden.
    - Fehlt Npcap, öffnet sich die Download-Seite: Npcap mit den Standard-Einstellungen installieren,
      dann PeakMeter über das Desktop-Symbol starten.
 3. PeakMeter starten, BEVOR du dich einloggst (Namen, Pets und Energie kommen beim Einloggen und Laden).

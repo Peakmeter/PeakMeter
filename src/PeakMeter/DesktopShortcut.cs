@@ -24,12 +24,13 @@ internal static class DesktopShortcut
         catch { return false; }
     }
 
-    /// <summary>Puts PeakMeter on the desktop and in the start menu, pointing at the running exe. False when Windows says no.</summary>
-    public static bool Create()
+    /// <summary>Puts PeakMeter on the desktop and in the start menu, pointing at <paramref name="target"/> (default: the
+    /// running exe). False when Windows says no.</summary>
+    public static bool Create(string? target = null)
     {
         try
         {
-            var exe = Environment.ProcessPath!;
+            var exe = target ?? Environment.ProcessPath!;
             var shellType = Type.GetTypeFromProgID("WScript.Shell");
             if (shellType is null) return false;
             dynamic shell = Activator.CreateInstance(shellType)!;

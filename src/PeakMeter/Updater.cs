@@ -9,8 +9,8 @@ namespace PeakMeter;
 
 /// <summary>
 /// Updates from the GitHub releases of <see cref="App.GitHubRepo"/>: the newest release's
-/// <c>PeakMeter-v*-win-x64.zip</c> is downloaded, checked against the SHA-256 published next to it, unpacked and handed
-/// to its own installer, which replaces this copy and starts the new one. Nothing else is sent: one request to
+/// <c>PeakMeter-v*-win-x64.zip</c> is downloaded, checked against the SHA-256 published next to it, unpacked, and its
+/// PeakMeter.exe started with <c>--install-update</c>: it replaces this copy and starts (see <see cref="Installer"/>). Nothing else is sent: one request to
 /// api.github.com with the user agent "PeakMeter/&lt;version&gt;".
 /// </summary>
 public sealed class Updater : IDisposable
@@ -108,17 +108,17 @@ public sealed class Updater : IDisposable
 
             var files = Path.Combine(dir, "files");
             ZipFile.ExtractToDirectory(zip, files);
-            var installer = Path.Combine(files, "install.ps1");
-            if (!File.Exists(installer)) return;
+            // The new PeakMeter.exe installs itself: it waits for this one to close, copies itself over it and starts.
+            var exe = Path.Combine(files, "PeakMeter.exe");
+            if (!File.Exists(exe)) return;
             Status?.Invoke(L.S("Installiere Update …", "Installing update …"));
             _settings.Save();
-            Process.Start(new ProcessStartInfo("powershell.exe",
-                $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{installer}\" -Silent")
+            Process.Start(new ProcessStartInfo(exe, $"--install-update --wait {Environment.ProcessId}")
             {
                 UseShellExecute = false,
-                CreateNoWindow = true,
+                WorkingDirectory = files,
             });
-            // The installer closes this process and starts the new version.
+            System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => System.Windows.Application.Current.Shutdown());
         }
         catch (Exception ex)
         {

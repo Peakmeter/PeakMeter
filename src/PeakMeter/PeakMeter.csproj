@@ -10,7 +10,13 @@
     <AssemblyName>PeakMeter</AssemblyName>
     <RootNamespace>PeakMeter</RootNamespace>
     <Product>PeakMeter</Product>
-    <Version>1.45.2</Version>
+    <Company>PeakMeter</Company>
+    <Authors>PeakMeter</Authors>
+    <AssemblyTitle>PeakMeter - DPS meter for AION 2</AssemblyTitle>
+    <Description>PeakMeter - free, open-source DPS meter for AION 2 (GPL-3.0)</Description>
+    <Copyright>Copyright (c) 2026 PeakMeter, GPL-3.0</Copyright>
+    <RepositoryUrl>https://github.com/Peakmeter/PeakMeter</RepositoryUrl>
+    <Version>1.46.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
 

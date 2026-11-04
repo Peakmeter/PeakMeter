@@ -15,8 +15,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
 
 Copy-Item (Join-Path $root 'LICENSE') $out
 Copy-Item (Join-Path $root 'README.txt') $out
+# PeakMeter.exe installs itself. install.ps1 only stays so that 1.45 and older can still update themselves.
 Copy-Item (Join-Path $root 'installer\install.ps1') $out
-Copy-Item (Join-Path $root 'installer\PeakMeter installieren.cmd') $out
 
 New-Item -ItemType Directory -Force $dist | Out-Null
 $zip = Join-Path $dist "PeakMeter-v$version-win-x64.zip"

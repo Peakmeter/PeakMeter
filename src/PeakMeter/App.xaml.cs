@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Namen statt Nummern (#1173) nach Neustart im Dungeon";
-    private const string WhatsNewEn = "names instead of numbers (#1173) after a restart in a dungeon";
+    private const string WhatsNew = "Installer ohne PowerShell (weniger Virenscanner-Alarm), Legionen auf der Website, Desktop-Verknüpfung";
+    private const string WhatsNewEn = "installer without PowerShell (fewer antivirus alarms), legions on the website, desktop shortcut";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -56,6 +56,24 @@ public partial class App : Application
         // One meter at a time: starting it again just brings the overlay back.
         var p = Array.IndexOf(e.Args, "--profile");
         if (p >= 0 && p + 1 < e.Args.Length) global::PeakMeter.Settings.UseProfile(e.Args[p + 1]);
+
+        // PeakMeter installs itself (no script): the updater starts the new exe with --install-update, and a double click
+        // on PeakMeter.exe in the unzipped folder offers to install it.
+        if (e.Args.Contains("--install-update"))
+        {
+            var w = Array.IndexOf(e.Args, "--wait");
+            var pid = w >= 0 && w + 1 < e.Args.Length && int.TryParse(e.Args[w + 1], out var n) ? n : 0;
+            Installer.Install(pid, startAfter: true);
+            Shutdown();
+            return;
+        }
+        if (global::PeakMeter.Settings.Profile.Length == 0 && !e.Args.Contains("--demo") && !e.Args.Contains("--restart") &&
+            !Installer.IsInstalledCopy() && OfferInstall())
+        {
+            Shutdown();
+            return;
+        }
+
         _single = new Mutex(true, @"Local\PeakMeter.Single" + global::PeakMeter.Settings.Profile, out var first);
         if (!first && e.Args.Contains("--restart"))
         {
@@ -186,6 +204,65 @@ public partial class App : Application
         if (!_hotkeys.Register(Settings.HotkeyClickThrough, ToggleClickThrough)) failed.Add(Settings.HotkeyClickThrough);
         if (Settings.HotkeyCopy.Length > 0 && !_hotkeys.Register(Settings.HotkeyCopy, () => _overlay?.CopySummary())) failed.Add(Settings.HotkeyCopy);
         return failed;
+    }
+
+    /// <summary>
+    /// Started from somewhere other than the install folder: offer to install (once per folder). True when the installed
+    /// copy was started and this one should end.
+    /// </summary>
+    private static bool OfferInstall()
+    {
+        var s = global::PeakMeter.Settings.Load();
+        L.Use(s.Language, Path.Combine(AppContext.BaseDirectory, "data"));
+        if (Installer.RunsFromTemp())
+        {
+            System.Windows.MessageBox.Show(
+                L.S("PeakMeter läuft direkt aus der ZIP-Datei.\n\nBitte erst entpacken: Rechtsklick auf die ZIP → „Alle extrahieren“, dann im entpackten Ordner PeakMeter.exe doppelklicken.",
+                    "PeakMeter is running straight from the ZIP file.\n\nPlease unzip it first: right-click the ZIP → \"Extract All\", then double-click PeakMeter.exe in the unzipped folder."),
+                "PeakMeter", MessageBoxButton.OK, MessageBoxImage.Information);
+            return false;
+        }
+        var here = Path.GetFullPath(AppContext.BaseDirectory);
+        if (string.Equals(s.InstallDeclinedFor, here, StringComparison.OrdinalIgnoreCase)) return false;
+        var update = File.Exists(Installer.InstalledExe);
+        var answer = System.Windows.MessageBox.Show(
+            update
+                ? L.S("PeakMeter ist schon installiert. Mit dieser Version ersetzen?\n\nDeine Einstellungen und Kämpfe bleiben erhalten.\n\nNein = nur aus diesem Ordner starten.",
+                      "PeakMeter is already installed. Replace it with this version?\n\nYour settings and fights are kept.\n\nNo = just run it from this folder.")
+                : L.S(@"PeakMeter installieren?
+
+Kopiert PeakMeter nach %LocalAppData%\Programs\PeakMeter (ohne Admin-Rechte) und legt es auf den Desktop und ins Startmenü.
+
+Nein = nur aus diesem Ordner starten.".ReplaceLineEndings("\n"),
+                      @"Install PeakMeter?
+
+Copies PeakMeter to %LocalAppData%\Programs\PeakMeter (no admin rights) and puts it on the desktop and in the start menu.
+
+No = just run it from this folder.".ReplaceLineEndings("\n")),
+            "PeakMeter", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (answer != MessageBoxResult.Yes)
+        {
+            s.InstallDeclinedFor = here;
+            s.Save();
+            return false;
+        }
+        if (!Installer.Install(0, startAfter: true))
+        {
+            System.Windows.MessageBox.Show(
+                L.S("PeakMeter konnte nicht installiert werden. Bitte laufendes PeakMeter beenden und nochmal versuchen.",
+                    "PeakMeter could not be installed. Please close the running PeakMeter and try again."),
+                "PeakMeter", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+        if (!LiveCapture.IsNpcapInstalled())
+        {
+            System.Windows.MessageBox.Show(
+                L.S("Installiert! Es fehlt noch Npcap (kostenlos, auch von Wireshark genutzt). Die Download-Seite öffnet sich jetzt: Npcap mit den Standard-Einstellungen installieren, danach PeakMeter vom Desktop starten.",
+                    "Installed! Npcap is still missing (free, also used by Wireshark). Its download page opens now: install Npcap with the default settings, then start PeakMeter from the desktop."),
+                "PeakMeter", MessageBoxButton.OK, MessageBoxImage.Information);
+            try { Process.Start(new ProcessStartInfo("https://npcap.com/#download") { UseShellExecute = true }); } catch { }
+        }
+        return true;
     }
 
     /// <summary>Starts a fresh PeakMeter (after a language change) and ends this one.</summary>

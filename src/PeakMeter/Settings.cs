@@ -80,6 +80,8 @@ public sealed class Settings
     public bool CountedInstall { get; set; }
     /// <summary>The "no desktop shortcut – click to add one" notice was shown (it comes once).</summary>
     public bool ShortcutOffered { get; set; }
+    /// <summary>The folder where "Install PeakMeter?" was answered with No (asked again from any other folder).</summary>
+    public string? InstallDeclinedFor { get; set; }
     /// <summary>Send own dungeon boss kills to the public ranking (Ranking). Off unless the player turns it on.</summary>
     public bool RankingOptIn { get; set; }
     /// <summary>With the ranking on: also send the legions of the players around you (name, server, class, legion — what
