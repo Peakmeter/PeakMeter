@@ -596,6 +596,7 @@ public sealed class Meter : IDisposable
     private readonly OnlineCounter? _online;
     private BossShare? _bossShare;
     private CensusShare? _census;
+    private LegionShare? _legions;
 
     public Meter(Settings settings, bool demo, bool saveDemo = false)
     {
@@ -687,6 +688,8 @@ public sealed class Meter : IDisposable
         if (!demo) _bossShare = new BossShare(settings, Bosses, Data, Log, () => _demoOnly || DemoRunning);
         // The census on the website: class, server and combat power of the players seen, without names (same setting).
         if (!demo) _census = new CensusShare(settings, Data, Log);
+        // Legions on the website: your own with the ranking, the players around you only with their own switch.
+        if (!demo) _legions = new LegionShare(settings, Data, Log);
         Gathering = new Gathering(settings, Log);
         Gathering.LoadNames(Path.Combine(AppContext.BaseDirectory, "data"));
         _savedVersion = Tracker.CacheVersion;
@@ -723,6 +726,9 @@ public sealed class Meter : IDisposable
         }
         switch (e)
         {
+            case PlayerLegionEvent pl when !_demoOnly && !DemoRunning:
+                _legions?.Add(pl);
+                return;
             case PartyLeftEvent:
                 lock (_rosterGate)
                 {
@@ -1025,6 +1031,7 @@ public sealed class Meter : IDisposable
         _capture?.Dispose();
         _bossShare?.Dispose();
         _census?.Dispose();
+        _legions?.Dispose();
         try { Gathering?.Upload(); } catch { }
         if (!_demoOnly) Tracker.Reset(); // closing mid-fight keeps the fight so far
         _demo?.Dispose();

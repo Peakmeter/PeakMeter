@@ -38,6 +38,7 @@ public partial class SettingsWindow : Window
         ShowPets.IsChecked = _s.ShowPets;
         CountMe.IsChecked = _s.CountMe;
         RankingOptIn.IsChecked = _s.RankingOptIn;
+        LegionShareOthers.IsChecked = _s.LegionShareOthers;
         Compact.IsChecked = _s.Compact;
         FocusMode.IsChecked = _s.FocusMode;
         FadeIdle.IsChecked = _s.FadeIdle;
@@ -155,6 +156,7 @@ public partial class SettingsWindow : Window
         _s.ShowPets = ShowPets.IsChecked == true;
         _s.CountMe = CountMe.IsChecked == true;
         _s.RankingOptIn = RankingOptIn.IsChecked == true;
+        _s.LegionShareOthers = LegionShareOthers.IsChecked == true;
         _s.Compact = Compact.IsChecked == true;
         _s.FocusMode = FocusMode.IsChecked == true;
         _s.FadeIdle = FadeIdle.IsChecked == true;

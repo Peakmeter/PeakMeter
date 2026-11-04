@@ -738,6 +738,53 @@ public sealed class PacketParser
         Emit(isSelf
             ? new SelfIdentifiedEvent(TimeMs, id, name, server, cls, level, combatPower)
             : new PlayerSeenEvent(TimeMs, id, name, server, cls));
+        if (FindLegion(b, o) is { } legion)
+        {
+            if (server == 0) Emit(new PlayerServerEvent(TimeMs, name, legion.Server));
+            Emit(new PlayerLegionEvent(TimeMs, name, legion.Server, cls, legion.Name, isSelf));
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// The legion block a little after the name in a player record: <c>server u16, legion id u32, 00 00, server u16,
+    /// len u8 + utf8 legion name, 01 00</c> (EU city capture 2026-11-04: "Duccy" → "Todohouse", "ROCK" → "Squad404").
+    /// Players without a legion have no such block. The server written twice is what makes it safe to look for.
+    /// </summary>
+    internal static (int Server, string Name)? FindLegion(ReadOnlySpan<byte> b, int from)
+    {
+        var end = Math.Min(b.Length - 13, from + 400);
+        for (var i = from; i <= end; i++)
+        {
+            var server = Wire.U16(b, i);
+            if (server is < 1000 or >= 3000 || b[i + 6] != 0 || b[i + 7] != 0 || Wire.U16(b, i + 8) != server) continue;
+            if (Wire.U32(b, i + 2) is 0 or > 100_000_000) continue;
+            int len = b[i + 10];
+            if (len is < 1 or > 24 || i + 13 + len > b.Length) continue;
+            if (b[i + 11 + len] != 0x01 || b[i + 12 + len] != 0x00) continue;
+            if (TryLegionName(b.Slice(i + 11, len), out var name)) return (server, name);
+        }
+        return null;
+    }
+
+    private static readonly System.Text.UTF8Encoding StrictText = new(false, true);
+
+    /// <summary>A legion name: valid UTF-8, letters and digits (any script) with single spaces, at least one letter.</summary>
+    private static bool TryLegionName(ReadOnlySpan<byte> field, out string name)
+    {
+        name = "";
+        string s;
+        try { s = StrictText.GetString(field); }
+        catch (System.Text.DecoderFallbackException) { return false; }
+        if (s.Length is < 2 or > 24 || s[0] == ' ' || s[^1] == ' ' || s.Contains("  ")) return false;
+        var letters = 0;
+        foreach (var ch in s)
+        {
+            if (char.IsLetter(ch)) letters++;
+            else if (!char.IsDigit(ch) && ch != ' ') return false;
+        }
+        if (letters == 0) return false;
+        name = s;
         return true;
     }
 

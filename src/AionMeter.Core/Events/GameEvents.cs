@@ -97,6 +97,10 @@ public sealed record ReadyCheckEvent(long TimeMs, ulong DbId, bool Ready, bool I
 /// <summary>A player's server, known by name only (summon / loot owner records).</summary>
 public sealed record PlayerServerEvent(long TimeMs, string Name, int ServerId) : GameEvent(TimeMs);
 
+/// <summary>A player's legion, from the legion block in their player record (PeakMeter, EU city capture 2026-11-04):
+/// <c>server u16, legion id u32, 00 00, server u16, len u8 + utf8 legion name, 01 00</c>.</summary>
+public sealed record PlayerLegionEvent(long TimeMs, string Name, int ServerId, GameClass Class, string Legion, bool IsSelf) : GameEvent(TimeMs);
+
 public sealed record PlayerSeenEvent(long TimeMs, uint ActorId, string Name, int ServerId, GameClass Class) : GameEvent(TimeMs);
 
 /// <param name="Name">Display name when not resolvable from the NPC tables (demo / tests).</param>

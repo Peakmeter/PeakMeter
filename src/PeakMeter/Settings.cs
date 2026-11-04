@@ -82,6 +82,9 @@ public sealed class Settings
     public bool ShortcutOffered { get; set; }
     /// <summary>Send own dungeon boss kills to the public ranking (Ranking). Off unless the player turns it on.</summary>
     public bool RankingOptIn { get; set; }
+    /// <summary>With the ranking on: also send the legions of the players around you (name, server, class, legion — what
+    /// the game shows above their heads) to the website's legion pages. Off unless the player turns it on.</summary>
+    public bool LegionShareOthers { get; set; }
     public double UiScale { get; set; } = 1.0;
     /// <summary>Update interval in a fight, milliseconds.</summary>
     public int RefreshMs { get; set; } = 250;
