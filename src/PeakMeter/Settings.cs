@@ -78,6 +78,8 @@ public sealed class Settings
     /// <summary>The day (d-yyyyMMdd, UTC) this meter was last counted for, so a day counts once.</summary>
     public string? LastCountDay { get; set; }
     public bool CountedInstall { get; set; }
+    /// <summary>The "no desktop shortcut – click to add one" notice was shown (it comes once).</summary>
+    public bool ShortcutOffered { get; set; }
     /// <summary>Send own dungeon boss kills to the public ranking (Ranking). Off unless the player turns it on.</summary>
     public bool RankingOptIn { get; set; }
     public double UiScale { get; set; } = 1.0;

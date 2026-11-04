@@ -144,6 +144,17 @@ public partial class App : Application
             Settings.Save();
             Toasts.Show(L.S($"Aktualisiert auf v{Version}", $"Updated to v{Version}"), L.S("Neu: ", "New: ") + L.S(WhatsNew, WhatsNewEn), "update", 12);
         }
+        // No desktop shortcut (started from the unzipped folder, or the installer was stopped): offer one, once.
+        if (!Settings.ShortcutOffered && !e.Args.Contains("--demo") && DesktopShortcut.Missing())
+        {
+            Settings.ShortcutOffered = true;
+            Settings.Save();
+            Toasts.Show(L.S("Keine Desktop-Verknüpfung", "No desktop shortcut"),
+                L.S("Klick = PeakMeter auf den Desktop legen", "Click = put PeakMeter on the desktop"), "update", 20, () =>
+                    Toasts.Show("PeakMeter", DesktopShortcut.Create()
+                        ? L.S("Liegt jetzt auf dem Desktop und im Startmenü.", "Now on the desktop and in the start menu.")
+                        : L.S("Ging nicht – Rechtsklick auf PeakMeter.exe → Senden an → Desktop.", "Didn't work – right-click PeakMeter.exe → Send to → Desktop."), "update", 8));
+        }
         Meter.Start();
         if (e.Args.Contains("--demo")) Meter.StartDemo();
         if (e.Args.Contains("--step-back")) // test aid: show the previous fight in the meter
