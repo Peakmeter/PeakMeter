@@ -19,6 +19,10 @@ internal static class Installer
 
     private static readonly string[] Items = ["PeakMeter.exe", "data", "LICENSE", "README.txt"];
 
+    /// <summary>The folder holds the game data (boss, dungeon and skill names) the meter needs next to its exe.</summary>
+    public static bool HasData(string folder) =>
+        File.Exists(Path.Combine(folder, "data", "npcs", "en.json")) && File.Exists(Path.Combine(folder, "data", "dungeons", "en.json"));
+
     /// <summary>True when this exe is the installed copy.</summary>
     public static bool IsInstalledCopy() =>
         Environment.ProcessPath is { } exe && string.Equals(Path.GetFullPath(exe), Path.GetFullPath(InstalledExe), StringComparison.OrdinalIgnoreCase);
@@ -36,6 +40,7 @@ internal static class Installer
     {
         var src = AppContext.BaseDirectory;
         if (IsInstalledCopy()) return true;
+        if (!HasData(src)) return false; // never install an exe without its boss and dungeon data
         CloseOldCopy(waitPid);
 
         Directory.CreateDirectory(Dir);

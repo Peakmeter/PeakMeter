@@ -382,6 +382,7 @@ public partial class SettingsWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private static string Changelog => L.S(
+        "v1.46.1 – Behoben: Lag nur PeakMeter.exe allein auf dem Desktop (ohne den Ordner „data“), standen Nummern statt Boss- und Dungeon-Namen da und die Anzeige blieb beim nächsten Boss hängen. Jetzt startet der Meter in dem Fall die installierte Version oder sagt, dass die ZIP komplett entpackt werden muss. Ohne „data“ wird auch nicht mehr installiert.\n\n" +
         "v1.46.0 – Neu: PeakMeter installiert und aktualisiert sich selbst – kein Skript und kein PowerShell mehr. Das löst bei Virenscannern viel seltener Fehlalarm aus. Zum Installieren einfach PeakMeter.exe doppelklicken. Fehlt die Desktop-Verknüpfung, bietet der Meter sie einmal an. Legionen: mit „Am Ranking teilnehmen“ geht deine Legion mit auf die Website (Profil und Legionsseite); mit dem neuen Schalter „Legionen von Spielern in der Nähe teilen“ auch die der Spieler um dich herum.\n\n" +
         "v1.45.2 – Behoben: Wurde der Meter mitten im Dungeon gestartet, standen statt Namen nur Nummern da (z. B. „#1173“). Fehlende Namen holt er sich jetzt aus der Gruppenliste (über die Klasse).\n\n" +
         "v1.45.1 – Behoben: Mit „Nur ich / meine Gruppe“ blieb der Meter im Dungeon manchmal beim ersten Boss stehen und zählte die nächsten Bosse nicht. Im Dungeon zeigt er jetzt immer den laufenden Kampf, und er erkennt dich auch am Namen, wenn das Spiel dir nach Tod oder Zonenwechsel eine neue ID gibt.\n\n" +
@@ -450,6 +451,7 @@ public partial class SettingsWindow : Window
         "v1.3 – Klassen-Logo · Gruppe mit Gearscore und Kampfkraft\n\n" +
         "v1.2 – Luftangriff · alle 48 Weltbosse\n\n" +
         "v1.1 – Logs · Event-Timer mit sanftem Klingelton",
+        "v1.46.1 – Fixed: with only PeakMeter.exe on the desktop (without the “data” folder) bosses and dungeons showed as numbers and the display got stuck at the next boss. The meter now starts the installed copy instead, or says the whole ZIP must be unzipped. It also no longer installs without “data”.\n\n" +
         "v1.46.0 – New: PeakMeter installs and updates itself – no script and no PowerShell any more, which antivirus programs flag far less often. To install, just double-click PeakMeter.exe. Without a desktop shortcut the meter offers one, once. Legions: with “Join the ranking” your legion goes to the website (profile and legion page); with the new switch “Share legions of players nearby” also those of the players around you.\n\n" +
         "v1.45.2 – Fixed: if the meter was started in the middle of a dungeon, players showed as numbers (like “#1173”) instead of names. Missing names now come from the party list (matched by class).\n\n" +
         "v1.45.1 – Fixed: with “Only me / my party” the meter sometimes froze on the first boss in a dungeon and didn't count the next bosses. In dungeons it now always shows the running fight, and it also finds you by name when the game gives you a new id after a death or zone change.\n\n" +

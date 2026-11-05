@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Installer ohne PowerShell (weniger Virenscanner-Alarm), Legionen auf der Website, Desktop-Verknüpfung";
-    private const string WhatsNewEn = "installer without PowerShell (fewer antivirus alarms), legions on the website, desktop shortcut";
+    private const string WhatsNew = "fehlt der data-Ordner, sagt der Meter das jetzt (statt Nummern und hängender Anzeige)";
+    private const string WhatsNewEn = "a missing data folder is now reported (instead of numbers and a stuck display)";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -64,6 +64,26 @@ public partial class App : Application
             var w = Array.IndexOf(e.Args, "--wait");
             var pid = w >= 0 && w + 1 < e.Args.Length && int.TryParse(e.Args[w + 1], out var n) ? n : 0;
             Installer.Install(pid, startAfter: true);
+            Shutdown();
+            return;
+        }
+        // Without its data folder the meter knows no bosses or dungeons (numbers instead of names, a second boss never
+        // starts a new fight). That happens when only PeakMeter.exe was dragged to the desktop or started from the ZIP.
+        if (!Installer.HasData(AppContext.BaseDirectory))
+        {
+            if (!Installer.IsInstalledCopy() && Installer.HasData(Installer.Dir) && File.Exists(Installer.InstalledExe))
+            {
+                // A complete installed copy exists: start that one instead.
+                Process.Start(new ProcessStartInfo(Installer.InstalledExe) { UseShellExecute = false, WorkingDirectory = Installer.Dir });
+            }
+            else
+            {
+                L.Use(global::PeakMeter.Settings.Load().Language, AppContext.BaseDirectory);
+                System.Windows.MessageBox.Show(
+                    L.S("Der Ordner „data“ fehlt neben PeakMeter.exe – so kennt der Meter keine Bosse und Dungeons.\n\nBitte die ZIP komplett entpacken (Rechtsklick auf die ZIP → „Alle extrahieren“) und im entpackten Ordner PeakMeter.exe doppelklicken. Nur die exe allein zu kopieren reicht nicht.",
+                        "The \"data\" folder next to PeakMeter.exe is missing – without it the meter knows no bosses or dungeons.\n\nPlease unzip the whole ZIP (right-click the ZIP → \"Extract All\") and double-click PeakMeter.exe in the unzipped folder. Copying only the exe is not enough."),
+                    "PeakMeter", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
             Shutdown();
             return;
         }
