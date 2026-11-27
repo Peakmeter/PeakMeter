@@ -167,3 +167,12 @@ CREATE TABLE IF NOT EXISTS legion_members (
 CREATE INDEX IF NOT EXISTS legion_by_name ON legion_members (region, legion, server);
 CREATE TABLE IF NOT EXISTS legion_day (day TEXT PRIMARY KEY, n INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS legion_servers (region TEXT NOT NULL, name TEXT NOT NULL COLLATE NOCASE, server INTEGER NOT NULL, PRIMARY KEY (region, name));
+
+-- One row per character and day when a profile is opened (only rewritten when something changed): the profile's
+-- history and the combat power lists (highest, biggest climbers).
+CREATE TABLE IF NOT EXISTS char_snap (
+  region TEXT NOT NULL, server INTEGER NOT NULL, name TEXT NOT NULL COLLATE NOCASE, day TEXT NOT NULL,
+  server_name TEXT, cls TEXT, level INTEGER, cp INTEGER, il INTEGER, dvn INTEGER, titles INTEGER, gear TEXT, at INTEGER NOT NULL,
+  PRIMARY KEY (region, server, name, day)
+);
+CREATE INDEX IF NOT EXISTS char_snap_day ON char_snap (region, day);

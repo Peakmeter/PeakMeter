@@ -82,6 +82,8 @@ export default {
       if (url.pathname === "/api/legion/search") return await legionSearch(url, env);
       if (url.pathname === "/api/legion/top") return await legionTop(url, env);
       if (url.pathname === "/api/stats") return await stats(url, ctx, env);
+      if (url.pathname === "/api/char/history") return await charHistory(url, env);
+      if (url.pathname === "/api/cp") return await cpLists(url, env, ctx);
       if (url.pathname === "/api/legion" && req.method === "POST") return await legionSave(req, env);
       if (url.pathname === "/api/legion") return await legionGet(url, env);
       if (url.pathname.startsWith("/legion/")) return html(isBot(req) ? await legionCard(url, env) : legionPage);
@@ -513,7 +515,73 @@ async function charProfile(url, env, ctx) {
     at: Date.now(),
   };
   body.grade = await gearGrade(env, region, serverId, body.name, body.profile, body.stats);
+  if (pr && serverId) ctx.waitUntil(charSnap(env, region, serverId, body).catch(() => {}));
   const res = json(body, 200, { "cache-control": "public, max-age=600" });
+  ctx.waitUntil(caches.default.put(key, res.clone()));
+  return res;
+}
+
+// ---------------------------------------------------------------- history and combat power lists
+// One row per character and day, written when a profile is opened and only when something changed (0 rows written
+// otherwise), so a busy profile costs at most a handful of writes a day.
+async function charSnap(env, region, server, b) {
+  const p = b.profile || {};
+  const il = (b.stats || []).find((s) => s.type === "ItemLevel")?.value || 0;
+  const gear = JSON.stringify((b.gear || []).map((g) => [g.slot, g.name, g.plus || 0, g.exceed || 0]));
+  const dvn = (b.daevanion || []).reduce((n, x) => n + (x.open || 0), 0);
+  const titles = b.titles?.owned ?? null;
+  await env.DB.prepare(
+    `INSERT INTO char_snap (region, server, name, day, server_name, cls, level, cp, il, dvn, titles, gear, at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)
+     ON CONFLICT(region, server, name, day) DO UPDATE SET server_name = excluded.server_name, cls = excluded.cls, level = excluded.level,
+       cp = excluded.cp, il = excluded.il, dvn = excluded.dvn, titles = excluded.titles, gear = excluded.gear, at = excluded.at
+     WHERE char_snap.cp IS NOT excluded.cp OR char_snap.il IS NOT excluded.il OR char_snap.level IS NOT excluded.level
+       OR char_snap.dvn IS NOT excluded.dvn OR char_snap.titles IS NOT excluded.titles OR char_snap.gear IS NOT excluded.gear`
+  ).bind(region, server, b.name, new Date().toISOString().slice(0, 10), b.server || null, p.cls || null, p.level || null,
+    p.cp || null, il, dvn, titles, gear, Date.now()).run();
+}
+
+/** A character's daily snapshots (newest 180 days), oldest first: combat power, item level, Daevanion, titles, gear. */
+async function charHistory(url, env) {
+  const region = (url.searchParams.get("region") || "eu").toLowerCase();
+  const server = Number(url.searchParams.get("server")) || 0;
+  const name = cleanText(url.searchParams.get("name"), 24);
+  if (!REGIONS.has(region) || !server || !name) return json([], 400);
+  const { results } = await env.DB.prepare(
+    "SELECT day, level, cp, il, dvn, titles, gear FROM char_snap WHERE region = ?1 AND server = ?2 AND name = ?3 ORDER BY day DESC LIMIT 180"
+  ).bind(region, server, name).all();
+  const list = results.reverse().map((r) => ({ ...r, gear: (() => { try { return JSON.parse(r.gear || "[]"); } catch { return []; } })() }));
+  return json(list, 200, { "cache-control": "public, max-age=300" });
+}
+
+/** Highest combat power and biggest climbers among the characters looked up on PeakMeter (region, optional server/class). */
+async function cpLists(url, env, ctx) {
+  const region = (url.searchParams.get("region") || "eu").toLowerCase();
+  const server = Number(url.searchParams.get("server")) || 0;
+  const cls = /^[a-z]{3,14}$/.test(url.searchParams.get("cls") || "") ? url.searchParams.get("cls") : "";
+  const days = [7, 30].includes(Number(url.searchParams.get("days"))) ? Number(url.searchParams.get("days")) : 7;
+  if (!REGIONS.has(region)) return json({ top: [], climbers: [] }, 400);
+  const key = new Request(`${url.origin}/api/cp?region=${region}&server=${server}&cls=${cls}&days=${days}`);
+  const cached = await caches.default.match(key);
+  if (cached) return cached;
+  const since = (d) => new Date(Date.now() - d * DAY).toISOString().slice(0, 10);
+  const [top, climbers] = await env.DB.batch([
+    env.DB.prepare(
+      `SELECT name, server_name AS serverName, cls, level, cp, il, MAX(day) AS day FROM char_snap
+       WHERE region = ?1 AND day >= ?2 AND (?3 = 0 OR server = ?3) AND (?4 = '' OR cls = ?4) AND cp > 0
+       GROUP BY server, name ORDER BY cp DESC LIMIT 50`
+    ).bind(region, since(30), server, cls),
+    env.DB.prepare(
+      `WITH w AS (SELECT server, name, server_name, cls, cp, day,
+                    ROW_NUMBER() OVER (PARTITION BY server, name ORDER BY day) AS a,
+                    ROW_NUMBER() OVER (PARTITION BY server, name ORDER BY day DESC) AS z
+                  FROM char_snap WHERE region = ?1 AND day >= ?2 AND (?3 = 0 OR server = ?3) AND (?4 = '' OR cls = ?4) AND cp > 0)
+       SELECT l.name AS name, l.server_name AS serverName, l.cls AS cls, f.cp AS fromCp, l.cp AS cp, l.cp - f.cp AS gain, f.day AS fromDay
+       FROM w l JOIN w f ON f.server = l.server AND f.name = l.name AND f.a = 1
+       WHERE l.z = 1 AND l.cp > f.cp ORDER BY gain DESC LIMIT 25`
+    ).bind(region, since(days), server, cls),
+  ]);
+  const res = json({ top: top.results, climbers: climbers.results, days }, 200, { "cache-control": "public, max-age=900" });
   ctx.waitUntil(caches.default.put(key, res.clone()));
   return res;
 }

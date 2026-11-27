@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "fehlt der data-Ordner, sagt der Meter das jetzt (statt Nummern und hängender Anzeige)";
-    private const string WhatsNewEn = "a missing data folder is now reported (instead of numbers and a stuck display)";
+    private const string WhatsNew = "Meter überall verschiebbar, Ranking & Legionen standardmäßig an, Verlauf im Website-Profil";
+    private const string WhatsNewEn = "drag the meter from anywhere, ranking & legions on by default, history on website profiles";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -181,6 +181,16 @@ public partial class App : Application
             Settings.LastVersion = Version;
             Settings.Save();
             Toasts.Show(L.S($"Aktualisiert auf v{Version}", $"Updated to v{Version}"), L.S("Neu: ", "New: ") + L.S(WhatsNew, WhatsNewEn), "update", 12);
+        }
+        // Ranking and legion sharing are on by default: say so once, and a click opens the settings to turn them off.
+        if (!Settings.SharingNoticeShown && !e.Args.Contains("--demo"))
+        {
+            Settings.SharingNoticeShown = true;
+            Settings.Save();
+            Toasts.Show(L.S("Ranking & Legionen sind an", "Ranking & legions are on"),
+                L.S("Deine Boss-Kills und Legionen in der Nähe gehen auf die PeakMeter-Website. Klick = Einstellungen zum Ausschalten.",
+                    "Your boss kills and nearby legions go to the PeakMeter website. Click = settings to turn it off."),
+                "update", 20, ShowSettings);
         }
         // No desktop shortcut (started from the unzipped folder, or the installer was stopped): offer one, once.
         if (!Settings.ShortcutOffered && !e.Args.Contains("--demo") && DesktopShortcut.Missing())

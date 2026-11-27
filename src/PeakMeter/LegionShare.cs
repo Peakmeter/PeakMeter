@@ -10,7 +10,7 @@ namespace PeakMeter;
 /// <summary>
 /// Legions on the website (profiles and legion pages). The game shows every player's legion above their head; the meter
 /// reads it from the player records. Your own character's legion goes out with "Join the ranking"; the legions of the
-/// players around you only with "Share legions of players nearby" (both off unless the player turns them on).
+/// players around you only with "Share legions of players nearby" (both on by default, both can be turned off).
 /// A player goes out again only when their legion changed or after 30 days, so the website's free database stays far
 /// below its daily limit.
 /// </summary>

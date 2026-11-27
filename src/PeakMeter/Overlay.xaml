@@ -13,7 +13,8 @@
 
     <Grid>
         <Border x:Name="Root" Background="{StaticResource Panel}" BorderBrush="{StaticResource Edge}" BorderThickness="1"
-                CornerRadius="12" Padding="10,8,10,10">
+                CornerRadius="12" Padding="10,8,10,10"
+                MouseLeftButtonDown="Root_MouseDown" MouseMove="Root_MouseMove">
             <StackPanel>
                 <!-- Header: fight title, sub line, clock; toolbar on hover -->
                 <Grid x:Name="Header" Background="Transparent" MouseLeftButtonDown="Header_MouseDown" MouseWheel="Header_Wheel">

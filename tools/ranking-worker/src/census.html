@@ -98,6 +98,8 @@ PM.translate({
 });
 const de = PM.de, $ = id => document.getElementById(id);
 const T = de ? {
+  topH: "Höchste Kampfkraft", topP: "Unter allen Charakteren, deren Profil auf PeakMeter in den letzten 30 Tagen aufgerufen wurde.",
+  upH: "Größte Aufsteiger · 7 Tage", upP: "Kampfkraft-Zuwachs seit dem ersten Profil-Aufruf der letzten 7 Tage.", char: "Charakter", cpCol: "Kampfkraft", gain: "Zuwachs",
   legH: "Größte Legionen", legP: "Nach Mitgliedern, die PeakMeter-Spieler in den letzten 60 Tagen gesehen haben.", legion: "Legion", members: "Mitglieder",
   crH: "Hergestellt", crP: "Was PeakMeter-Spieler in dieser Region hergestellt haben.",
   gatH: "Gesammelt", gatP: "Was PeakMeter-Spieler in dieser Region gesammelt haben.", item: "Gegenstand", amount: "Menge",
@@ -106,6 +108,8 @@ const T = de ? {
   empty: "Für diese Auswahl wurde noch niemand gezählt. Sobald Spieler mit PeakMeter (ab v1.39) hier kämpfen, füllt sich der Zensus.", region: "Region",
   names: { gladiator: "Gladiator", templar: "Templer", ranger: "Waldläufer", assassin: "Assassine", sorcerer: "Magier", elementalist: "Beschwörer", cleric: "Kleriker", chanter: "Kantor", brawler: "Faustkämpfer" },
 } : {
+  topH: "Highest combat power", topP: "Among every character whose profile was opened on PeakMeter in the last 30 days.",
+  upH: "Biggest climbers · 7 days", upP: "Combat power gained since the first profile visit of the last 7 days.", char: "Character", cpCol: "Combat power", gain: "Gained",
   legH: "Biggest legions", legP: "By members PeakMeter players have seen in the last 60 days.", legion: "Legion", members: "Members",
   crH: "Crafted", crP: "What PeakMeter players crafted in this region.",
   gatH: "Gathered", gatP: "What PeakMeter players gathered in this region.", item: "Item", amount: "Amount",
@@ -193,6 +197,16 @@ async function loadGather() {
   const host = $("gat");
   if (!host) return;
   let html = "";
+  try {
+    const cp = await (await fetch("/api/cp?region=" + region + (server ? "&server=" + server : ""))).json();
+    const who = c => '<td><a href="/player/' + region + "/" + encodeURIComponent(c.serverName) + "/" + encodeURIComponent(c.name) + '">' + esc(c.name) + "</a></td><td>" + esc(c.serverName || "") + "</td>";
+    if (cp.top?.length) html += '<section class="s"><div class="s-head"><h2>' + esc(T.topH) + '</h2><span class="rule"></span><p>' + esc(T.topP) + '</p></div><div class="win" style="padding:6px 4px">' +
+      '<table class="srvs"><thead><tr><th>#</th><th>' + esc(T.char) + "</th><th>Server</th><th>" + esc(T.cpCol) + "</th></tr></thead><tbody>" +
+      cp.top.slice(0, 25).map((c, i) => "<tr><td>" + (i + 1) + "</td>" + who(c) + "<td>" + nf.format(c.cp) + "</td></tr>").join("") + "</tbody></table></div></section>";
+    if (cp.climbers?.length) html += '<section class="s"><div class="s-head"><h2>' + esc(T.upH) + '</h2><span class="rule"></span><p>' + esc(T.upP) + '</p></div><div class="win" style="padding:6px 4px">' +
+      '<table class="srvs"><thead><tr><th>#</th><th>' + esc(T.char) + "</th><th>Server</th><th>" + esc(T.gain) + "</th></tr></thead><tbody>" +
+      cp.climbers.slice(0, 15).map((c, i) => "<tr><td>" + (i + 1) + "</td>" + who(c) + '<td style="color:#5fd38d">+' + nf.format(c.gain) + " <small style=\"opacity:.6\">" + nf.format(c.fromCp) + " → " + nf.format(c.cp) + "</small></td></tr>").join("") + "</tbody></table></div></section>";
+  } catch {}
   try {
     const list = await (await fetch("/api/legion/top?region=" + region + (server ? "&server=" + server : ""))).json();
     if (Array.isArray(list) && list.length) {

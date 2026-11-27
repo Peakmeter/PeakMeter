@@ -82,11 +82,15 @@ public sealed class Settings
     public bool ShortcutOffered { get; set; }
     /// <summary>The folder where "Install PeakMeter?" was answered with No (asked again from any other folder).</summary>
     public string? InstallDeclinedFor { get; set; }
-    /// <summary>Send own dungeon boss kills to the public ranking (Ranking). Off unless the player turns it on.</summary>
-    public bool RankingOptIn { get; set; }
+    /// <summary>Send own dungeon boss kills (and the own legion) to the public ranking. On by default since 1.47; can be
+    /// turned off in the settings.</summary>
+    public bool RankingOptIn { get; set; } = true;
     /// <summary>With the ranking on: also send the legions of the players around you (name, server, class, legion — what
-    /// the game shows above their heads) to the website's legion pages. Off unless the player turns it on.</summary>
-    public bool LegionShareOthers { get; set; }
+    /// the game shows above their heads) to the website's legion pages. On by default since 1.47.</summary>
+    public bool LegionShareOthers { get; set; } = true;
+
+    /// <summary>The one-time notice "ranking and legions are on – click to change" was shown.</summary>
+    public bool SharingNoticeShown { get; set; }
     public double UiScale { get; set; } = 1.0;
     /// <summary>Update interval in a fight, milliseconds.</summary>
     public int RefreshMs { get; set; } = 250;
@@ -143,6 +147,13 @@ public sealed class Settings
                     s.DpsMode = "a";
                     s.SettingsVersion = 3;
                 }
+                if (s.SettingsVersion < 4)
+                {
+                    // v4: ranking and legion sharing on for everyone (a one-time notice says how to turn them off).
+                    s.RankingOptIn = true;
+                    s.LegionShareOthers = true;
+                    s.SettingsVersion = 4;
+                }
                 return s;
             }
         }
@@ -158,7 +169,7 @@ public sealed class Settings
         {
             lock (SaveGate)
             {
-                SettingsVersion = 3;
+                SettingsVersion = 4;
                 Directory.CreateDirectory(Dir);
                 File.WriteAllText(FilePath, JsonSerializer.Serialize(this, Json));
             }

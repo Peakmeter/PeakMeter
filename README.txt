@@ -24,7 +24,7 @@ WHAT IT DOES
 - Ready check: ✓ / ✗ for every party member in the lobby.
 - Pets: at a monster you see how many souls its pet still needs (green = full, orange = level 2, red = far off).
   Pet window (paw button): "Here in this area", all pets, and a "Map" button that shows the spawns.
-- Ranking (opt-in): the best DPS, healing and stagger per dungeon boss – overall, per class, per week.
+- Ranking (on by default, can be turned off): the best DPS, healing and stagger per dungeon boss – overall, per class, per week.
   After a ranked kill the meter shows your place.
 - Click a player: idle time (seconds without an own hit) and, at ☠, the hits that led to the death.
 - Picture button: copies an image of the fight for Discord (paste with Ctrl+V).
@@ -57,8 +57,10 @@ Anonymous player count: while connected to the game, PeakMeter raises a public c
 With the same setting it shares your server's world boss times (boss, server, when it comes back – no name or
 character) for the live timers on the website, and for the census the class, server, combat power and gear score of
 players seen in fights (never a name), and which items you gather and how many. Turn all of it off in Settings: "Count me anonymously".
-Ranking (off unless you turn it on, Settings -> "Join the ranking"): after a dungeon boss kill PeakMeter sends only
-YOUR name, server, class, combat power, DPS, healing and stagger to the PeakMeter ranking server. Never other players.
+Ranking (on by default, turn off in Settings -> "Join the ranking"): after a dungeon boss kill PeakMeter sends
+YOUR name, server, class, combat power, DPS, healing, stagger and legion to the PeakMeter ranking server. With
+"Share legions of players nearby" (also on by default) it sends the name, server, class and legion of players around
+you – what the game shows above their heads – for the legion pages; never their stats or fights.
 Not an official product, not affiliated with NCSOFT.
 Uninstall: delete the folder %LocalAppData%\Programs\PeakMeter and the desktop shortcut.
 
@@ -92,7 +94,7 @@ WAS ES KANN
 - Bereit-Check: ✓ / ✗ bei jedem Gruppenmitglied in der Lobby.
 - Pets: Beim Monster siehst du, wie viele Seelen dem Pet noch fehlen (grün = voll, orange = Stufe 2, rot = viel fehlt).
   Pet-Fenster (Pfote unten): „Hier im Gebiet“, alle Pets, Knopf „Karte“ zeigt die Spawns.
-- Ranking (freiwillig): die besten DPS, Heilung und Stagger pro Dungeon-Boss – gesamt, pro Klasse, pro Woche.
+- Ranking (standardmäßig an, abschaltbar): die besten DPS, Heilung und Stagger pro Dungeon-Boss – gesamt, pro Klasse, pro Woche.
   Nach einem Ranking-Kill zeigt der Meter deinen Platz.
 - Klick auf einen Spieler: Leerlauf (Sekunden ohne eigenen Treffer) und bei ☠ die Treffer, die zum Tod geführt haben.
 - Bild-Knopf: kopiert ein Bild vom Kampf für Discord (dort mit Strg+V einfügen).
@@ -125,9 +127,11 @@ Anonyme Nutzerzahl: Solange PeakMeter mit dem Spiel verbunden ist, zählt es all
 Einstellungen: „Anonym mitzählen“. Mit derselben Einstellung teilt es die Weltboss-Zeiten deines Servers (Boss, Server,
 wann er zurückkommt – kein Name, kein Charakter) für die Live-Timer auf der Webseite, und für den Zensus Klasse, Server,
 Kampfkraft und Gearscore der Spieler aus deinen Kämpfen (nie ein Name) und welche Gegenstände du wie oft sammelst.
-Ranking (aus, bis du es einschaltest: Einstellungen -> „Am Ranking teilnehmen“): Nach einem Dungeon-Boss-Kill sendet
-PeakMeter nur DEINEN Namen, Server, Klasse, Kampfkraft, DPS, Heilung und Stagger an den PeakMeter-Ranking-Server.
-Nie andere Spieler.
+Ranking (standardmäßig an, abschaltbar: Einstellungen -> „Am Ranking teilnehmen“): Nach einem Dungeon-Boss-Kill
+sendet PeakMeter DEINEN Namen, Server, Klasse, Kampfkraft, DPS, Heilung, Stagger und deine Legion an den
+PeakMeter-Ranking-Server. Mit „Legionen von Spielern in der Nähe teilen“ (ebenfalls an) zusätzlich Name, Server,
+Klasse und Legion der Spieler um dich herum – was das Spiel über ihren Köpfen zeigt – für die Legionsseiten; nie
+ihre Werte oder Kämpfe.
 Kein offizielles Produkt, nicht mit NCSOFT verbunden.
 Deinstallieren: Ordner %LocalAppData%\Programs\PeakMeter und die Desktop-Verknüpfung löschen.
 

@@ -39,7 +39,7 @@
 - **Better than your best?** – live: your DPS against your best kill of this boss (else your last attempt), plus your best kill time.
 - **Idle time & death recap** – click a player: seconds without an own hit, and at ☠ the hits that took them down.
 - **Copy for Discord** – one click puts a picture of the fight on the clipboard; paste it with Ctrl+V.
-- **Ranking (opt-in)** – the best DPS, healing and stagger per dungeon boss, overall, per class and per week. After a ranked kill the meter shows your place. [Ranking & download page](https://peakmeter-ranking.peakmeter.workers.dev)
+- **Ranking (on by default, can be turned off)** – the best DPS, healing and stagger per dungeon boss, overall, per class and per week. After a ranked kill the meter shows your place. [Ranking & download page](https://peakmeter-ranking.peakmeter.workers.dev)
 - **Party** – level, gear score and combat power of every member, server tags like in game, a link to each player's PeakMeter profile (gear, stats, Daevanion, skills and their best kills).
 
 ### Pets

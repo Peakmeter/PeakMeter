@@ -943,8 +943,25 @@ public partial class Overlay : Window
 
     private void Header_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.ClickCount == 2) { ToggleCollapsed(); e.Handled = true; return; }
-        if (_settings.Locked || e.ButtonState != MouseButtonState.Pressed) return;
+        if (e.ClickCount == 2) { ToggleCollapsed(); e.Handled = true; }
+    }
+
+    // The whole meter moves, not just the header: dragging starts after a few pixels, so a plain click on a row,
+    // the pet line or the timers still is a click. Buttons handle their own press and never start a drag.
+    private Point? _dragFrom;
+
+    private void Root_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (!_settings.Locked) _dragFrom = e.GetPosition(this);
+    }
+
+    private void Root_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (_dragFrom is not { } from) return;
+        if (e.LeftButton != MouseButtonState.Pressed) { _dragFrom = null; return; }
+        var p = e.GetPosition(this);
+        if (Math.Abs(p.X - from.X) < 4 && Math.Abs(p.Y - from.Y) < 4) return;
+        _dragFrom = null;
         try { DragMove(); } catch (InvalidOperationException) { }
         SavePlacement();
     }
