@@ -32,8 +32,8 @@ public partial class App : Application
     public static string Version { get; } = typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
 
     /// <summary>One line shown after an update.</summary>
-    private const string WhatsNew = "Meter überall verschiebbar, Ranking & Legionen standardmäßig an, Verlauf im Website-Profil";
-    private const string WhatsNewEn = "drag the meter from anywhere, ranking & legions on by default, history on website profiles";
+    private const string WhatsNew = "Updates klappen jetzt auch, wenn Windows Programme aus dem Temp-Ordner blockiert";
+    private const string WhatsNewEn = "updates now work even when Windows blocks programs in the Temp folder";
 
     /// <summary>Ko-fi page for donations; the tray item and the settings button use it once it is filled in.</summary>
     public const string KofiUrl = "https://ko-fi.com/peakmeter";
@@ -87,6 +87,7 @@ public partial class App : Application
             Shutdown();
             return;
         }
+        Installer.CleanUp();
         if (global::PeakMeter.Settings.Profile.Length == 0 && !e.Args.Contains("--demo") && !e.Args.Contains("--restart") &&
             !Installer.IsInstalledCopy() && OfferInstall())
         {

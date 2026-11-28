@@ -9,8 +9,8 @@ namespace PeakMeter;
 
 /// <summary>
 /// Updates from the GitHub releases of <see cref="App.GitHubRepo"/>: the newest release's
-/// <c>PeakMeter-v*-win-x64.zip</c> is downloaded, checked against the SHA-256 published next to it, unpacked, and its
-/// PeakMeter.exe started with <c>--install-update</c>: it replaces this copy and starts (see <see cref="Installer"/>). Nothing else is sent: one request to
+/// <c>PeakMeter-v*-win-x64.zip</c> is downloaded, checked against the SHA-256 published next to it, unpacked and
+/// swapped into this copy's folder, and the new exe starts from there (see <see cref="Installer.SwapInPlace"/>). Nothing else is sent: one request to
 /// api.github.com with the user agent "PeakMeter/&lt;version&gt;".
 /// </summary>
 public sealed class Updater : IDisposable
@@ -108,16 +108,17 @@ public sealed class Updater : IDisposable
 
             var files = Path.Combine(dir, "files");
             ZipFile.ExtractToDirectory(zip, files);
-            // The new PeakMeter.exe installs itself: it waits for this one to close, copies itself over it and starts.
-            var exe = Path.Combine(files, "PeakMeter.exe");
-            if (!File.Exists(exe)) return;
+            // Nothing is started from Temp (app-control policies block that): the new files replace this copy in its
+            // own folder, then the new exe starts from there.
             Status?.Invoke(L.S("Installiere Update …", "Installing update …"));
             _settings.Save();
-            Process.Start(new ProcessStartInfo(exe, $"--install-update --wait {Environment.ProcessId}")
+            if (Installer.SwapInPlace(files) is not { } exe)
             {
-                UseShellExecute = false,
-                WorkingDirectory = files,
-            });
+                Status?.Invoke(L.S("Update konnte die Dateien nicht ersetzen – bitte PeakMeter neu von der Website laden.",
+                    "The update could not replace the files – please download PeakMeter again from the website."));
+                return;
+            }
+            Process.Start(new ProcessStartInfo(exe, "--restart") { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(exe)! });
             System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => System.Windows.Application.Current.Shutdown());
         }
         catch (Exception ex)

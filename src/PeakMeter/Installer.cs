@@ -5,9 +5,8 @@ namespace PeakMeter;
 
 /// <summary>
 /// PeakMeter installs and updates itself: no script, no PowerShell. Started from the unzipped folder it offers to copy
-/// itself to %LocalAppData%\Programs\PeakMeter (no admin rights) with a desktop and start menu shortcut. The updater
-/// starts the new version's exe with <c>--install-update</c>, which waits for the old one to close, copies itself over
-/// it and starts the installed copy.
+/// itself to %LocalAppData%\Programs\PeakMeter (no admin rights) with a desktop and start menu shortcut. Updates swap
+/// the files in place (<see cref="SwapInPlace"/>); <c>--install-update</c> stays for the updaters of 1.46 and 1.47.
 /// </summary>
 internal static class Installer
 {
@@ -43,34 +42,68 @@ internal static class Installer
         if (!HasData(src)) return false; // never install an exe without its boss and dungeon data
         CloseOldCopy(waitPid);
 
-        Directory.CreateDirectory(Dir);
-        var copied = false;
-        for (var attempt = 0; attempt < 20 && !copied; attempt++)
-        {
-            try
-            {
-                foreach (var item in Items)
-                {
-                    var from = Path.Combine(src, item);
-                    var to = Path.Combine(Dir, item);
-                    if (File.Exists(from)) File.Copy(from, to, overwrite: true);
-                    else if (Directory.Exists(from)) CopyFolder(from, to);
-                }
-                // The German-only readme of older versions: README.txt (English and German) replaces it.
-                var old = Path.Combine(Dir, "LIESMICH.txt");
-                if (File.Exists(old)) File.Delete(old);
-                copied = true;
-            }
-            catch (IOException) { Thread.Sleep(750); }
-            catch (UnauthorizedAccessException) { Thread.Sleep(750); }
-        }
-        if (!copied) return false;
+        if (!CopyItems(src, Dir)) return false;
 
         if (TestDir is not null) return true;
         DesktopShortcut.Create(InstalledExe);
         if (startAfter)
             Process.Start(new ProcessStartInfo(InstalledExe, "--restart") { UseShellExecute = false, WorkingDirectory = Dir });
         return true;
+    }
+
+    /// <summary>
+    /// The update without starting anything from Temp (Smart App Control and other app-control policies block that):
+    /// the running exe renames itself to PeakMeter.old.exe (Windows allows renaming a running program), the new files
+    /// are copied into its own folder, and the caller starts the new exe from there. Returns the new exe's path, or
+    /// null when nothing changed (the old exe is put back).
+    /// </summary>
+    public static string? SwapInPlace(string src)
+    {
+        if (!HasData(src) || !File.Exists(Path.Combine(src, "PeakMeter.exe")) || Environment.ProcessPath is not { } exe) return null;
+        var dir = Path.GetDirectoryName(exe)!;
+        var old = Path.Combine(dir, "PeakMeter.old.exe");
+        try { if (File.Exists(old)) File.Delete(old); } catch { }
+        try { File.Move(exe, old); } catch { return null; }
+        if (CopyItems(src, dir)) return exe;
+        try { if (!File.Exists(exe)) File.Move(old, exe); } catch { }
+        return null;
+    }
+
+    /// <summary>The previous version left behind by <see cref="SwapInPlace"/>; gone once it no longer runs.</summary>
+    public static void CleanUp()
+    {
+        try
+        {
+            var old = Path.Combine(AppContext.BaseDirectory, "PeakMeter.old.exe");
+            if (File.Exists(old)) File.Delete(old);
+        }
+        catch { }
+    }
+
+    /// <summary>Copies exe, data, license and readme from one folder to another, retrying while files are in use.</summary>
+    private static bool CopyItems(string src, string dst)
+    {
+        Directory.CreateDirectory(dst);
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            try
+            {
+                foreach (var item in Items)
+                {
+                    var from = Path.Combine(src, item);
+                    var to = Path.Combine(dst, item);
+                    if (File.Exists(from)) File.Copy(from, to, overwrite: true);
+                    else if (Directory.Exists(from)) CopyFolder(from, to);
+                }
+                // The German-only readme of older versions: README.txt (English and German) replaces it.
+                var old = Path.Combine(dst, "LIESMICH.txt");
+                if (File.Exists(old)) File.Delete(old);
+                return true;
+            }
+            catch (IOException) { Thread.Sleep(750); }
+            catch (UnauthorizedAccessException) { Thread.Sleep(750); }
+        }
+        return false;
     }
 
     /// <summary>The meter being replaced: the one that asked for the update, and any copy running from the install folder.</summary>
